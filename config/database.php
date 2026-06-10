@@ -4,11 +4,17 @@
  * Connexion PDO sécurisée avec charset utf8mb4
  */
 
-define('DB_HOST', 'sql201.infinityfree.com');
-define('DB_NAME', 'if0_41928500_my_db');
-define('DB_USER', 'if0_41928500');
-define('DB_PASS', 'sidibrahim5med');
-define('DB_CHARSET', 'utf8mb4');
+// Surcharge locale optionnelle (développement) : config/database.local.php
+// peut définir DB_HOST/DB_NAME/DB_USER/DB_PASS avant les valeurs de production.
+if (file_exists(__DIR__ . '/database.local.php')) {
+    require __DIR__ . '/database.local.php';
+}
+
+if (!defined('DB_HOST')) define('DB_HOST', 'sql201.infinityfree.com');
+if (!defined('DB_NAME')) define('DB_NAME', 'if0_41928500_my_db');
+if (!defined('DB_USER')) define('DB_USER', 'if0_41928500');
+if (!defined('DB_PASS')) define('DB_PASS', 'sidibrahim5med');
+if (!defined('DB_CHARSET')) define('DB_CHARSET', 'utf8mb4');
 
 /**
  * Obtenir une connexion PDO sécurisée

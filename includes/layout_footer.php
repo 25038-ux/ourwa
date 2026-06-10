@@ -1,4 +1,5 @@
 <?php if (isset($_GET['embed'])): ?>
+    <?php if (isset($scripts_supplementaires)) echo $scripts_supplementaires; ?>
     </div><!-- /.embed-fragment -->
 <?php else: ?>
             </div><!-- /.page-content -->

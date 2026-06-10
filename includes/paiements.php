@@ -140,16 +140,23 @@ function mpRecalc(prefix) {
         out.style.color = (cible > 0 && Math.abs(total - cible) < 0.01) ? '#10B981' : '';
     }
 }
-// Auto-ajoute une première ligne pré-remplie pour chaque widget au chargement.
-document.addEventListener('DOMContentLoaded', () => {
+// Auto-ajoute une première ligne pré-remplie pour chaque widget.
+// Appelable plusieurs fois sans risque (utilisé aussi par le hub AJAX).
+function mpInitAll() {
     document.querySelectorAll('.mp-widget').forEach(w => {
         const prefix = w.dataset.prefix;
         const cible = parseFloat(w.dataset.cible) || 0;
-        if (document.getElementById(prefix + '_lignes').children.length === 0) {
+        const lignes = document.getElementById(prefix + '_lignes');
+        if (lignes && lignes.children.length === 0) {
             mpAjouter(prefix, undefined, cible > 0 ? cible : undefined);
         }
     });
-});
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mpInitAll);
+} else {
+    mpInitAll();
+}
 </script>
 JS;
 }

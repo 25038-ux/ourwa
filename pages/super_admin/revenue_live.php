@@ -23,8 +23,8 @@ $src_labels = [
 $jour = $_GET['jour'] ?? date('Y-m-d');
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $jour)) $jour = date('Y-m-d');
 
-$mois  = nettoyer_entier($_GET['mois'] ?? 0) ?? (int) date('n');
-$annee = nettoyer_entier($_GET['annee'] ?? 0) ?? (int) date('Y');
+$mois  = nettoyer_entier($_GET['mois'] ?? null) ?? (int) date('n');
+$annee = nettoyer_entier($_GET['annee'] ?? null) ?? (int) date('Y');
 
 // --- Revenus du jour, par moyen (entrant) ---
 $st = $db->prepare("

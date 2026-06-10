@@ -13,8 +13,8 @@ $mois_noms = [1=>'Janvier',2=>'Février',3=>'Mars',4=>'Avril',5=>'Mai',6=>'Juin'
               7=>'Juillet',8=>'Août',9=>'Septembre',10=>'Octobre',11=>'Novembre',12=>'Décembre'];
 
 $type = ($_GET['type'] ?? 'staff') === 'profs' ? 'profs' : 'staff';
-$mois  = nettoyer_entier($_GET['mois'] ?? 0) ?? (int) date('n');
-$annee = nettoyer_entier($_GET['annee'] ?? 0) ?? (int) date('Y');
+$mois  = nettoyer_entier($_GET['mois'] ?? null) ?? (int) date('n');
+$annee = nettoyer_entier($_GET['annee'] ?? null) ?? (int) date('Y');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'payer_salaire') {
     exiger_csrf();

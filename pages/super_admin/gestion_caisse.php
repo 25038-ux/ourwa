@@ -19,6 +19,7 @@ require_finance_page();
 $db = getDB();
 $message = '';
 $type_message = '';
+$panneau_moyens_ouvert = false; // rouvert après une action sur les moyens de paiement
 
 $mois_noms = [1=>'Janvier',2=>'Février',3=>'Mars',4=>'Avril',5=>'Mai',6=>'Juin',
               7=>'Juillet',8=>'Août',9=>'Septembre',10=>'Octobre',11=>'Novembre',12=>'Décembre'];
@@ -32,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ---- Moyens de paiement : ajout / activation ----
     if ($action === 'ajouter_moyen') {
+        $panneau_moyens_ouvert = true;
         $nom = nettoyer($_POST['moyen_nom'] ?? '');
         if (mb_strlen($nom) >= 2) {
             try {
@@ -48,10 +50,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     elseif ($action === 'basculer_moyen') {
+        $panneau_moyens_ouvert = true;
         $mid = nettoyer_entier($_POST['moyen_id'] ?? 0);
         if ($mid) {
             $db->prepare('UPDATE moyens_paiement SET actif = NOT actif WHERE id = :id')->execute([':id' => $mid]);
-            $message = 'Moyen de paiement mis à jour.';
+            $st = $db->prepare('SELECT nom, actif FROM moyens_paiement WHERE id = :id');
+            $st->execute([':id' => $mid]);
+            $mo = $st->fetch();
+            $message = $mo
+                ? 'Moyen de paiement « ' . $mo['nom'] . ' » ' . ($mo['actif'] ? 'activé' : 'désactivé') . '.'
+                : 'Moyen de paiement mis à jour.';
             $type_message = 'success';
         }
     }
@@ -144,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     elseif ($action === 'exemption_mensuelle') {
         $etudiant_id = nettoyer_entier($_POST['etudiant_id'] ?? 0);
         $mois  = nettoyer_entier($_POST['mois'] ?? 0);
-        $annee = nettoyer_entier($_POST['annee'] ?? 0) ?? (int) date('Y');
+        $annee = nettoyer_entier($_POST['annee'] ?? null) ?? (int) date('Y');
         $motif = nettoyer($_POST['motif'] ?? '');
         if ($etudiant_id && $mois >= 1 && $mois <= 12) {
             try {
@@ -169,8 +177,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // ---- Notifier les impayés du mois ----
     elseif ($action === 'notifier_impayes') {
-        $mois  = nettoyer_entier($_POST['mois'] ?? 0) ?? (int) date('n');
-        $annee = nettoyer_entier($_POST['annee'] ?? 0) ?? (int) date('Y');
+        $mois  = nettoyer_entier($_POST['mois'] ?? null) ?? (int) date('n');
+        $annee = nettoyer_entier($_POST['annee'] ?? null) ?? (int) date('Y');
         $envoyes = 0;
         if ($mois >= 1 && $mois <= 12) {
             // Étudiants non payés, non exemptés (totale ou mensuelle), avec parent.
@@ -333,9 +341,10 @@ include __DIR__ . '/../../includes/layout_header.php';
 <?php endif; ?>
 
 <?php if ($print_recu && $recu_data): ?>
-    <div class="no-print" style="margin-bottom:1rem;display:flex;gap:.5rem;">
-        <button onclick="window.print()" class="btn btn-primary">🖨️ Imprimer le reçu</button>
-        <a href="gestion_caisse.php?parent_id=<?= e((int)$recu_data['parent_id']) ?>" class="btn btn-secondary">← Retour</a>
+    <div class="no-print" style="margin-bottom:1rem;display:flex;gap:.5rem;flex-wrap:wrap;">
+        <button onclick="window.print()" class="btn btn-primary" style="width:auto;">🖨️ Imprimer le reçu</button>
+        <a href="gestion_caisse.php?parent_id=<?= e((int)$recu_data['parent_id']) ?>" class="btn btn-secondary">← Profil du correspondant</a>
+        <button onclick="window.close()" class="btn btn-secondary">Fermer</button>
     </div>
     <div id="recu" style="max-width:600px;margin:0 auto;padding:2rem;border:1px solid #ddd;background:#fff;">
         <div style="text-align:center;border-bottom:2px solid #6366F1;padding-bottom:1rem;margin-bottom:1rem;">
@@ -438,36 +447,39 @@ include __DIR__ . '/../../includes/layout_header.php';
                     Profil exempté — aucun paiement mensuel requis.
                 </div>
             <?php else: ?>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.5rem;margin-top:1rem;">
+            <div class="mois-grid">
                 <?php for ($m = 1; $m <= 12; $m++):
                     $paye = $enf['paiements'][$m] ?? null;
                     $exempte_mois = array_key_exists($m, $enf['exempt_mois']);
+                    $etat = $paye ? 'is-paye' : ($exempte_mois ? 'is-exempt' : 'is-due');
                 ?>
-                    <div style="border:1px solid <?= $paye ? '#10B981' : ($exempte_mois ? '#f59e0b' : '#e5e7eb') ?>;border-radius:8px;padding:.6rem;background:<?= $paye ? '#ecfdf5' : ($exempte_mois ? '#fffbeb' : '#fafafa') ?>;">
-                        <div style="font-weight:600;font-size:.85rem;"><?= e($mois_noms[$m]) ?></div>
+                    <div class="mois-card <?= $etat ?>">
+                        <div class="mois-nom"><?= e($mois_noms[$m]) ?></div>
                         <?php if ($paye): ?>
-                            <div style="color:#10B981;font-size:.78rem;margin:.25rem 0;">✓ Payé</div>
-                            <div style="display:flex;gap:.25rem;">
-                                <a href="gestion_caisse.php?print_recu=<?= e($paye['id']) ?>" class="btn btn-sm btn-secondary" style="font-size:.7rem;padding:.2rem .4rem;">Reçu</a>
+                            <div class="mois-etat">✓ Payé</div>
+                            <div class="mois-actions">
+                                <a href="gestion_caisse.php?print_recu=<?= e($paye['id']) ?>" target="_blank" rel="noopener"
+                                   class="btn btn-sm btn-secondary mois-btn" title="Imprimer le reçu">🧾 Reçu</a>
                                 <form method="POST" style="display:inline;" onsubmit="return confirm('Annuler ce paiement ?');">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="action" value="annuler_paiement">
                                     <input type="hidden" name="paiement_id" value="<?= e($paye['id']) ?>">
-                                    <button class="btn btn-sm btn-danger" style="font-size:.7rem;padding:.2rem .4rem;">✕</button>
+                                    <button class="btn btn-sm btn-danger mois-btn" title="Annuler ce paiement">✕</button>
                                 </form>
                             </div>
                         <?php elseif ($exempte_mois): ?>
-                            <div style="color:#b45309;font-size:.78rem;margin:.25rem 0;">Exempté</div>
+                            <div class="mois-etat">☂ Exempté</div>
                             <form method="POST" style="display:inline;" onsubmit="return confirm('Retirer l\'exemption de ce mois ?');">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="action" value="retirer_exemption">
                                 <input type="hidden" name="exemption_id" value="<?= (int)($enf['exempt_ids']['mois'][$m] ?? 0) ?>">
-                                <button class="btn btn-sm btn-secondary" style="font-size:.7rem;padding:.2rem .4rem;">Annuler exempt.</button>
+                                <button class="btn btn-sm btn-secondary mois-btn">Annuler exempt.</button>
                             </form>
                         <?php else: ?>
-                            <button type="button" class="btn btn-sm btn-primary" style="font-size:.72rem;padding:.25rem .5rem;width:100%;margin-top:.25rem;"
+                            <div class="mois-etat">En attente</div>
+                            <button type="button" class="btn btn-sm btn-primary mois-btn-pay"
                                 onclick="ouvrirPaiement(<?= (int)$enf['id'] ?>, <?= $m ?>, '<?= e($mois_noms[$m]) ?>', <?= (float)$enf['frais_mensuel'] ?>, '<?= e($enf['prenom'].' '.$enf['nom']) ?>')">
-                                Confirmer
+                                💳 Encaisser
                             </button>
                         <?php endif; ?>
                     </div>
@@ -500,39 +512,54 @@ include __DIR__ . '/../../includes/layout_header.php';
 
 <?php else: ?>
     <!-- ===== Panneau : moyens de paiement ===== -->
-    <div class="form-card" style="margin-bottom:1.5rem;">
-        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
-            <h3 style="margin:0;">💳 Moyens de paiement</h3>
-            <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('panneau_moyens').style.display = (document.getElementById('panneau_moyens').style.display==='none'?'block':'none')">
-                Gérer
+    <?php $nb_actifs = count(array_filter($tous_moyens, fn($m) => $m['actif'])); ?>
+    <div class="form-card mp-manager">
+        <div class="mp-manager-head">
+            <h3 style="margin:0;display:flex;align-items:center;gap:.5rem;">
+                💳 Moyens de paiement
+                <span class="badge badge-primary"><?= $nb_actifs ?> actif<?= $nb_actifs > 1 ? 's' : '' ?></span>
+            </h3>
+            <button type="button" class="btn btn-sm btn-secondary" id="btn_panneau_moyens"
+                    aria-expanded="<?= $panneau_moyens_ouvert ? 'true' : 'false' ?>"
+                    onclick="togglePanneauMoyens()">
+                ⚙️ Gérer
             </button>
         </div>
-        <div id="panneau_moyens" style="display:none;margin-top:1rem;">
-            <form method="POST" style="display:flex;gap:.5rem;align-items:flex-end;flex-wrap:wrap;margin-bottom:1rem;">
+        <div id="panneau_moyens" class="mp-manager-body" <?= $panneau_moyens_ouvert ? '' : 'hidden' ?>>
+            <form method="POST" class="mp-add-form">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="ajouter_moyen">
-                <div style="flex:1;min-width:200px;">
-                    <label>Nouveau moyen (ex : Bankily, Masrvi, …)</label>
-                    <input type="text" name="moyen_nom" placeholder="Nom du moyen de paiement" required>
+                <div style="flex:1;min-width:220px;">
+                    <label for="moyen_nom">Nouveau moyen (ex : Bankily, Masrvi, …)</label>
+                    <input type="text" id="moyen_nom" name="moyen_nom" placeholder="Nom du moyen de paiement" required minlength="2" maxlength="60">
                 </div>
-                <button class="btn btn-primary">+ Ajouter</button>
+                <button class="btn btn-primary" style="width:auto;">+ Ajouter</button>
             </form>
             <?php if ($tous_moyens): ?>
-            <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
-                <?php foreach ($tous_moyens as $mo): ?>
-                    <div style="display:flex;align-items:center;gap:.4rem;border:1px solid <?= $mo['actif'] ? '#10B981' : '#e5e7eb' ?>;border-radius:20px;padding:.25rem .75rem;background:<?= $mo['actif'] ? '#ecfdf5' : '#f9fafb' ?>;">
-                        <span style="font-weight:600;font-size:.85rem;<?= $mo['actif'] ? '' : 'color:#9ca3af;text-decoration:line-through;' ?>"><?= e($mo['nom']) ?></span>
-                        <form method="POST" style="display:inline;">
+            <p class="text-muted" style="font-size:.83rem;margin:.25rem 0 .65rem;">
+                Cliquez sur l'interrupteur pour activer / désactiver un moyen. Un moyen désactivé
+                n'apparaît plus dans les formulaires de paiement, mais l'historique est conservé.
+            </p>
+            <div class="mp-chips">
+                <?php foreach ($tous_moyens as $mo): $on = (bool) $mo['actif']; ?>
+                    <div class="mp-chip <?= $on ? 'is-on' : 'is-off' ?>">
+                        <span class="mp-chip-dot" aria-hidden="true"></span>
+                        <span class="mp-chip-name"><?= e($mo['nom']) ?></span>
+                        <form method="POST" style="display:inline-flex;">
                             <?= csrf_field() ?>
                             <input type="hidden" name="action" value="basculer_moyen">
                             <input type="hidden" name="moyen_id" value="<?= (int)$mo['id'] ?>">
-                            <button class="btn btn-sm btn-secondary" style="font-size:.65rem;padding:.1rem .4rem;"><?= $mo['actif'] ? 'Désactiver' : 'Activer' ?></button>
+                            <button type="submit" class="mp-switch" role="switch"
+                                    aria-checked="<?= $on ? 'true' : 'false' ?>"
+                                    title="<?= $on ? 'Désactiver' : 'Activer' ?> <?= e($mo['nom']) ?>">
+                                <span class="mp-switch-knob"></span>
+                            </button>
                         </form>
                     </div>
                 <?php endforeach; ?>
             </div>
             <?php else: ?>
-                <p class="text-muted">Aucun moyen de paiement. Ajoutez-en au moins un.</p>
+                <p class="text-muted">Aucun moyen de paiement. Ajoutez-en au moins un pour pouvoir encaisser.</p>
             <?php endif; ?>
         </div>
     </div>
@@ -628,6 +655,18 @@ include __DIR__ . '/../../includes/layout_header.php';
 </style>
 
 <script>
+function togglePanneauMoyens() {
+    const p = document.getElementById('panneau_moyens');
+    const b = document.getElementById('btn_panneau_moyens');
+    if (!p) return;
+    const ouvert = p.hasAttribute('hidden');
+    p.toggleAttribute('hidden', !ouvert);
+    if (b) b.setAttribute('aria-expanded', ouvert ? 'true' : 'false');
+    if (ouvert) {
+        const inp = p.querySelector('input[name="moyen_nom"]');
+        if (inp) inp.focus();
+    }
+}
 function toggleExempt(id) {
     const el = document.getElementById('exempt_' + id);
     if (el) el.style.display = (el.style.display === 'none' || !el.style.display) ? 'block' : 'none';

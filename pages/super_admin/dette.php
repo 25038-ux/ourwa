@@ -106,7 +106,7 @@ include __DIR__ . '/../../includes/layout_header.php';
 <?php endif; ?>
 
 <?php if ($dette): ?>
-    <a href="dette.php<?= isset($_GET['embed'])?'?embed=1':'' ?>" class="btn btn-secondary" style="margin-bottom:1rem;">← Toutes les dettes</a>
+    <a href="dette.php" class="btn btn-secondary" style="margin-bottom:1rem;">← Toutes les dettes</a>
     <?php $reste = (float)$dette['montant_total'] - (float)$dette['montant_rembourse']; ?>
     <div class="form-card" style="margin-bottom:1.5rem;">
         <h3 style="margin-top:0;">📋 <?= e($dette['debiteur_nom']) ?></h3>
@@ -182,11 +182,10 @@ include __DIR__ . '/../../includes/layout_header.php';
     </div>
 
     <form method="GET" class="form-card" style="margin-bottom:1rem;">
-        <?php if (isset($_GET['embed'])): ?><input type="hidden" name="embed" value="1"><?php endif; ?>
         <div style="display:flex;gap:.5rem;align-items:flex-end;">
             <div style="flex:1;"><label>🔍 Rechercher un débiteur</label><input type="text" name="q" value="<?= e($q) ?>" placeholder="Nom ou téléphone"></div>
             <button class="btn btn-primary">Chercher</button>
-            <?php if ($q!==''): ?><a href="dette.php<?= isset($_GET['embed'])?'?embed=1':'' ?>" class="btn btn-secondary">Réinit.</a><?php endif; ?>
+            <?php if ($q!==''): ?><a href="dette.php" class="btn btn-secondary">Réinitialiser</a><?php endif; ?>
         </div>
     </form>
 
@@ -207,7 +206,7 @@ include __DIR__ . '/../../includes/layout_header.php';
                             <td><?= e(number_format((float)$d['montant_total'],0,',',' ')) ?></td>
                             <td style="color:#10B981;"><?= e(number_format((float)$d['montant_rembourse'],0,',',' ')) ?></td>
                             <td><strong style="color:<?= $reste>0.01?'#EF4444':'#10B981' ?>;"><?= e(number_format($reste,0,',',' ')) ?></strong></td>
-                            <td><a href="dette.php?dette_id=<?= (int)$d['id'] ?><?= isset($_GET['embed'])?'&embed=1':'' ?>" class="btn btn-sm btn-primary">Profil →</a></td>
+                            <td><a href="dette.php?dette_id=<?= (int)$d['id'] ?>" class="btn btn-sm btn-primary">Profil →</a></td>
                         </tr>
                     <?php endforeach; endif; ?>
                 </tbody>

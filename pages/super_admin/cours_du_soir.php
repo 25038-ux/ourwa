@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     elseif ($action === 'payer_cs') {
         $insc_id = nettoyer_entier($_POST['inscription_id'] ?? 0);
         $mois = nettoyer_entier($_POST['mois'] ?? 0);
-        $annee = nettoyer_entier($_POST['annee'] ?? 0) ?? (int)date('Y');
+        $annee = nettoyer_entier($_POST['annee'] ?? null) ?? (int)date('Y');
         if ($insc_id && $mois >= 1 && $mois <= 12) {
             $res = lire_lignes_paiement(true, 0);
             if (!$res['ok']) { $message = $res['message']; $type_message = 'error'; }

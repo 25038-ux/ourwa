@@ -1,0 +1,3 @@
+config/database.local.php
+logs/*.log
+sessions/sess_*
