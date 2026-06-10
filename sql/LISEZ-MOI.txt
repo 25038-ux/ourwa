@@ -1,0 +1,29 @@
+INSTALLATION DE LA BASE DE DONNÉES — El OURWA
+=============================================
+
+UN SEUL fichier à importer dans phpMyAdmin (InfinityFree) :
+
+    INSTALL_COMPLET_phpmyadmin.sql
+
+Étapes :
+ 1. Connectez-vous au panneau InfinityFree -> phpMyAdmin de votre base.
+ 2. Sélectionnez votre base (if0_xxxxxxxx_my_db) à gauche.
+ 3. Onglet « Importer » -> choisissez INSTALL_COMPLET_phpmyadmin.sql -> « Exécuter ».
+ 4. C'est tout.
+
+Remarques :
+ - Le fichier est IDEMPOTENT : vous pouvez le réimporter sans rien casser
+   (les colonnes/index/tables déjà présents sont ignorés proprement).
+ - Identifiants de connexion à l'application (compte par défaut) :
+       admin@supnum.mr  /  Admin2026!
+ - Les identifiants de connexion à la base de données (dans config/database.php)
+   n'ont PAS été modifiés.
+
+Si vous partez d'une base totalement vide, ce fichier crée TOUT (schéma + toutes
+les nouvelles fonctionnalités). Si votre base contient déjà l'ancienne version,
+ce même fichier ajoute uniquement ce qui manque.
+
+Fichiers individuels (pour référence, non nécessaires si vous importez le fichier
+complet) : eduplatforme.sql, migration_v5.sql, migration_v5_1_perf.sql,
+migration_v6_phase1.sql, migration_v6_phase3.sql, migration_v6_phase5.sql,
+migration_v6_phase6_perf.sql

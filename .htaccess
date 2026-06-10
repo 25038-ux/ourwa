@@ -1,0 +1,68 @@
+# ============================================================================
+# EduPlatforme — Configuration Apache (performance + sécurité)
+# ============================================================================
+
+# ---- Pages d'erreur soignées ----
+ErrorDocument 403 /index.php
+ErrorDocument 404 /index.php
+
+# ---- Protection contre l'indexation des dossiers ----
+Options -Indexes
+
+# ---- Refuser l'accès aux fichiers sensibles ----
+<FilesMatch "^\.|composer\.(json|lock)|\.(md|sql|sh|env|log|bak)$">
+    Require all denied
+</FilesMatch>
+
+# ---- COMPRESSION GZIP (réduit la bande passante de ~70%) ----
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript
+    AddOutputFilterByType DEFLATE application/javascript application/json application/xml
+    AddOutputFilterByType DEFLATE image/svg+xml application/xhtml+xml
+</IfModule>
+
+# ---- CACHE NAVIGATEUR (assets statiques mis en cache 1 an) ----
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault                              "access plus 1 month"
+    ExpiresByType text/css                      "access plus 1 year"
+    ExpiresByType application/javascript        "access plus 1 year"
+    ExpiresByType text/javascript               "access plus 1 year"
+    ExpiresByType image/png                     "access plus 1 year"
+    ExpiresByType image/jpeg                    "access plus 1 year"
+    ExpiresByType image/webp                    "access plus 1 year"
+    ExpiresByType image/svg+xml                 "access plus 1 year"
+    ExpiresByType image/x-icon                  "access plus 1 year"
+    ExpiresByType font/woff                     "access plus 1 year"
+    ExpiresByType font/woff2                    "access plus 1 year"
+    ExpiresByType text/html                     "access plus 0 seconds"
+    ExpiresByType application/json              "access plus 0 seconds"
+</IfModule>
+
+# ---- HEADERS DE SÉCURITÉ ----
+<IfModule mod_headers.c>
+    # Cache-Control pour les fichiers PHP (jamais mis en cache)
+    <FilesMatch "\.(php)$">
+        Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+    </FilesMatch>
+
+    # Headers de sécurité globaux
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+
+    # HSTS (à activer après mise en place HTTPS)
+    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+    # Supprimer le header X-Powered-By (masquer la version PHP)
+    Header unset X-Powered-By
+</IfModule>
+
+# ---- LIMITES D'UPLOAD (pour les pièces jointes des exercices) ----
+<IfModule mod_php.c>
+    php_value upload_max_filesize 6M
+    php_value post_max_size 32M
+    php_value max_file_uploads 10
+</IfModule>

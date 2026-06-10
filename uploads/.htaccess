@@ -1,0 +1,15 @@
+# Bloquer toute exécution de script dans le dossier d'upload (sécurité)
+<FilesMatch "\.(php|php3|php4|php5|phtml|phar|pl|py|jsp|asp|sh|cgi)$">
+    Require all denied
+</FilesMatch>
+
+# Forcer le type MIME pour les images et PDFs (anti-XSS via SVG malicieux)
+<FilesMatch "\.(svg|html|htm|js)$">
+    Require all denied
+</FilesMatch>
+
+# Désactiver le listing
+Options -Indexes -ExecCGI
+
+# Désactiver l'interprétation PHP (ceinture + bretelles)
+php_flag engine off
