@@ -202,7 +202,9 @@ struct WebView: UIViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            NSLog("FORSA web: loaded %@", webView.url?.absoluteString ?? "-")
+            NSLog("FORSA web: loaded %@ frame=%@ safeArea=%@ window=%@", webView.url?.absoluteString ?? "-",
+                  NSCoder.string(for: webView.frame), NSCoder.string(for: webView.safeAreaInsets),
+                  NSCoder.string(for: webView.window?.safeAreaInsets ?? .zero))
             webView.scrollView.refreshControl?.endRefreshing()
             state.hasLoaded = true
         }
