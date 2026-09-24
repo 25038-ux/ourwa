@@ -17,6 +17,7 @@ fi
 
 if [[ ! -f .env ]]; then
   cp .env.prod.example .env
+  chmod 600 .env   # secrets: owner-only
   gen() { python3 -c "import secrets; print(secrets.token_urlsafe($1))"; }
   sed -i "s|^FORSA_JWT_SECRET=.*|FORSA_JWT_SECRET=$(gen 48)|" .env
   sed -i "s|^POSTGRES_ADMIN_PASSWORD=.*|POSTGRES_ADMIN_PASSWORD=$(gen 24)|" .env
