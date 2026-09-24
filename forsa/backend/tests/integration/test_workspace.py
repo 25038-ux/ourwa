@@ -138,3 +138,34 @@ def test_password_change_and_admin_ai_guard(monkeypatch):
     disc = c.post("/api/v1/admin/ai/providers/deepseek/discover", headers=H).json()
     assert disc["ok"] is False and "DEEPSEEK_API_KEY" in disc["error"]
     _ = Task
+
+
+def test_account_deletion_anonymises_and_protects_last_owner():
+    _, users = make_org("acme", [("owner@acme.test", "OWNER"), ("pm@acme.test", "BID_MANAGER")])
+    owner, pm = client("owner@acme.test"), client("pm@acme.test")
+    t = owner.post(
+        "/api/v1/tasks", json={"title": "Attestation CNSS", "assignee_user_id": str(users["pm@acme.test"])}, headers=H
+    ).json()
+    # The last owner of an organisation with other members must hand over first; a wrong password is refused.
+    assert owner.post("/api/v1/me/delete", json={"password": PASSWORD}, headers=H).status_code == 409
+    assert pm.post("/api/v1/me/delete", json={"password": "wrong-password"}, headers=H).status_code == 403
+    r = pm.post("/api/v1/me/delete", json={"password": PASSWORD}, headers=H)
+    assert r.status_code == 200 and r.json() == {"deleted": True, "organisations_left": 1}
+    assert pm.get("/api/v1/auth/me").status_code == 401  # cookie cleared
+    login = TestClient(create_app()).post(
+        "/api/v1/auth/login", json={"email": "pm@acme.test", "password": PASSWORD}, headers=H
+    )
+    assert login.status_code == 401
+    with system_session() as s:
+        u = s.get(User, users["pm@acme.test"])
+        assert u is not None and not u.is_active and u.email.endswith("@deleted.invalid") and "pm@" not in u.full_name
+        task = s.get(Task, t["id"])
+        assert task is not None and task.assignee_user_id is None  # the organisation keeps its task
+    assert [m["email"] for m in owner.get("/api/v1/team").json()["members"]] == ["owner@acme.test"]
+    # Now alone, the owner may leave too.
+    assert owner.post("/api/v1/me/delete", json={"password": PASSWORD}, headers=H).status_code == 200
+
+
+def test_operator_meta_is_public():
+    r = TestClient(create_app()).get("/api/v1/meta/operator")
+    assert r.status_code == 200 and set(r.json()) == {"name", "privacy_contact"}

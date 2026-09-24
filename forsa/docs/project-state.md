@@ -4,10 +4,9 @@ _Last updated: 2026-09-24 — update after every meaningful work session._
 
 ## Current phase
 **Phase 3 started on real data.** Official sources verified and active (ARMP portal, World Bank; UNGM
-credential-gated), OCR for scanned notices, market intelligence, Android app, production deployment bundle — on top
-of the MVP loop, multi-provider AI (incl. Jev), voice assistant, instant notifications and the web/mobile UI.
-Phase 0 (discovery) is **partially blocked**: official sources could not be reached from the build
-environment (egress policy). Phase 3 (real ingestion) cannot start until Phase 0 source verification is done.
+credential-gated), OCR for scanned notices, market intelligence, Android and iOS apps, production deployment
+bundle — on top of the MVP loop, multi-provider AI (incl. Jev), voice assistant, instant notifications and the
+web/mobile UI. Phase 0 source verification is done for the three sources (`docs/research/source-registry.md`).
 
 ## Completed
 - Monorepo layout under `forsa/` (backend, web, sources, fixtures, evals, docs, `.claude/`).
@@ -58,18 +57,24 @@ environment (egress policy). Phase 3 (real ingestion) cannot start until Phase 0
 - **Android app** (`android/`, TWA + WebView fallback, signed APK + AAB) and **production deployment**
   (`infra/deployment/`: Caddy HTTPS, non-superuser DB role enforced, nightly backups, deploy/restore scripts) —
   images built and the stack run end-to-end locally.
+- **iOS app** (`ios/`, SwiftUI + WKWebView shell, XcodeGen): built on GitHub Actions macOS runners
+  (`.github/workflows/forsa-ios.yml`: simulator app, unsigned archive/IPA, Simulator screenshots; signed App Store
+  IPA / TestFlight once an App Store Connect key and Team ID are configured).
+- **Account deletion** (Settings → Profile; `POST /me/delete`: anonymises the user, keeps company records, last
+  owner must hand over) and a public **privacy page** `/privacy` (FR/EN; operator from `FORSA_OPERATOR_NAME`,
+  `FORSA_PRIVACY_CONTACT`) — App Store / Google Play requirements.
 - API: 65 paths / 74 operations (before this round; now + market, calendar, assetlinks). Data model: 40 tables. Migration `0002` adds AI settings, assistant,
   invites, push subscriptions, task sources and the NOTIFY trigger (+ RLS on the new tenant tables).
 
 ## Test status (2026-09-24, local)
-- `make check` green: `ruff` + `ruff format` clean; `mypy` clean (95 files); `tsc --noEmit` clean; `next build` OK.
-- `pytest`: **87 passed** (unit + PostgreSQL integration). New: provider catalog/adapters (incl. Jev wire
+- `ruff` + `ruff format` clean; `mypy` clean (103 files); `tsc --noEmit` clean; `next build` OK.
+- `pytest`: **128 passed** (latest run; the list below describes the earlier 87-test round) (unit + PostgreSQL integration). New: provider catalog/adapters (incl. Jev wire
   format), gateway routing/sensitivity/budget, assistant (planner FR/EN/AR, tools, grounding guard, SSE),
   notifications (real uvicorn SSE end-to-end, tenant isolation, push delivery), workspace (invites, roles,
   tasks, onboarding), AI features safety nets, settings parsing.
 - `forsa eval`: matching 9/9, extraction 4/4, multilingual 7/7, safety 6/6 (all synthetic golden cases).
 - UI verified with Playwright at 390 px (touch, iPhone UA) and 1360 px, light and dark: no console errors.
-- The CI workflow is written but has **not run on GitHub yet**.
+- GitHub Actions: `forsa-ci` green; `forsa-ios` builds the iOS app (compiles with no errors on Xcode/macOS 15).
 
 ## Blockers
 1. **UNGM API credentials** (client id/secret + authorised UNGM user) — request from eprocurement@ungm.org.
@@ -84,6 +89,8 @@ environment (egress policy). Phase 3 (real ingestion) cannot start until Phase 0
 - Voice depends on the browser's Web Speech API (not Firefox); Arabic speech output depends on installed voices.
 - Web Push needs VAPID keys + `forsa[push]`; iOS delivers push only to installed (home-screen) PWAs.
 - The Android app was built, signed and inspected (apksigner, aapt2) but not run on a device/emulator here (no KVM).
+- iOS: no native push (APNs) yet — notifications arrive live while the app is open; signing needs an Apple
+  Developer account (the CI artifact is unsigned).
 - ARMP notices currently in the feed are all past their deadline; forward-looking value comes from plan lines.
 - OCR/deadline recall on ARMP scans is partial; misses are shown as "deadline unknown", never guessed.
 - Credential `obtainable_days` and effort estimates are uncalibrated estimates (labelled as such in UI).
@@ -93,9 +100,8 @@ environment (egress policy). Phase 3 (real ingestion) cannot start until Phase 0
 - `match_company` jobs are debounced by 5 s delay; `forsa worker --once` skips jobs not yet due.
 
 ## Next tasks (in order)
-1. Phase 0 (still blocked by egress): allow `marchespublics.gov.mr`, `search.worldbank.org`,
-   `datacatalog.worldbank.org`, `www.ungm.org` in the environment network settings, then inspect portals,
-   robots.txt, terms; fill `docs/research/source-registry.md`; activate connectors.
+1. Store releases: Google Play (AAB + Play App Signing), App Store (signed build via CI, review notes, demo
+   account); native APNs push for iOS.
 2. Add provider keys as environment secrets; Discover + pin models; run `forsa eval` with AI features on.
 3. Real-document benchmark (≥ 100 DAOs) and extraction measurement (Phase 4 gate), incl. `ai_extraction`.
 4. Concierge MVP with 5 pilot companies (§93); collect feedback labels.

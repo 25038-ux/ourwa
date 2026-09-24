@@ -1,10 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { Bell, Bot, Check, Cpu, Globe, KeyRound, LoaderCircle, Monitor, Moon, Palette, Sun, User, Volume2 } from "lucide-react";
+import { Bell, Bot, Check, Cpu, Globe, KeyRound, LoaderCircle, Monitor, Moon, Palette, Sun, Trash2, User, Volume2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Card, Chip, ErrorBox, PageHead, Segmented, Switch } from "@/components/ui";
-import { api } from "@/lib/api";
+import { api, ApiError, safeSet } from "@/lib/api";
 import { CATEGORY_LABEL, useI18n } from "@/lib/i18n";
 import { fadeUp, stagger } from "@/lib/motion";
 import { usePrefs, type Theme } from "@/lib/prefs";
@@ -56,7 +58,67 @@ function Profile() {
             .catch(setError)}>{t("changePassword")}</button><Saved show={ok === "pw"} />
         </div>
       </Card>
+      <DeleteAccount />
     </div>
+  );
+}
+
+/** Account deletion, required by the App Store and Google Play; the company's records stay with the company. */
+function DeleteAccount() {
+  const { lang } = useI18n();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+  const fr = lang === "fr";
+  const remove = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await api("/me/delete", { method: "POST", json: { password } });
+      safeSet("forsa.org", null);
+      router.replace("/login");
+    } catch (e) {
+      const status = e instanceof ApiError ? e.status : 0;
+      setError(status === 403 ? (fr ? "Mot de passe incorrect." : "Incorrect password.")
+        : status === 409 ? (fr ? "Vous êtes le dernier propriétaire d'une organisation qui a d'autres membres : nommez d'abord un autre propriétaire (Équipe)."
+          : "You are the last owner of an organisation with other members: make another member owner first (Team).")
+        : e);
+      setBusy(false);
+    }
+  };
+  return (
+    <Card title={fr ? "Supprimer mon compte" : "Delete my account"} icon={<Trash2 size={16} />}>
+      <p className="muted" style={{ lineHeight: 1.55 }}>{fr
+        ? "Votre nom, votre e-mail, vos notifications et vos conversations avec l'assistant sont effacés et vous quittez vos organisations. Les offres et tâches restent à votre entreprise. Cette action est définitive."
+        : "Your name, e-mail, notifications and assistant conversations are erased and you leave your organisations. Bids and tasks stay with your company. This cannot be undone."}{" "}
+        <Link href="/privacy" style={{ color: "var(--accent)" }}>{fr ? "Politique de confidentialité" : "Privacy policy"}</Link></p>
+      <AnimatePresence initial={false}>
+        {open ? (
+          <motion.div key="confirm" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden" }}>
+            <div style={{ marginTop: 14 }}><ErrorBox error={error} /></div>
+            <label className="field" style={{ marginTop: 6 }}>{fr ? "Confirmez avec votre mot de passe" : "Confirm with your password"}
+              <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </label>
+            <div className="row" style={{ marginTop: 14 }}>
+              <button className="btn danger" disabled={!password || busy} onClick={remove}>
+                {busy ? <LoaderCircle size={14} className="spin" /> : <Trash2 size={14} />}
+                {fr ? "Supprimer définitivement" : "Delete permanently"}</button>
+              <button className="btn ghost" onClick={() => { setOpen(false); setPassword(""); setError(null); }}>
+                {fr ? "Annuler" : "Cancel"}</button>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div key="ask" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="row"
+            style={{ marginTop: 14 }}>
+            <button className="btn danger" onClick={() => setOpen(true)}><Trash2 size={14} />
+              {fr ? "Supprimer mon compte…" : "Delete my account…"}</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Card>
   );
 }
 

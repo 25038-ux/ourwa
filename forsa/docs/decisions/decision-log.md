@@ -21,3 +21,4 @@ Newest first. Significant decisions link to an ADR.
 | 2026-09-24 | Phase 0 could not complete: official portals (marchespublics.gov.mr, search.worldbank.org, UNGM) were blocked by the build environment's egress policy. Decision: build the source-independent foundation and MVP loop on **synthetic** data; keep all real-source connectors `pending_verification` (they refuse to run). | ADR-006 |
 | 2026-09-24 | Modular monolith, Postgres-only v1, evidence+assertions, deterministic engine, RLS, append-only history, approvals, reason codes. | ADR-001…010 |
 | 2026-09-24 | AI adapter uses the official `anthropic` SDK (optional extra), tiers `claude-opus-5` / `claude-haiku-4-5`, provider off by default. | ADR-005 |
+| 2026-09-24 | iOS app = SwiftUI/WKWebView shell built on GitHub macOS runners (signed build only with the owner's App Store Connect key); self-service account deletion that anonymises the person and keeps organisation records; public /privacy page. | ADR-017 |

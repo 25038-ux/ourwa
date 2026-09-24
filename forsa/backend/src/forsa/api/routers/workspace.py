@@ -238,6 +238,21 @@ def put_profile(body: ProfileIn, user: User = Depends(current_user)) -> dict:
     return {"ok": True}
 
 
+class DeleteAccountIn(BaseModel):
+    password: str = Field(min_length=1, max_length=200)
+
+
+@router.post("/me/delete")
+def delete_me(body: DeleteAccountIn, response: Response, user: User = Depends(current_user)) -> dict:
+    """Delete my account (irreversible). Organisation records stay with the remaining members."""
+    from forsa.services.account import delete_account
+
+    with system_session() as s:
+        out = delete_account(s, user.id, body.password)
+    response.delete_cookie(COOKIE, path="/")
+    return out
+
+
 class PasswordIn(BaseModel):
     current: str = Field(min_length=1, max_length=200)
     new: str = Field(min_length=10, max_length=200)

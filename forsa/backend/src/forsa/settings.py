@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     # Android app (Trusted Web Activity): package + SHA-256 signing-certificate fingerprints (comma list), served at
     # /.well-known/assetlinks.json so Chrome opens FORSA full-screen inside the app.
     android_package: str = "mr.forsa.app"
+    # Shown on the public /privacy page (the organisation running this server is the data controller).
+    operator_name: str = ""
+    privacy_contact: str = ""
     android_sha256: Annotated[list[str], NoDecode] = []
     # OCR for scanned PDFs (needs `tesseract` + `pdftoppm` on the PATH; the Docker image installs them).
     ocr_enabled: bool = True

@@ -60,6 +60,12 @@ def assetlinks(rt: Runtime = Depends(runtime)) -> list:
     ]
 
 
+@router.get("/meta/operator")
+def operator(rt: Runtime = Depends(runtime)) -> dict:
+    """Public: who runs this FORSA server and how to reach them about personal data (privacy page)."""
+    return {"name": rt.settings.operator_name, "privacy_contact": rt.settings.privacy_contact}
+
+
 @router.get("/meta/countries")
 def countries() -> dict:
     return {"items": [get_pack(code) for code in available_packs()]}
