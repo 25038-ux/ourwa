@@ -15,6 +15,17 @@ from sqlalchemy.orm import Session
 
 from forsa.db.models import Buyer, Debarment, Opportunity, Source
 from forsa.services.debarments import name_key
+from forsa.taxonomy.ontology import default_ontology
+
+
+def search_terms(q: str) -> list[str]:
+    """The query plus the same subject in every language: notices are mostly French, questions may be English."""
+    onto = default_ontology()
+    ids = {h.concept_id for h in onto.find(q)} or {c.id for c in onto.search(q, limit=3)}
+    terms = {q.strip()}
+    for cid in ids:
+        terms.update(t for t in onto.surfaces(cid) if len(t) >= 4)
+    return sorted(t for t in terms if t)
 
 
 def _awards(session: Session, since: datetime, q: str | None = None) -> list[tuple[Opportunity, str | None, str]]:
@@ -26,14 +37,15 @@ def _awards(session: Session, since: datetime, q: str | None = None) -> list[tup
         .where(or_(Opportunity.published_at.is_(None), Opportunity.published_at >= since))
     )
     if q:
-        like = f"%{q}%"
-        stmt = stmt.where(
-            or_(
+        clauses = []
+        for term in search_terms(q):
+            like = f"%{term}%"
+            clauses += [
                 Opportunity.title.ilike(like),
                 Buyer.name.ilike(like),
                 cast(Opportunity.attributes["winners"], Text).ilike(like),
-            )
-        )
+            ]
+        stmt = stmt.where(or_(*clauses))
     return [(o, b, s) for o, b, s in session.execute(stmt.order_by(Opportunity.published_at.desc().nulls_last()))]
 
 

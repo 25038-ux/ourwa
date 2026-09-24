@@ -51,6 +51,7 @@ class Ontology:
         self.provenance: str = raw.get("provenance", "unknown")
         self.concepts: dict[str, Concept] = {}
         self._index: dict[tuple[str, ...], tuple[str, str, str]] = {}
+        self._surfaces: dict[str, set[str]] = {}
         self._max_len = 1
         for kind, key in (("capability", "concepts"), ("credential", "credentials")):
             for item in raw.get(key, []) or []:
@@ -69,6 +70,7 @@ class Ontology:
                 surfaces: list[tuple[str, str]] = [(lang, lbl) for lang, lbl in concept.labels.items()]
                 for lang, terms in (item.get("terms") or {}).items():
                     surfaces.extend((lang, t) for t in terms)
+                self._surfaces[concept.id] = {str(term) for _lang, term in surfaces}
                 for lang, term in surfaces:
                     phrase = normalize_phrase(str(term))
                     if not phrase:
@@ -138,6 +140,10 @@ class Ontology:
         for hit in self.find(text):
             grouped.setdefault(hit.concept_id, []).append(hit)
         return grouped
+
+    def surfaces(self, concept_id: str) -> list[str]:
+        """Every label/term (all languages) that maps to this concept: "drilling" → forage, forages, حفر الآبار…"""
+        return sorted(self._surfaces.get(concept_id, set()))
 
     def search(self, query: str, limit: int = 10) -> list[Concept]:
         """Prefix search over labels/terms for UI pickers."""

@@ -26,3 +26,13 @@ def test_compose_red_list_and_winners():
         [("market_winners", {"query": None, "awards": 3, "items": [{"name": "ACME", "wins": 2, "buyers": []}]})], "en"
     )
     assert "ACME (2)" in txt
+
+
+def test_market_search_crosses_languages():
+    from forsa.services.market import search_terms
+
+    # Notices are mostly French: an English question about drilling must also look for "forage".
+    terms = search_terms("drilling")
+    assert {"drilling", "forage", "forages"} <= set(terms)
+    assert "solaire" in search_terms("solar")
+    assert search_terms("EMHAN") == ["EMHAN"]  # a company name stays as typed
