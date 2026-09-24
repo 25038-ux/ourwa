@@ -1,0 +1,18 @@
+{
+  "reference": "DEMO-2026-008",
+  "kind": "RFP",
+  "title": "Feasibility study for solar-powered water pumping in rural Mauritania",
+  "description": "Consulting services for a feasibility study on solar water pumping systems. Firms must provide at least two similar contracts completed in the last five years.",
+  "buyer": "Development Partner Project Unit (demo)",
+  "country": "MR",
+  "region": "Gorgol",
+  "category": "consulting",
+  "funding_source": "Development bank (demo)",
+  "currency": "USD",
+  "estimated_value": 150000,
+  "published_at": "@anchor-1d",
+  "deadline_at": "@anchor+18d",
+  "status": "PUBLISHED",
+  "language": "en",
+  "url": "https://example.invalid/demo/DEMO-2026-008"
+}

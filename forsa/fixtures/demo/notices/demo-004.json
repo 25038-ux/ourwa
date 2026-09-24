@@ -1,0 +1,17 @@
+{
+  "reference": "DEMO-2026-004",
+  "kind": "TENDER",
+  "title": "إعلان عن مناقصة لتوسيع شبكة المياه الصالحة للشرب في روصو",
+  "description": "توسيع شبكات المياه وبناء خزان مياه. يجب على المتعهد تقديم شهادة ضريبية سارية المفعول.",
+  "buyer": "الشركة الوطنية للماء (تجريبي)",
+  "country": "MR",
+  "region": "Trarza",
+  "category": "works",
+  "currency": "MRU",
+  "estimated_value": 60000000,
+  "published_at": "@anchor-2d",
+  "deadline_at": "@anchor+25d",
+  "status": "PUBLISHED",
+  "language": "ar",
+  "url": "https://example.invalid/demo/DEMO-2026-004"
+}

@@ -1,0 +1,20 @@
+{
+  "reference": "DEMO-2026-001",
+  "kind": "TENDER",
+  "title": "Fourniture et installation de kits solaires photovoltaïques pour 20 écoles rurales",
+  "description": "Le Ministère de l'Éducation nationale lance un appel d'offres ouvert pour la fourniture et l'installation de kits solaires photovoltaïques dans 20 écoles des wilayas de l'Assaba et du Brakna. Le soumissionnaire doit fournir une attestation fiscale en cours de validité. Les groupements sont autorisés.",
+  "buyer": "Ministère de l'Éducation nationale (démo)",
+  "country": "MR",
+  "region": "Assaba",
+  "category": "works",
+  "method": "Appel d'offres ouvert national",
+  "funding_source": "Budget de l'État",
+  "currency": "MRU",
+  "estimated_value": 18000000,
+  "published_at": "@anchor-1d",
+  "deadline_at": "@anchor+21d",
+  "status": "PUBLISHED",
+  "language": "fr",
+  "consortium_allowed": true,
+  "url": "https://example.invalid/demo/DEMO-2026-001"
+}

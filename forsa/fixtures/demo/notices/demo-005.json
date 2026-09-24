@@ -1,0 +1,16 @@
+{
+  "reference": "DEMO-PLAN-2026-017",
+  "kind": "PLAN_ITEM",
+  "title": "Plan de passation 2026 — Électrification solaire de centres de santé (T4)",
+  "description": "Activité prévue au plan annuel de passation : installation photovoltaïque dans 8 centres de santé. Lancement prévisionnel au quatrième trimestre.",
+  "buyer": "Ministère de la Santé (démo)",
+  "country": "MR",
+  "region": "Hodh Ech Chargui",
+  "category": "works",
+  "currency": "MRU",
+  "estimated_value": 25000000,
+  "published_at": "@anchor-10d",
+  "status": "PLANNED",
+  "language": "fr",
+  "url": "https://example.invalid/demo/DEMO-PLAN-2026-017"
+}

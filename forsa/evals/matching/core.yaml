@@ -1,0 +1,99 @@
+# Golden matching cases. Expected values encode product policy (spec §14), reviewed by humans.
+- id: strong-solar-fit
+  severity: critical
+  input:
+    company:
+      capabilities: [{concept: energy.solar_pv, verified: true}]
+      credentials: [{id: cred.tax_clearance, verified: true}]
+      projects:
+        - {concepts: [energy.solar_pv], verified: true, value: 10000000, currency: MRU, year: 2025}
+        - {concepts: [energy.solar_pv], verified: true, value: 8000000, currency: MRU, year: 2024}
+      regions: ["*"]
+      max_project_value: 20000000
+    opportunity:
+      concepts: [energy.solar_pv]
+      value: 15000000
+      region: Assaba
+      deadline_days: 20
+      requirements: [{kind: CREDENTIAL, credential: cred.tax_clearance}]
+  expected: {recommendation: BID, min_fit: 75}
+
+- id: missing-evidence-is-review-not-nobid
+  severity: critical
+  input:
+    company: {capabilities: [{concept: energy.solar_pv}]}
+    opportunity:
+      concepts: [energy.solar_pv]
+      deadline_days: 20
+      requirements: [{kind: CREDENTIAL, credential: cred.iso_9001}]
+  expected: {recommendation: REVIEW, gates: {"credential:cred.iso_9001": UNKNOWN}}
+
+- id: declared-absent-iso-is-nobid
+  severity: critical
+  input:
+    company:
+      capabilities: [{concept: energy.solar_pv}]
+      credentials: [{id: cred.iso_9001, status: ABSENT}]
+    opportunity:
+      concepts: [energy.solar_pv]
+      deadline_days: 20
+      requirements: [{kind: CREDENTIAL, credential: cred.iso_9001}]
+  expected: {recommendation: NO_BID}
+
+- id: obtainable-tax-certificate-conditions
+  severity: major
+  input:
+    company:
+      capabilities: [{concept: energy.solar_pv, verified: true}]
+      credentials: [{id: cred.tax_clearance, status: ABSENT}]
+    opportunity:
+      concepts: [energy.solar_pv]
+      deadline_days: 20
+      requirements: [{kind: CREDENTIAL, credential: cred.tax_clearance}]
+  expected: {recommendation: BID_WITH_CONDITIONS}
+
+- id: wrong-sector-low-fit
+  severity: critical
+  input:
+    company: {capabilities: [{concept: it.software, verified: true}]}
+    opportunity: {concepts: [construction.roads], deadline_days: 30}
+  expected: {recommendation: NO_BID, max_fit: 45}
+
+- id: impossible-deadline
+  severity: critical
+  input:
+    company: {capabilities: [{concept: energy.solar_pv, verified: true}]}
+    opportunity: {concepts: [energy.solar_pv], deadline_days: 1}
+  expected: {recommendation: NO_BID, gates: {deadline: FAIL}}
+
+- id: consortium-fills-experience-gap
+  severity: major
+  input:
+    company:
+      capabilities: [{concept: water.drilling, verified: true}]
+      projects: [{concepts: [water.drilling], verified: true}]
+    opportunity:
+      concepts: [water.drilling]
+      deadline_days: 25
+      requirements: [{kind: EXPERIENCE, min_count: 3}]
+  expected: {recommendation: BID_WITH_CONDITIONS, gates: {experience: GAP}}
+
+- id: no-consortium-turnover-short
+  severity: major
+  input:
+    company:
+      capabilities: [{concept: construction.buildings, verified: true}]
+      turnover: 10000000
+    opportunity:
+      concepts: [construction.buildings]
+      deadline_days: 25
+      consortium_allowed: false
+      requirements: [{kind: FINANCIAL_TURNOVER, min_amount: 50000000, currency: MRU}]
+  expected: {recommendation: NO_BID, gates: {financial: FAIL}}
+
+- id: ai-inference-is-not-capability
+  severity: critical
+  input:
+    company: {capabilities: [{concept: energy.solar_pv, epistemic: INFERENCE}]}
+    opportunity: {concepts: [energy.solar_pv], deadline_days: 20}
+  expected: {recommendation: NO_BID, max_fit: 45}

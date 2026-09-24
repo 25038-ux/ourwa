@@ -1,0 +1,27 @@
+{
+  "reference": "DEMO-2026-002",
+  "kind": "TENDER",
+  "title": "Réalisation de 12 forages équipés de systèmes de pompage solaire à Kiffa",
+  "description": "Travaux de réalisation de forages et installation de pompes solaires. Voir le dossier d'appel d'offres (DAO).",
+  "buyer": "Office National des Services d'Eau en milieu Rural (démo)",
+  "country": "MR",
+  "region": "Assaba",
+  "category": "works",
+  "method": "Appel d'offres ouvert",
+  "funding_source": "Partenaire technique et financier",
+  "currency": "MRU",
+  "estimated_value": 45000000,
+  "published_at": "@anchor",
+  "deadline_at": "@anchor+9d",
+  "status": "PUBLISHED",
+  "language": "fr",
+  "consortium_allowed": true,
+  "url": "https://example.invalid/demo/DEMO-2026-002",
+  "documents": [
+    {
+      "url": "https://example.invalid/demo/DEMO-2026-002/dao.txt",
+      "title": "DAO — Forages et pompage solaire (démo)",
+      "text": "DOSSIER D'APPEL D'OFFRES\nArticle 5 Qualification des soumissionnaires\n5.1 Le soumissionnaire doit fournir une attestation fiscale en cours de validité.\n5.2 Le soumissionnaire doit fournir une attestation CNSS.\n5.3 Le soumissionnaire doit avoir réalisé au moins trois (3) marchés similaires au cours des cinq dernières années.\n5.4 Le chiffre d'affaires annuel moyen doit être supérieur ou égal à 50 000 000 MRU.\n5.5 Une garantie de soumission de 900 000 MRU est exigée.\n5.6 La certification ISO 9001 sera notée (10 points).\nArticle 6 Présentation des offres\nLes offres seront remises en trois exemplaires, sous pli fermé, sous peine de rejet.\nLe délai d'exécution est de 120 jours.\n"
+    }
+  ]
+}

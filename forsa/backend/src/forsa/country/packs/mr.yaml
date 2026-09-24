@@ -1,0 +1,33 @@
+# Country pack — Mauritania. Values marked `verify: true` must be confirmed during Phase 0.
+code: MR
+name: {fr: Mauritanie, ar: موريتانيا, en: Mauritania}
+currency: {code: MRU, name: Ouguiya, note: "Redenominated 2018 (1 MRU = 10 MRO); 'UM' in documents is ambiguous"}
+languages: [fr, ar]  # Hassaniya is a future extension
+timezone: Africa/Nouakchott
+procurement_regime:
+  name: Code des marchés publics
+  regulator: ARMP (Autorité de Régulation des Marchés Publics)
+  portal: https://marchespublics.gov.mr/
+  categories: {Fournitures: goods, Travaux: works, "Prestations intellectuelles": consulting, "Services courants": services}
+  verify: true
+regions:  # wilayas
+  - Adrar
+  - Assaba
+  - Brakna
+  - Dakhlet Nouadhibou
+  - Gorgol
+  - Guidimaka
+  - Hodh Ech Chargui
+  - Hodh El Gharbi
+  - Inchiri
+  - Nouakchott-Nord
+  - Nouakchott-Ouest
+  - Nouakchott-Sud
+  - Tagant
+  - Tiris Zemmour
+  - Trarza
+region_aliases:
+  Nouakchott: [Nouakchott-Nord, Nouakchott-Ouest, Nouakchott-Sud]
+defaults:
+  daily_bid_cost: null  # set per company; never assumed
+briefing_hour_local: 7

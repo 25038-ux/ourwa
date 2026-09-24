@@ -1,0 +1,28 @@
+- id: solar-fr
+  severity: critical
+  input: {text: "Installation de panneaux solaires dans les écoles"}
+  expected: {concepts: [energy.solar_pv]}
+- id: solar-ar
+  severity: critical
+  input: {text: "تركيب أنظمة الطاقة الشمسية"}
+  expected: {concepts: [energy.solar_pv]}
+- id: solar-en
+  severity: critical
+  input: {text: "solar photovoltaic installation"}
+  expected: {concepts: [energy.solar_pv]}
+- id: pumping-and-drilling-fr
+  severity: major
+  input: {text: "Réalisation de forages équipés de pompes solaires"}
+  expected: {concepts: [water.drilling, energy.solar_pumping]}
+- id: water-network-ar
+  severity: major
+  input: {text: "توسيع شبكات المياه الصالحة للشرب"}
+  expected: {concepts: [water.networks]}
+- id: it-hardware-fr
+  severity: major
+  input: {text: "Acquisition de matériel informatique"}
+  expected: {concepts: [it.hardware], not_concepts: [it.software]}
+- id: roads-fr
+  severity: major
+  input: {text: "Travaux de bitumage de la route"}
+  expected: {concepts: [construction.roads]}

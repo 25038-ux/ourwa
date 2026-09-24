@@ -1,0 +1,18 @@
+{
+  "reference": "DEMO-2026-003",
+  "kind": "EOI",
+  "title": "Avis à manifestation d'intérêt — Développement d'un système d'information de gestion des marchés",
+  "description": "Recrutement d'un bureau d'études pour le développement d'une application web et la formation des utilisateurs. Le consultant doit justifier d'au moins deux références similaires.",
+  "buyer": "Agence de Promotion du Numérique (démo)",
+  "country": "MR",
+  "region": "Nouakchott-Ouest",
+  "category": "consulting",
+  "method": "Sélection fondée sur la qualité et le coût",
+  "currency": "MRU",
+  "estimated_value": 9000000,
+  "published_at": "@anchor-3d",
+  "deadline_at": "@anchor+14d",
+  "status": "PUBLISHED",
+  "language": "fr",
+  "url": "https://example.invalid/demo/DEMO-2026-003"
+}

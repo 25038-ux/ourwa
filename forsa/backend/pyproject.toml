@@ -1,0 +1,59 @@
+[project]
+name = "forsa"
+version = "0.1.0"
+description = "FORSA — evidence-first commercial intelligence & procurement OS (backend: API, worker, intelligence)"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn>=0.30",
+  "sqlalchemy>=2.0.30",
+  "psycopg[binary]>=3.2",
+  "alembic>=1.13",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "pyjwt>=2.8",
+  "httpx>=0.27",
+  "pyyaml>=6.0",
+  "pypdf>=4.2",
+  "python-multipart>=0.0.9",
+]
+
+[project.optional-dependencies]
+ai = ["anthropic"]
+dev = ["pytest>=8", "ruff>=0.5", "mypy>=1.10", "types-PyYAML"]
+
+[project.scripts]
+forsa = "forsa.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/forsa"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: requires PostgreSQL (FORSA_TEST_DATABASE_URL)"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF"]
+ignore = ["S101", "RUF001", "RUF002", "RUF003", "RUF012", "B008", "S105", "S106"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "B"]
+"migrations/**" = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+packages = ["forsa"]
+mypy_path = "src"
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true

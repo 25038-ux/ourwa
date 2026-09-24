@@ -1,0 +1,320 @@
+# FORSA canonical capability ontology (seed).
+#
+# * Concept IDs are language-neutral and stable — never rename, only deprecate.
+# * `terms` are multilingual surface forms mapped to the concept (spec §10–11).
+# * `codes` is where verified UNSPSC / CPV mappings go. They are intentionally
+#   empty: do NOT add codes without checking the official code lists.
+# * Provenance: every term here is curated (`curated:forsa-core-v1`, confidence
+#   MEDIUM). Terms learned from data must be added with their own provenance.
+version: forsa-capabilities-v1
+provenance: curated:forsa-core-v1
+default_confidence: MEDIUM
+
+concepts:
+  # ── Energy ────────────────────────────────────────────────────────────────
+  - id: energy
+    labels: {en: Energy, fr: Énergie, ar: الطاقة}
+  - id: energy.solar_pv
+    parent: energy
+    labels: {en: Solar photovoltaic installation, fr: Installation photovoltaïque, ar: تركيب أنظمة الطاقة الشمسية}
+    terms:
+      fr: [photovoltaïque, installation photovoltaïque, énergie solaire, panneaux solaires, panneau solaire,
+           systèmes pv, système pv, installation solaire, kits solaires, kit solaire, centrale solaire,
+           modules photovoltaïques, électrification solaire]
+      ar: [الطاقة الشمسية, ألواح شمسية, الألواح الشمسية, تركيب أنظمة الطاقة الشمسية, الخلايا الكهروضوئية,
+           محطة شمسية]
+      en: [solar photovoltaic, photovoltaic, solar pv, solar panels, solar energy, solar power plant,
+           solar home systems, solar kits]
+  - id: energy.solar_pumping
+    parent: energy.solar_pv
+    labels: {en: Solar water pumping, fr: Pompage solaire, ar: الضخ بالطاقة الشمسية}
+    terms:
+      fr: [pompage solaire, pompes solaires, pompe solaire, système de pompage solaire]
+      ar: [الضخ بالطاقة الشمسية, مضخات شمسية, مضخة شمسية]
+      en: [solar pumping, solar water pumping, solar pumps, solar pump]
+  - id: energy.electrical_installation
+    parent: energy
+    labels: {en: Electrical installation, fr: Installation électrique, ar: تركيبات كهربائية}
+    terms:
+      fr: [installation électrique, installations électriques, travaux électriques, électricité bâtiment,
+           réseau électrique, éclairage public, basse tension, moyenne tension]
+      ar: [تركيبات كهربائية, أشغال كهربائية, الشبكة الكهربائية, الإنارة العمومية]
+      en: [electrical installation, electrical works, power distribution, street lighting, low voltage,
+           medium voltage]
+  - id: energy.generators
+    parent: energy
+    labels: {en: Generators, fr: Groupes électrogènes, ar: مولدات كهربائية}
+    terms:
+      fr: [groupe électrogène, groupes électrogènes]
+      ar: [مولدات كهربائية, مولد كهربائي]
+      en: [generator, generators, genset, diesel generator]
+
+  # ── Construction & infrastructure ─────────────────────────────────────────
+  - id: construction
+    labels: {en: Construction, fr: Construction / BTP, ar: البناء والأشغال العمومية}
+    terms:
+      fr: [travaux de construction, génie civil, btp]
+      ar: [أشغال البناء, الهندسة المدنية]
+      en: [construction works, civil works, civil engineering]
+  - id: construction.buildings
+    parent: construction
+    labels: {en: Building construction, fr: Construction de bâtiments, ar: تشييد المباني}
+    terms:
+      fr: [construction de bâtiments, construction d'un bâtiment, bâtiment administratif, salles de classe,
+           construction d'écoles, construction de centres de santé, logements, gros œuvre]
+      ar: [تشييد المباني, بناء مباني, بناء مدرسة, بناء فصول دراسية, بناء مركز صحي]
+      en: [building construction, construction of buildings, classrooms, school construction, housing]
+  - id: construction.rehabilitation
+    parent: construction
+    labels: {en: Rehabilitation works, fr: Réhabilitation, ar: إعادة التأهيل}
+    terms:
+      fr: [réhabilitation, travaux de réhabilitation, rénovation, travaux d'entretien]
+      ar: [إعادة تأهيل, ترميم, صيانة المباني]
+      en: [rehabilitation, renovation, refurbishment, maintenance works]
+  - id: construction.roads
+    parent: construction
+    labels: {en: Roads, fr: Routes et voirie, ar: الطرق}
+    terms:
+      fr: [route, routes, voirie, bitumage, travaux routiers, pistes rurales, ouvrages d'art, pavage]
+      ar: [طرق, إنشاء الطرق, صيانة الطرق, تعبيد الطرق]
+      en: [road, roads, road works, paving, rural roads, bridges]
+
+  # ── Water ─────────────────────────────────────────────────────────────────
+  - id: water
+    labels: {en: Water & sanitation, fr: Eau et assainissement, ar: المياه والصرف الصحي}
+    terms:
+      fr: [hydraulique, eau potable, assainissement]
+      ar: [المياه الصالحة للشرب, الصرف الصحي]
+      en: [water supply, sanitation, drinking water]
+  - id: water.drilling
+    parent: water
+    labels: {en: Borehole drilling, fr: Forages, ar: حفر الآبار}
+    terms:
+      fr: [forage, forages, puits, réalisation de forages, forages d'eau]
+      ar: [حفر الآبار, آبار, بئر]
+      en: [borehole, boreholes, drilling, water wells]
+  - id: water.networks
+    parent: water
+    labels: {en: Water supply networks, fr: Adduction d'eau potable, ar: شبكات المياه}
+    terms:
+      fr: [adduction d'eau, adduction d'eau potable, réseau d'eau potable, réseaux d'eau, château d'eau,
+           conduites d'eau]
+      ar: [شبكة المياه, شبكات المياه, إمدادات المياه, خزان مياه]
+      en: [water network, water supply network, water pipeline, water tower]
+
+  # ── Digital / IT ──────────────────────────────────────────────────────────
+  - id: it
+    labels: {en: Information technology, fr: Informatique, ar: المعلوماتية}
+    terms:
+      fr: [informatique, numérique, technologies de l'information]
+      ar: [المعلوماتية, تكنولوجيا المعلومات, الرقمنة]
+      en: [information technology, digital, ict]
+  - id: it.software
+    parent: it
+    labels: {en: Software development, fr: Développement logiciel, ar: تطوير البرمجيات}
+    terms:
+      fr: [développement logiciel, développement d'une application, application web, application mobile,
+           système d'information, plateforme numérique, logiciel de gestion, digitalisation, portail web]
+      ar: [تطوير البرمجيات, برمجيات, نظام معلوماتي, منصة رقمية, تطبيق]
+      en: [software development, web application, mobile application, information system, digital platform,
+           management software]
+  - id: it.networks
+    parent: it
+    labels: {en: IT networks & cabling, fr: Réseaux informatiques, ar: الشبكات المعلوماتية}
+    terms:
+      fr: [réseau informatique, réseaux informatiques, câblage, câblage réseau, fibre optique, réseau local]
+      ar: [شبكات معلوماتية, الشبكة المعلوماتية, كابلات, الألياف البصرية]
+      en: [it network, network cabling, structured cabling, fiber optic, lan]
+  - id: it.hardware
+    parent: it
+    labels: {en: IT hardware supply, fr: Matériel informatique, ar: المعدات المعلوماتية}
+    terms:
+      fr: [matériel informatique, équipements informatiques, ordinateurs, ordinateurs portables, imprimantes,
+           serveurs, onduleurs]
+      ar: [معدات معلوماتية, أجهزة كمبيوتر, حواسيب, طابعات, خوادم]
+      en: [it equipment, computer hardware, computers, laptops, printers, servers]
+  - id: telecom
+    labels: {en: Telecommunications, fr: Télécommunications, ar: الاتصالات}
+    terms:
+      fr: [télécommunications, télécommunication, pylônes]
+      ar: [الاتصالات, اتصالات]
+      en: [telecommunications, telecom]
+
+  # ── Consulting / intellectual services ────────────────────────────────────
+  - id: consulting
+    labels: {en: Consulting, fr: Prestations intellectuelles, ar: الخدمات الاستشارية}
+    terms:
+      fr: [prestations intellectuelles, consultant, bureau d'études, assistance technique]
+      ar: [خدمات استشارية, استشارة, مكتب دراسات, مساعدة فنية]
+      en: [consulting services, consultancy, technical assistance, advisory]
+  - id: consulting.studies
+    parent: consulting
+    labels: {en: Studies & feasibility, fr: Études, ar: الدراسات}
+    terms:
+      fr: [étude de faisabilité, études de faisabilité, études techniques, étude d'impact, études, diagnostic]
+      ar: [دراسة جدوى, دراسات فنية, دراسة الأثر]
+      en: [feasibility study, technical studies, impact assessment, study]
+  - id: consulting.audit
+    parent: consulting
+    labels: {en: Audit, fr: Audit, ar: التدقيق}
+    terms:
+      fr: [audit, audit financier, audit comptable, commissariat aux comptes]
+      ar: [تدقيق, مراجعة الحسابات, تدقيق مالي]
+      en: [audit, financial audit]
+  - id: consulting.training
+    parent: consulting
+    labels: {en: Training, fr: Formation, ar: التكوين}
+    terms:
+      fr: [formation, formations, renforcement des capacités, ateliers de formation]
+      ar: [تكوين, تدريب, تعزيز القدرات]
+      en: [training, capacity building, workshops]
+  - id: consulting.supervision
+    parent: consulting
+    labels: {en: Works supervision, fr: Contrôle et surveillance des travaux, ar: الإشراف على الأشغال}
+    terms:
+      fr: [contrôle des travaux, surveillance des travaux, maîtrise d'œuvre, supervision des travaux,
+           suivi et contrôle]
+      ar: [الإشراف على الأشغال, مراقبة الأشغال, متابعة ومراقبة]
+      en: [works supervision, construction supervision, site supervision]
+
+  # ── Goods / supplies ──────────────────────────────────────────────────────
+  - id: supplies
+    labels: {en: Goods & supplies, fr: Fournitures, ar: التوريدات}
+    terms:
+      fr: [fournitures, fourniture, acquisition de]
+      ar: [توريد, اقتناء]
+      en: [supply of, supplies, procurement of goods]
+  - id: supplies.medical
+    parent: supplies
+    labels: {en: Medical equipment, fr: Équipements médicaux, ar: المعدات الطبية}
+    terms:
+      fr: [équipements médicaux, matériel médical, médicaments, consommables médicaux, équipements de laboratoire]
+      ar: [معدات طبية, أجهزة طبية, أدوية, مستلزمات طبية]
+      en: [medical equipment, medical supplies, pharmaceuticals, laboratory equipment]
+  - id: supplies.vehicles
+    parent: supplies
+    labels: {en: Vehicles, fr: Véhicules, ar: السيارات}
+    terms:
+      fr: [véhicules, véhicule, véhicules tout terrain, pick-up, ambulances, engins]
+      ar: [سيارات, مركبات, سيارات رباعية الدفع, سيارات إسعاف]
+      en: [vehicles, vehicle, 4x4, ambulances]
+  - id: supplies.furniture
+    parent: supplies
+    labels: {en: Furniture, fr: Mobilier, ar: الأثاث}
+    terms:
+      fr: [mobilier, mobilier de bureau, mobilier scolaire, tables-bancs]
+      ar: [أثاث, أثاث مكتبي, أثاث مدرسي]
+      en: [furniture, office furniture, school furniture]
+  - id: supplies.office
+    parent: supplies
+    labels: {en: Office supplies, fr: Fournitures de bureau, ar: اللوازم المكتبية}
+    terms:
+      fr: [fournitures de bureau, consommables informatiques, papeterie]
+      ar: [لوازم مكتبية, أدوات مكتبية]
+      en: [office supplies, stationery]
+
+  # ── Current services ──────────────────────────────────────────────────────
+  - id: services
+    labels: {en: General services, fr: Services courants, ar: الخدمات العامة}
+    terms:
+      fr: [services courants, prestations de services]
+      ar: [خدمات عامة]
+      en: [general services, non-consulting services]
+  - id: services.cleaning
+    parent: services
+    labels: {en: Cleaning, fr: Nettoyage, ar: التنظيف}
+    terms:
+      fr: [nettoyage, entretien des locaux, hygiène]
+      ar: [تنظيف, نظافة]
+      en: [cleaning, janitorial]
+  - id: services.security
+    parent: services
+    labels: {en: Security guarding, fr: Gardiennage, ar: الحراسة}
+    terms:
+      fr: [gardiennage, surveillance des locaux, sécurité des bâtiments]
+      ar: [حراسة, خدمات الأمن]
+      en: [security guarding, security services]
+  - id: services.catering
+    parent: services
+    labels: {en: Catering, fr: Restauration, ar: الإطعام}
+    terms:
+      fr: [restauration, restauration collective, cantine, repas]
+      ar: [إطعام, تموين, وجبات]
+      en: [catering, meals]
+  - id: services.logistics
+    parent: services
+    labels: {en: Transport & logistics, fr: Transport et logistique, ar: النقل واللوجستيك}
+    terms:
+      fr: [transport, logistique, transit, acheminement]
+      ar: [نقل, لوجستيك, عبور]
+      en: [transport, logistics, freight forwarding]
+
+  # ── Agriculture ───────────────────────────────────────────────────────────
+  - id: agriculture
+    labels: {en: Agriculture, fr: Agriculture, ar: الزراعة}
+    terms:
+      fr: [agriculture, agricole, élevage, semences, intrants agricoles]
+      ar: [زراعة, زراعي, تنمية حيوانية, بذور]
+      en: [agriculture, agricultural, livestock, seeds]
+  - id: agriculture.irrigation
+    parent: agriculture
+    labels: {en: Irrigation, fr: Irrigation, ar: الري}
+    terms:
+      fr: [irrigation, aménagements hydro-agricoles, périmètres irrigués, goutte-à-goutte]
+      ar: [ري, الري, استصلاح الأراضي]
+      en: [irrigation, drip irrigation]
+
+# Credentials that tenders commonly require. `obtainable_days` is an
+# ESTIMATE used only to decide whether a gap is remediable before a deadline;
+# it must be validated with local practitioners (tracked in docs/project-state.md).
+credentials:
+  - id: cred.tax_clearance
+    labels: {en: Tax clearance certificate, fr: Attestation fiscale / quitus fiscal, ar: شهادة المخالصة الضريبية}
+    terms:
+      fr: [attestation fiscale, quitus fiscal, attestation de régularité fiscale, situation fiscale]
+      ar: [شهادة ضريبية, براءة الذمة الضريبية, المخالصة الضريبية]
+      en: [tax clearance, tax compliance certificate]
+    obtainable_days: 7
+  - id: cred.social_security
+    labels: {en: Social security certificate, fr: Attestation CNSS, ar: شهادة الضمان الاجتماعي}
+    terms:
+      fr: [attestation cnss, attestation de la cnss, sécurité sociale, cnss]
+      ar: [الضمان الاجتماعي, شهادة الضمان الاجتماعي]
+      en: [social security certificate]
+    obtainable_days: 7
+  - id: cred.trade_register
+    labels: {en: Trade register extract, fr: Registre du commerce, ar: السجل التجاري}
+    terms:
+      fr: [registre du commerce, registre de commerce, rccm, extrait du registre]
+      ar: [السجل التجاري, سجل تجاري]
+      en: [trade register, commercial register, business registration]
+    obtainable_days: 5
+  - id: cred.iso_9001
+    labels: {en: ISO 9001 certification, fr: Certification ISO 9001, ar: شهادة الأيزو 9001}
+    terms:
+      fr: [iso 9001, certification iso 9001]
+      ar: [أيزو 9001, الأيزو 9001]
+      en: [iso 9001]
+    obtainable_days: 180
+  - id: cred.iso_14001
+    labels: {en: ISO 14001 certification, fr: Certification ISO 14001, ar: شهادة الأيزو 14001}
+    terms:
+      fr: [iso 14001]
+      ar: [أيزو 14001]
+      en: [iso 14001]
+    obtainable_days: 180
+  - id: cred.bid_security
+    labels: {en: Bid security, fr: Garantie de soumission, ar: ضمان العرض}
+    terms:
+      fr: [garantie de soumission, caution de soumission, garantie d'offre, caution bancaire]
+      ar: [ضمان العرض, كفالة العرض, ضمان بنكي]
+      en: [bid security, bid bond, bid guarantee]
+    obtainable_days: 5
+    per_bid: true  # issued for each bid by a bank — never "held" in a profile
+  - id: cred.sector_license
+    labels: {en: Sector licence / accreditation, fr: Agrément, ar: الاعتماد}
+    terms:
+      fr: [agrément, agrément technique, licence d'exploitation, habilitation]
+      ar: [اعتماد, رخصة, ترخيص]
+      en: [license, licence, accreditation]
+    obtainable_days: 60

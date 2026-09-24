@@ -1,0 +1,60 @@
+name: forsa-ci
+on:
+  push:
+    paths: ["forsa/**", ".github/workflows/forsa-ci.yml"]
+  pull_request:
+    paths: ["forsa/**", ".github/workflows/forsa-ci.yml"]
+
+defaults:
+  run:
+    working-directory: forsa
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      FORSA_TEST_DATABASE_URL: postgresql+psycopg://forsa:forsa@localhost:5432/forsa_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - name: Create non-superuser app role (RLS must apply)
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE ROLE forsa LOGIN PASSWORD 'forsa' CREATEDB;"
+          PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE forsa_test OWNER forsa;"
+      - name: Install
+        run: pip install -e "backend[dev]"
+      - name: Lint & format
+        run: |
+          ruff check backend/src backend/tests backend/migrations
+          ruff format --check backend/src backend/tests backend/migrations
+      - name: Typecheck
+        run: cd backend && mypy
+      - name: Tests (unit + integration on PostgreSQL)
+        run: cd backend && pytest
+      - name: AI / matching evals (critical cases gate the build)
+        run: forsa eval
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "22", cache: npm, cache-dependency-path: forsa/web/package-lock.json}
+      - run: npm ci --no-audit --no-fund
+        working-directory: forsa/web
+      - run: npx tsc --noEmit
+        working-directory: forsa/web
+      - run: npm run build
+        working-directory: forsa/web
+        env: {NEXT_TELEMETRY_DISABLED: "1"}

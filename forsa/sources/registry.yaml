@@ -1,0 +1,79 @@
+# FORSA source registry (spec §106). No connector runs without an entry here, and only
+# `status: active` entries are runnable. Every field must be verified against the official
+# source before activation — see docs/research/source-registry.md for the verification log.
+sources:
+  - id: forsa-demo
+    name: FORSA demo notices (SYNTHETIC — not real opportunities)
+    country: MR
+    category: demo
+    official_url: null
+    access_type: synthetic_fixture
+    api_available: false
+    scraping_allowed: false
+    status: active
+    connector: fixture
+    update_frequency_hours: 24
+    reliability: n/a
+    data_license: internal test data
+    config:
+      directory: fixtures/demo/notices
+    notes: Hand-written synthetic notices for development, demos and tests. Flagged is_synthetic everywhere.
+
+  - id: mr-armp-portal
+    name: Portail national des marchés publics (Mauritanie)
+    country: MR
+    category: public_procurement
+    official_url: https://marchespublics.gov.mr/
+    access_type: public_web
+    api_available: unknown
+    scraping_allowed: unknown  # terms of use + robots.txt not yet reviewed
+    terms_url: null
+    robots_url: https://marchespublics.gov.mr/robots.txt
+    authentication: none (public notices); alerts require registration
+    rate_limit: {min_interval_s: 5}
+    update_frequency_hours: 6
+    reliability: unknown
+    data_license: unknown — do not assume commercial reuse rights
+    status: pending_verification
+    connector: html_table
+    allowed_hosts: [marchespublics.gov.mr]
+    config:
+      # PLACEHOLDERS — must be filled from a real inspection of the portal (Phase 0).
+      listing_url: "https://marchespublics.gov.mr/TODO-verify-listing-path?page={page}"
+      max_pages: 5
+      currency: MRU
+      column_map: {}
+      value_maps:
+        category: {Fournitures: goods, Travaux: works, "Prestations intellectuelles": consulting, "Services courants": services}
+    notes: >
+      Primary MVP source. Portal was unreachable from the build environment (egress policy), so structure,
+      terms and robots.txt are NOT verified. Pipeline refuses to run it until status=active.
+
+  - id: ungm-notices
+    name: United Nations Global Marketplace — notices
+    country: null
+    category: multilateral_procurement
+    official_url: https://www.ungm.org/Public/Notice
+    access_type: official_api
+    api_available: true  # per spec; developer.ungm.org — authorization terms to confirm
+    scraping_allowed: false  # use the official API only
+    authentication: to confirm (developer.ungm.org)
+    update_frequency_hours: 12
+    status: pending_verification
+    connector: ungm_api  # not implemented yet — official API docs must be read first
+    allowed_hosts: []
+    notes: Implement only against the official API documentation; never scrape the web UI.
+
+  - id: worldbank-procurement-notices
+    name: World Bank procurement notices
+    country: null
+    category: development_finance
+    official_url: https://datacatalog.worldbank.org/search/dataset/0037795/world-bank-procurement-notices
+    access_type: official_dataset
+    api_available: to_confirm
+    scraping_allowed: false
+    update_frequency_hours: 24
+    status: pending_verification
+    connector: worldbank_api  # not implemented yet
+    allowed_hosts: []
+    notes: Filter to Mauritania (and later the expansion countries). Confirm dataset licence before reuse.

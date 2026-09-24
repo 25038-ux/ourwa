@@ -1,0 +1,35 @@
+- id: dao-fr-qualification
+  severity: critical
+  input:
+    text: |
+      Article 5 Qualification
+      Le soumissionnaire doit fournir une attestation fiscale en cours de validité.
+      Le soumissionnaire doit avoir réalisé au moins trois (3) marchés similaires.
+      Le chiffre d'affaires annuel moyen doit être supérieur ou égal à 50 000 000 MRU.
+      La certification ISO 9001 sera notée.
+      Le présent avis est publié pour information.
+  expected:
+    max_requirements: 4
+    requirements:
+      - {category: certification, type: mandatory, credentials: [cred.tax_clearance]}
+      - {category: experience, type: mandatory, min_count: 3}
+      - {category: financial, type: mandatory, min_amount: 50000000, currency: MRU}
+      - {category: certification, type: scored, credentials: [cred.iso_9001]}
+
+- id: ar-tax-certificate
+  severity: major
+  input: {text: "يجب على المتعهد تقديم شهادة ضريبية سارية المفعول."}
+  expected:
+    requirements: [{category: certification, type: mandatory, credentials: [cred.tax_clearance]}]
+
+- id: en-similar-contracts
+  severity: major
+  input: {text: "Bidders must provide at least two similar contracts completed in the last five years."}
+  expected:
+    requirements: [{category: experience, type: mandatory, min_count: 2}]
+
+- id: fr-bid-security-amount
+  severity: minor
+  input: {text: "Une garantie de soumission de 900 000 MRU est exigée."}
+  expected:
+    requirements: [{category: financial, type: mandatory, credentials: [cred.bid_security]}]

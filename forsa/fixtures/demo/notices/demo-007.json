@@ -1,0 +1,18 @@
+{
+  "reference": "DEMO-2026-007",
+  "kind": "TENDER",
+  "title": "Travaux de réhabilitation et de bitumage de la route Aleg – Boghé (lot 2)",
+  "description": "Travaux routiers. Le soumissionnaire doit disposer de la certification ISO 9001 et d'au moins cinq marchés similaires.",
+  "buyer": "Ministère de l'Équipement et des Transports (démo)",
+  "country": "MR",
+  "region": "Brakna",
+  "category": "works",
+  "currency": "MRU",
+  "estimated_value": 350000000,
+  "published_at": "@anchor-5d",
+  "deadline_at": "@anchor+30d",
+  "status": "PUBLISHED",
+  "language": "fr",
+  "consortium_allowed": false,
+  "url": "https://example.invalid/demo/DEMO-2026-007"
+}

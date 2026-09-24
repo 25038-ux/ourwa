@@ -1,0 +1,53 @@
+[
+  {
+    "org": {"name": "Sahel Énergie Solaire (démo)", "slug": "sahel-solaire", "country": "MR"},
+    "users": [
+      {"email": "owner@sahel-solaire.demo", "full_name": "Aïcha (Owner, demo)", "role": "OWNER"},
+      {"email": "bids@sahel-solaire.demo", "full_name": "Moussa (Bid manager, demo)", "role": "BID_MANAGER"}
+    ],
+    "company": {
+      "legal_name": "Sahel Énergie Solaire SARL (démo)", "country": "MR", "regions_served": ["*"],
+      "currency": "MRU", "annual_turnover": 40000000, "max_project_value": 30000000, "staff_count": 18,
+      "max_parallel_bids": 3, "daily_bid_cost": 15000, "gross_margin_pct": 18,
+      "strategic_concepts": ["energy.solar_pumping"], "excluded_concepts": ["construction.roads"]
+    },
+    "capabilities": [
+      {"concept_id": "energy.solar_pv", "verified": true},
+      {"concept_id": "energy.solar_pumping"},
+      {"concept_id": "energy.electrical_installation"},
+      {"concept_id": "water.drilling"}
+    ],
+    "credentials": [
+      {"credential_id": "cred.tax_clearance", "status": "HELD", "valid_until": "@anchor+120d", "verified": true},
+      {"credential_id": "cred.social_security", "status": "HELD"},
+      {"credential_id": "cred.iso_9001", "status": "ABSENT"}
+    ],
+    "projects": [
+      {"title": "Mini-réseau solaire de Rosso", "client_name": "Commune de Rosso", "concept_ids": ["energy.solar_pv"],
+       "value": 22000000, "currency": "MRU", "year": 2025, "region": "Trarza", "verified": true},
+      {"title": "Pompage solaire — 6 forages pastoraux", "client_name": "Projet pastoral (démo)",
+       "concept_ids": ["energy.solar_pumping", "water.drilling"], "value": 15000000, "currency": "MRU", "year": 2024,
+       "region": "Hodh El Gharbi"}
+    ]
+  },
+  {
+    "org": {"name": "Nouakchott Digital Services (démo)", "slug": "nkc-digital", "country": "MR"},
+    "users": [{"email": "owner@nkc-digital.demo", "full_name": "Sidi (Owner, demo)", "role": "OWNER"}],
+    "company": {
+      "legal_name": "Nouakchott Digital Services SA (démo)", "country": "MR",
+      "regions_served": ["Nouakchott-Nord", "Nouakchott-Ouest", "Nouakchott-Sud"], "currency": "MRU",
+      "max_project_value": 12000000, "staff_count": 25
+    },
+    "capabilities": [
+      {"concept_id": "it.software", "verified": true}, {"concept_id": "it.networks"}, {"concept_id": "it.hardware"},
+      {"concept_id": "consulting.training"}
+    ],
+    "credentials": [{"credential_id": "cred.tax_clearance", "status": "HELD"}],
+    "projects": [
+      {"title": "Portail e-services municipal", "concept_ids": ["it.software"], "value": 6000000, "currency": "MRU",
+       "year": 2025, "region": "Nouakchott-Ouest", "verified": true},
+      {"title": "Formation agents — système de gestion", "concept_ids": ["consulting.training", "it.software"],
+       "value": 2500000, "currency": "MRU", "year": 2024}
+    ]
+  }
+]
