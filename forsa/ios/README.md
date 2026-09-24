@@ -24,7 +24,9 @@ Bundle id `mr.forsa.app`, iOS 15+, iPhone. Privacy: no tracking, no third-party 
 * `FORSA-1.0.0-simulator.app.zip` — runs in the iOS Simulator (`xcrun simctl install booted FORSA.app`);
 * `FORSA-1.0.0-unsigned.ipa` and `FORSA-1.0.0-unsigned.xcarchive.zip` — device build, **not signed**: iPhones only
   install apps signed by an Apple Developer account, so it must be signed (below) or re-signed before install;
-* `simulator-screenshots/` — the app launched in the Simulator (FR/EN/AR), proof that it starts.
+* `simulator-screenshots/` — the app launched in the Simulator: setup screen (FR/EN/AR), a smoke-test page loaded
+  in the web shell (`ci/smoke`: marker, native bridge, safe areas, user agent), the connection-error screen, and
+  the app log.
 
 ### Signed build and TestFlight (needs an Apple Developer account, 99 USD/year)
 1. In App Store Connect create the app with bundle id `mr.forsa.app` (Certificates, Identifiers & Profiles →
