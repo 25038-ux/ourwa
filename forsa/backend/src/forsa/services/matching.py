@@ -6,15 +6,15 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import or_, select
-from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-from forsa.db.models import Company, Match, MatchHistory, Notification, Opportunity
+from forsa.db.models import Company, Match, MatchHistory, Opportunity, OpportunityEvent
 from forsa.kernel.clock import utcnow
 from forsa.kernel.hashing import content_hash
 from forsa.matching.engine import MatchingEngine
 from forsa.matching.profiles import OPEN_STATES, Lifecycle
 from forsa.services.events import emit
+from forsa.services.notifications import notify
 from forsa.services.profiles import company_profile, opportunity_profile
 
 RELEVANCE_MIN = 0.25  # minimum capability score to create a *new* match row
@@ -65,23 +65,27 @@ def match_pair(
             org_id=company.org_id,
         )
         if result.fit_score >= NOTIFY_FIT and match.recommendation != "NO_BID":
-            session.execute(
-                insert(Notification)
-                .values(
-                    id=uuid.uuid4(),
-                    org_id=company.org_id,
-                    category="high_fit_opportunity",
-                    title=opp.title[:300],
-                    body=None,
-                    payload={
-                        "opportunity_id": str(opp.id),
-                        "match_id": str(match.id),
-                        "fit": result.fit_score,
-                        "recommendation": match.recommendation,
-                    },
-                    idempotency_key=f"notif:high_fit:{match.id}",
-                )
-                .on_conflict_do_nothing(index_elements=["idempotency_key"])
+            notify(
+                session,
+                company.org_id,
+                "high_fit_opportunity",
+                opp.title,
+                key=f"notif:high_fit:{match.id}",
+                payload={
+                    "opportunity_id": str(opp.id),
+                    "match_id": str(match.id),
+                    "fit": result.fit_score,
+                    "recommendation": match.recommendation,
+                },
+            )
+        elif opp.status == "PLANNED" and match.recommendation != "NO_BID":
+            notify(
+                session,
+                company.org_id,
+                "early_signal",
+                opp.title,
+                key=f"notif:early:{match.id}",
+                payload={"opportunity_id": str(opp.id), "match_id": str(match.id), "fit": result.fit_score},
             )
         return match
     decision_changed = (
@@ -90,6 +94,31 @@ def match_pair(
         existing.opportunity_version,
         existing.scoring_version,
     ) != (result.fit_score, result.recommendation.value, opp.current_version, result.scoring_version)
+    if existing.opportunity_version != opp.current_version and existing.status != "DISMISSED":
+        changes = sorted(
+            set(
+                session.scalars(
+                    select(OpportunityEvent.event_type).where(
+                        OpportunityEvent.opportunity_id == opp.id, OpportunityEvent.version == opp.current_version
+                    )
+                ).all()
+            )
+        )
+        urgent = {"CANCELLED", "DEADLINE_SHORTENED", "AWARDED"} & set(changes)
+        notify(
+            session,
+            company.org_id,
+            "tender_change",
+            opp.title,
+            key=f"notif:change:{existing.id}:v{opp.current_version}",
+            payload={
+                "opportunity_id": str(opp.id),
+                "match_id": str(existing.id),
+                "changes": changes,
+                "version": opp.current_version,
+            },
+            priority="high" if urgent else "normal",
+        )
     if decision_changed:
         session.add(
             MatchHistory(

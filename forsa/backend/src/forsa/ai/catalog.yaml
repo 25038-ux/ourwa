@@ -1,0 +1,199 @@
+# FORSA AI provider catalog.
+#
+# * `kind` selects the adapter: openai_compatible (Chat Completions), anthropic (official SDK),
+#   typesafe_system_one (Jev decision model).
+# * API keys are NEVER stored here or in the database — only the NAME of the environment variable.
+# * `models` are *suggested defaults*. Model catalogues change often: platform admins should use
+#   "Discover models" (GET <base_url>/models) in Settings → AI and pin what they want. Defaults marked
+#   `verified: false` have not been checked against the live API from this environment.
+# * `max_sensitivity` is the default data ceiling: public < internal < confidential. Cloud providers
+#   default to `internal` (never raw company documents/financials) until an admin reviews the provider's
+#   data-processing terms and raises it. Local models default to `confidential` (data stays on your infra).
+version: forsa-ai-catalog-v1
+
+providers:
+  # ── Frontier / global ────────────────────────────────────────────────────────
+  - id: anthropic
+    name: Anthropic Claude
+    kind: anthropic
+    region: US
+    api_key_env: ANTHROPIC_API_KEY
+    models: {fast: claude-haiku-4-5, reasoning: claude-opus-5}
+    refusal_fallback_model: claude-opus-4-8
+    free_tier: false
+    docs_url: https://docs.anthropic.com
+    verified: true
+
+  - id: openai
+    name: OpenAI
+    kind: openai_compatible
+    region: US
+    base_url: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY
+    max_tokens_param: max_completion_tokens
+    models: {}  # pin via model discovery
+    free_tier: false
+    docs_url: https://platform.openai.com/docs
+    verified: false
+
+  - id: gemini
+    name: Google Gemini (OpenAI-compatible endpoint)
+    kind: openai_compatible
+    region: US
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key_env: GEMINI_API_KEY
+    models: {fast: gemini-2.5-flash, reasoning: gemini-2.5-pro}
+    free_tier: true
+    docs_url: https://ai.google.dev/gemini-api/docs/openai
+    verified: false
+
+  - id: mistral
+    name: Mistral AI (French)
+    kind: openai_compatible
+    region: EU
+    base_url: https://api.mistral.ai/v1
+    api_key_env: MISTRAL_API_KEY
+    models: {fast: mistral-small-latest, reasoning: mistral-large-latest}
+    free_tier: true
+    docs_url: https://docs.mistral.ai
+    verified: false
+
+  # ── Chinese model labs ───────────────────────────────────────────────────────
+  - id: deepseek
+    name: DeepSeek
+    kind: openai_compatible
+    region: CN
+    base_url: https://api.deepseek.com/v1
+    api_key_env: DEEPSEEK_API_KEY
+    models: {fast: deepseek-chat, reasoning: deepseek-reasoner}
+    free_tier: false
+    docs_url: https://api-docs.deepseek.com
+    verified: false
+
+  - id: qwen
+    name: Alibaba Qwen (Model Studio, international)
+    kind: openai_compatible
+    region: CN
+    base_url: https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+    api_key_env: DASHSCOPE_API_KEY
+    models: {fast: qwen-turbo, reasoning: qwen-max}
+    free_tier: true
+    docs_url: https://www.alibabacloud.com/help/en/model-studio
+    verified: false
+
+  - id: moonshot
+    name: Moonshot Kimi
+    kind: openai_compatible
+    region: CN
+    base_url: https://api.moonshot.ai/v1
+    api_key_env: MOONSHOT_API_KEY
+    models: {}  # pin via model discovery
+    free_tier: false
+    docs_url: https://platform.moonshot.ai/docs
+    verified: false
+
+  - id: zhipu
+    name: Zhipu GLM (Z.ai)
+    kind: openai_compatible
+    region: CN
+    base_url: https://api.z.ai/api/paas/v4
+    api_key_env: ZHIPU_API_KEY
+    models: {fast: glm-4-flash}
+    free_tier: true
+    docs_url: https://docs.z.ai
+    verified: false
+
+  - id: minimax
+    name: MiniMax
+    kind: openai_compatible
+    region: CN
+    base_url: https://api.minimax.io/v1
+    api_key_env: MINIMAX_API_KEY
+    models: {}  # pin via model discovery
+    free_tier: false
+    docs_url: https://www.minimax.io/platform
+    verified: false
+
+  # ── Free / free-tier inference platforms ─────────────────────────────────────
+  - id: nvidia
+    name: NVIDIA NIM (build.nvidia.com, free developer credits)
+    kind: openai_compatible
+    region: US
+    base_url: https://integrate.api.nvidia.com/v1
+    api_key_env: NVIDIA_API_KEY
+    models: {fast: meta/llama-3.1-8b-instruct, reasoning: deepseek-ai/deepseek-r1}
+    free_tier: true
+    docs_url: https://docs.api.nvidia.com
+    verified: false
+
+  - id: groq
+    name: Groq
+    kind: openai_compatible
+    region: US
+    base_url: https://api.groq.com/openai/v1
+    api_key_env: GROQ_API_KEY
+    models: {fast: llama-3.1-8b-instant, reasoning: llama-3.3-70b-versatile}
+    free_tier: true
+    docs_url: https://console.groq.com/docs
+    verified: false
+
+  - id: openrouter
+    name: OpenRouter (many free ":free" models)
+    kind: openai_compatible
+    region: US
+    base_url: https://openrouter.ai/api/v1
+    api_key_env: OPENROUTER_API_KEY
+    models: {}  # pin a ":free" model via model discovery
+    free_tier: true
+    docs_url: https://openrouter.ai/docs
+    verified: false
+
+  - id: cerebras
+    name: Cerebras
+    kind: openai_compatible
+    region: US
+    base_url: https://api.cerebras.ai/v1
+    api_key_env: CEREBRAS_API_KEY
+    models: {}  # pin via model discovery
+    free_tier: true
+    docs_url: https://inference-docs.cerebras.ai
+    verified: false
+
+  - id: huggingface
+    name: Hugging Face Inference Providers
+    kind: openai_compatible
+    region: US
+    base_url: https://router.huggingface.co/v1
+    api_key_env: HF_TOKEN
+    models: {}  # pin via model discovery
+    free_tier: true
+    docs_url: https://huggingface.co/docs/inference-providers
+    verified: false
+
+  # ── Local / sovereign ────────────────────────────────────────────────────────
+  - id: ollama
+    name: Ollama (local models — Qwen, Llama, Mistral… on your own server)
+    kind: openai_compatible
+    region: local
+    base_url_env: OLLAMA_BASE_URL
+    base_url: http://localhost:11434/v1
+    api_key_env: null
+    models: {}  # e.g. qwen2.5:7b — whatever is pulled locally
+    max_sensitivity: confidential
+    free_tier: true
+    docs_url: https://ollama.com
+    verified: false
+
+  # ── Decision models ──────────────────────────────────────────────────────────
+  - id: jev
+    name: TypeSafe Jev (System One decision model)
+    kind: typesafe_system_one
+    region: US
+    base_url: https://api.typesafe.ai
+    base_url_env: TYPESAFE_BASE_URL
+    api_key_env: TYPESAFE_API_KEY
+    models: {decision: jev-latest}
+    free_tier: false
+    docs_url: https://docs.typesafe.ai
+    # Wire format mirrored from the official typesafe-sdk 0.7.1 (POST /v1/systemone, GET /v1/models).
+    verified: true

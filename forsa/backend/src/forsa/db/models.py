@@ -52,6 +52,10 @@ TENANT_TABLES = (
     "notifications",
     "briefings",
     "tasks",
+    "invites",
+    "push_subscriptions",
+    "assistant_conversations",
+    "assistant_messages",
 )
 SHARED_OR_TENANT_TABLES = (
     "documents",
@@ -92,6 +96,24 @@ class Membership(Base, Timestamps):
     org_id: Mapped[uuid.UUID] = mapped_column(FK("organizations.id", ondelete="CASCADE"), index=True)
     user_id: Mapped[uuid.UUID] = mapped_column(FK("users.id", ondelete="CASCADE"), index=True)
     role: Mapped[str] = mapped_column(String(30))
+    # {"<category>": {"in_app": bool, "push": bool}} — absent keys fall back to defaults (services/notifications.py)
+    notification_prefs: Mapped[dict[str, Any]] = mapped_column(default=dict, server_default="{}")
+
+
+class Invite(Base):
+    """One-time invitation to join an organisation. Only the SHA-256 of the token is stored."""
+
+    __tablename__ = "invites"
+    id: Mapped[uuid.UUID] = uuid_pk()
+    org_id: Mapped[uuid.UUID] = mapped_column(FK("organizations.id", ondelete="CASCADE"), index=True)
+    email: Mapped[str] = mapped_column(String(320))
+    role: Mapped[str] = mapped_column(String(30))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    invited_by: Mapped[uuid.UUID] = mapped_column(FK("users.id"))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 # ── Sources & ingestion ─────────────────────────────────────────────────────
@@ -339,6 +361,8 @@ class Company(Base, Timestamps):
     daily_bid_cost: Mapped[float | None] = mapped_column(Numeric(14, 2))
     gross_margin_pct: Mapped[float | None] = mapped_column(Float)
     matchmaking_consent: Mapped[bool] = mapped_column(Boolean, default=False)
+    description: Mapped[str | None] = mapped_column(Text)
+    onboarding_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class CompanyCapability(Base, Timestamps):
@@ -519,7 +543,25 @@ class Notification(Base):
     body: Mapped[str | None] = mapped_column(Text)
     payload: Mapped[dict[str, Any]] = mapped_column(default=dict)
     idempotency_key: Mapped[str] = mapped_column(String(200), unique=True)
+    priority: Mapped[str] = mapped_column(String(10), default="normal", server_default="normal")  # low|normal|high
     read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    pushed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class PushSubscription(Base):
+    """Web Push endpoint of one browser/device (PWA)."""
+
+    __tablename__ = "push_subscriptions"
+    id: Mapped[uuid.UUID] = uuid_pk()
+    org_id: Mapped[uuid.UUID] = mapped_column(FK("organizations.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(FK("users.id", ondelete="CASCADE"), index=True)
+    endpoint: Mapped[str] = mapped_column(String(1000), unique=True)
+    p256dh: Mapped[str] = mapped_column(String(200))
+    auth: Mapped[str] = mapped_column(String(100))
+    user_agent: Mapped[str | None] = mapped_column(String(300))
+    failures: Mapped[int] = mapped_column(Integer, default=0)
+    last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
@@ -542,6 +584,10 @@ class Task(Base, Timestamps):
     status: Mapped[str] = mapped_column(String(20), default="OPEN")
     assignee_user_id: Mapped[uuid.UUID | None] = mapped_column(FK("users.id"))
     due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    description: Mapped[str | None] = mapped_column(Text)
+    source: Mapped[str] = mapped_column(String(20), default="manual", server_default="manual")  # manual|condition|ai
+    source_key: Mapped[str | None] = mapped_column(String(200), unique=True)  # idempotency for generated tasks
+    created_by: Mapped[uuid.UUID | None] = mapped_column(FK("users.id"))
 
 
 # ── Platform: audit, events, jobs, AI ───────────────────────────────────────
@@ -609,4 +655,45 @@ class AIRequest(Base):
     status: Mapped[str] = mapped_column(String(20))
     error: Mapped[str | None] = mapped_column(Text)
     output: Mapped[dict[str, Any] | None] = mapped_column()
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AIProviderSetting(Base, Timestamps):
+    """Platform-level admin overrides for an AI provider. API keys are never stored (environment only)."""
+
+    __tablename__ = "ai_provider_settings"
+    provider_id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    priority: Mapped[int | None] = mapped_column(Integer)
+    fast_model: Mapped[str | None] = mapped_column(String(120))
+    reasoning_model: Mapped[str | None] = mapped_column(String(120))
+    decision_model: Mapped[str | None] = mapped_column(String(120))
+    max_sensitivity: Mapped[str | None] = mapped_column(String(20))
+    dpa_reviewed: Mapped[bool] = mapped_column(Boolean, default=False)
+    notes: Mapped[str | None] = mapped_column(Text)
+    updated_by: Mapped[uuid.UUID | None] = mapped_column(FK("users.id"))
+
+
+# ── Assistant (tenant) ──────────────────────────────────────────────────────
+class AssistantConversation(Base, Timestamps):
+    __tablename__ = "assistant_conversations"
+    id: Mapped[uuid.UUID] = uuid_pk()
+    org_id: Mapped[uuid.UUID] = mapped_column(FK("organizations.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(FK("users.id", ondelete="CASCADE"), index=True)
+    title: Mapped[str] = mapped_column(String(200))
+
+
+class AssistantMessage(Base):
+    __tablename__ = "assistant_messages"
+    id: Mapped[uuid.UUID] = uuid_pk()
+    org_id: Mapped[uuid.UUID] = mapped_column(FK("organizations.id", ondelete="CASCADE"), index=True)
+    conversation_id: Mapped[uuid.UUID] = mapped_column(FK("assistant_conversations.id", ondelete="CASCADE"), index=True)
+    role: Mapped[str] = mapped_column(String(20))  # user | assistant
+    content: Mapped[str] = mapped_column(Text)
+    tools: Mapped[list[Any]] = mapped_column(default=list)  # [{name, arguments, summary}]
+    citations: Mapped[list[Any]] = mapped_column(default=list)  # [{kind, id, label, href}]
+    actions: Mapped[list[Any]] = mapped_column(default=list)  # confirmable action cards
+    mode: Mapped[str] = mapped_column(String(20), default="deterministic")  # deterministic | llm
+    provider: Mapped[str | None] = mapped_column(String(40))
+    model: Mapped[str | None] = mapped_column(String(120))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

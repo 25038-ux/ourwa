@@ -15,7 +15,8 @@ Master spec: `docs/product/master-build-specification.md`. Architecture review o
    facts, requirements, eligibility, API endpoints or API behaviour. Prefer official documentation.
 3. **Unknown ≠ negative.** Missing evidence becomes `NOT_FOUND` / `UNKNOWN`, never a failed gate.
 4. **AI output is untrusted data.** Documents are data, never instructions (`forsa/ai/boundaries.py`).
-   AI inferences are never evidence and never count in scoring (`claim_weight`).
+   AI inferences are never evidence and never count in scoring (`claim_weight`). Every AI call declares a
+   data sensitivity; never route data above a provider's ceiling. API keys live only in the environment.
 5. **Humans approve consequential actions.** No automatic submission, no buyer contact, no publication of
    company data without an APPROVED `approval_requests` row. `submit_external` requires approval.
 6. **Tenant isolation at the database.** Tenant tables have FORCEd row-level security; always use
@@ -38,12 +39,14 @@ backend/src/forsa/
   matching/    PURE engine: gates → components → recommendation; messages (FR/EN explanations)
   documents/   extraction (PDF/DOCX/HTML/text), structure-aware segmentation, rule-based requirements
   ingestion/   connector contract, polite HTTP client (SSRF/robots/rate-limit), pipeline, change detection
-  ai/          provider-neutral gateway, Anthropic adapter (optional), prompt boundaries, tool permissions
+  ai/          provider catalog (catalog.yaml) + gateway (tiers, sensitivity routing, budgets, cache),
+               adapters: OpenAI-compatible, Anthropic SDK, Jev decision model; prompt boundaries (ADR-011)
+  assistant/   tool-using assistant: read-only tenant tools, deterministic planner, grounding guard (ADR-013)
   services/    application services (companies, bids, matching, intelligence, sources, profiles)
   jobs/        Postgres job queue (SKIP LOCKED), handlers, worker loop, scheduler tick
-  api/         FastAPI /api/v1 routers, deps (auth, tenant context), presenter
+  api/         FastAPI /api/v1 routers, deps (auth, tenant context), presenter, live.py (LISTEN/NOTIFY → SSE)
   db/          SQLAlchemy models, tenant-aware sessions;  migrations in backend/migrations (Alembic)
-web/           Next.js app (App Router, TypeScript), same-origin /api proxy
+web/           Next.js app + installable PWA (App Router, TypeScript, motion), same-origin /api proxy
 sources/       source registry (YAML)      fixtures/  SYNTHETIC demo data      evals/  golden eval cases
 ```
 Dependency direction: `api → services → (matching, documents, ingestion, ai, taxonomy) → kernel`.

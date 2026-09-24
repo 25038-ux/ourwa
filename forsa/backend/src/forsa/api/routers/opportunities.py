@@ -4,10 +4,11 @@ import uuid
 from typing import Literal
 
 from fastapi import APIRouter, Depends, Query
+from pydantic import BaseModel
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
-from forsa.api.deps import runtime, tenant_context, tenant_db
+from forsa.api.deps import platform_admin, runtime, tenant_context, tenant_db
 from forsa.api.presenter import concept_label, render_match
 from forsa.db.models import (
     Assertion,
@@ -21,6 +22,7 @@ from forsa.db.models import (
     OpportunityEvent,
     Requirement,
     Source,
+    User,
 )
 from forsa.identity.rbac import TenantContext
 from forsa.kernel.clock import utcnow
@@ -298,3 +300,63 @@ def why(
             for a, e in db.execute(stmt.order_by(Assertion.predicate)).all()
         ],
     }
+
+
+@router.get("/{opportunity_id}/ai-summary")
+def ai_summary(
+    opportunity_id: uuid.UUID,
+    lang: Lang = "fr",
+    ctx: TenantContext = Depends(tenant_context),
+    db: Session = Depends(tenant_db),
+    rt: Runtime = Depends(runtime),
+) -> dict:
+    """Plain-language rewording of the stored recommendation (flag `ai_explanations`). Loaded lazily by the UI."""
+    ctx.require("match.read")
+    if not rt.settings.feature("ai_explanations"):
+        return {"available": False, "reason": "feature_disabled"}
+    m = db.scalar(select(Match).where(Match.opportunity_id == opportunity_id, Match.org_id == ctx.org_id))
+    if m is None:
+        return {"available": False, "reason": "no_match"}
+    from forsa.services.ai_features import ai_summary as summarize
+
+    out = summarize(db, rt.gateway, ctx.org_id, m, lang)
+    db.commit()
+    return out
+
+
+class RequirementReview(BaseModel):
+    verification: Literal["VERIFIED", "REJECTED", "NEEDS_REVIEW"]
+
+
+@router.patch("/{opportunity_id}/requirements/{requirement_id}")
+def review_requirement(
+    opportunity_id: uuid.UUID,
+    requirement_id: uuid.UUID,
+    body: RequirementReview,
+    user: User = Depends(platform_admin),
+) -> dict:
+    """Human verification of a (public) requirement — e.g. accept or reject an AI proposal. Re-matches after."""
+    from forsa.db.session import system_session
+    from forsa.jobs.queue import enqueue
+    from forsa.services.events import audit
+
+    with system_session() as s:
+        r = s.get(Requirement, requirement_id)
+        if r is None or r.opportunity_id != opportunity_id:
+            raise NotFound("requirement not found")
+        before, r.verification = r.verification, body.verification
+        audit(
+            s,
+            "requirement.reviewed",
+            actor=user.id,
+            subject_type="requirement",
+            subject_id=r.id,
+            data={"from": before, "to": body.verification, "method": r.extraction_method},
+        )
+        enqueue(
+            s,
+            "match_opportunity",
+            {"opportunity_id": str(opportunity_id)},
+            key=f"match_opp:{opportunity_id}:review:{requirement_id}:{body.verification}",
+        )
+    return {"ok": True, "verification": body.verification}

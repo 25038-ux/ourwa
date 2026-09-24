@@ -14,7 +14,18 @@ from sqlalchemy import text
 
 from forsa import __version__
 from forsa.api.deps import COOKIE
-from forsa.api.routers import auth, bids, company, matches, opportunities, platform
+from forsa.api.routers import (
+    admin_ai,
+    assistant,
+    auth,
+    bids,
+    company,
+    live,
+    matches,
+    opportunities,
+    platform,
+    workspace,
+)
 from forsa.db.session import get_engine
 from forsa.kernel.errors import ForsaError
 from forsa.logging_setup import configure_logging
@@ -65,7 +76,8 @@ def create_app() -> FastAPI:
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "no-referrer"
         if request.url.path.startswith("/api/") and not request.url.path.startswith("/api/v1/docs"):
-            response.headers["Cache-Control"] = "no-store"
+            # no-transform: intermediaries (incl. the Next.js rewrite's gzip) must not buffer SSE streams.
+            response.headers["Cache-Control"] = "no-store, no-transform"
             response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
         log.info(
             json.dumps(
@@ -98,7 +110,7 @@ def create_app() -> FastAPI:
             conn.execute(text("select 1"))
         return {"ok": True}
 
-    for module in (auth, opportunities, company, matches, bids, platform):
+    for module in (auth, opportunities, company, matches, bids, platform, assistant, live, workspace, admin_ai):
         app.include_router(module.router, prefix="/api/v1")
     return app
 

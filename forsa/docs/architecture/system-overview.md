@@ -6,19 +6,21 @@ show evidence → daily briefing**, with a bid workspace and human approvals on 
 so that the core intelligence (ontology, matching, evidence) is country- and source-agnostic.
 
 ```
-                ┌──────────────── web (Next.js) ────────────────┐
-                │ command center · explorer · intelligence page │
-                │ company twin · bid workspace · source health  │
-                └───────────────┬───────────────────────────────┘
-                                │ same-origin /api/v1 (cookie + CSRF header)
+        ┌────────────── web (Next.js, installable PWA) ───────────────┐
+        │ today · opportunities (+swipe triage) · intelligence page   │
+        │ assistant (text+voice) · bids · tasks · company · team ·    │
+        │ onboarding · notifications · settings (AI providers)        │
+        └───────────────┬───────────────────────────▲─────────────────┘
+                        │ same-origin /api/v1       │ SSE /api/v1/live  + Web Push (service worker)
 ┌───────────────────────────────▼──────────────────────────────────────────┐
-│ FastAPI (api/)  auth · RBAC · tenant context · presenter (codes → FR/EN) │
+│ FastAPI (api/)  auth · RBAC · tenant ctx · presenter · LiveHub (LISTEN)  │
 ├──────────────────────────────────────────────────────────────────────────┤
-│ services/  companies · bids · matching · intelligence · sources · events │
+│ services/ companies·bids·matching·intelligence·notifications·team·tasks  │
+│ assistant/ tools · planner · grounding guard                             │
 ├───────────────┬───────────────┬───────────────┬───────────────┬──────────┤
 │ matching/     │ documents/    │ ingestion/    │ ai/           │taxonomy/ │
-│ PURE engine   │ extract·seg·  │ registry·http │ gateway·      │ ontology │
-│ gates→score   │ requirements  │ pipeline·diff │ boundaries    │ FR/AR/EN │
+│ PURE engine   │ extract·seg·  │ registry·http │ catalog·      │ ontology │
+│ gates→score   │ requirements  │ pipeline·diff │ gateway·Jev   │ FR/AR/EN │
 ├───────────────┴───────────────┴───────────────┴───────────────┴──────────┤
 │ kernel/  epistemics · hashing · errors · clock                           │
 └──────────────────────────────────────────────────────────────────────────┘
@@ -45,6 +47,9 @@ get wrong. Each is recorded as an ADR.
 | 7 | Event sourcing "where useful" | **Append-only versions + typed change events**, `opportunities` is a projection of the latest version. | History is never overwritten; idempotent re-ingestion; deadline extensions/cancellations become events. (ADR-008) |
 | 8 | One connector class per source | **Registry-gated connector contract** + a *declarative* HTML-table connector whose column mapping lives in the registry. | Portal layout changes become reviewed config changes. Nothing runs without a verified registry entry. (ADR-006) |
 | 9 | Never hard-code Mauritania / MRU / French / ARMP | **Country packs** (`country/packs/mr.yaml`) + ontology as versioned data + reason codes rendered per language. | Adding Senegal = a pack + connectors, no engine change. |
+| 11 | (not in spec) Real-time | **Postgres LISTEN/NOTIFY → SSE** + Web Push via the job outbox. | Instant without new infrastructure. (ADR-012) |
+| 12 | "LLM provider abstraction" | **Catalog of providers + tiers + data-sensitivity routing**, incl. a *decision* tier (Jev). | Many vendors (frontier, Chinese, free, local) without code per vendor; confidential data never leaves approved providers. (ADR-011) |
+| 13 | AI assistant | **Tool-using assistant with deterministic fallback and grounding guard.** | Cannot invent tenders or numbers; works with no model. (ADR-013) |
 | 10 | Human approval for consequential actions | **Approval state machine with four-eyes** (self-approval refused when another approver exists) and a tool policy where `submit_external` requires APPROVED. FORSA never submits; it records a human submission. | Spec §39, §54 enforced in code, not policy text. (ADR-009) |
 
 Deliberately **not** built yet (spec §86, §100, §101): microservices, graph DB, OpenSearch, Redis,
@@ -57,6 +62,10 @@ embeddings/pgvector columns, WhatsApp/email/CRM connectors, forecasting, partner
 * **Company change** (API): write via `services/companies.py` → `CompanyProfileUpdated` event →
   debounced `match_company` job.
 * **Read** (API): tenant session (RLS) → stored match result (reason codes) → presenter renders FR/EN.
+* **Notification**: `notify()` insert → trigger `pg_notify('forsa_live')` → every API process's LiveHub →
+  SSE to the org's/user's open tabs (toast + page revalidation) ; outbox job `deliver_notification` → Web Push.
+* **Assistant turn**: SSE `meta` → tool calls under RLS (`tool` events) → answer (`delta`) → `final` with
+  citations and proposed actions; stored in `assistant_messages`.
 * **Bid**: create (snapshots the system recommendation) → human decision → compliance matrix →
   approval request → approval by another authorised user → human records submission → outcome (learning data).
 

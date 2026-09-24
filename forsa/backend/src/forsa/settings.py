@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import json
 import secrets
 from datetime import date
 from functools import lru_cache
 from pathlib import Path
+from typing import Annotated, Any
 
-from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 _ROOT = Path(__file__).resolve().parents[3]  # forsa/
 
@@ -29,15 +31,28 @@ class Settings(BaseSettings):
     demo_anchor: date = date(2026, 9, 21)  # synthetic fixture dates are relative to this fixed day
     http_user_agent: str = "FORSA-bot/0.1 (+https://forsa.example/bot; contact: ops@forsa.example)"
 
-    ai_provider: str = "none"  # none | anthropic
-    anthropic_api_key: str | None = None
-    ai_reasoning_model: str = "claude-opus-5"
-    ai_fast_model: str = "claude-haiku-4-5"
-    ai_refusal_fallback_model: str | None = "claude-opus-4-8"
+    # Ordered provider ids from forsa/ai/catalog.yaml, e.g. ["deepseek", "groq", "anthropic"]. Keys come from each
+    # provider's env var (see catalog) or FORSA_AI_KEY_<ID>. Admins can also enable/prioritise in Settings → AI.
+    ai_providers: Annotated[list[str], NoDecode] = []
+    ai_provider: str = "none"  # deprecated single-provider switch, still honoured
     ai_daily_budget_usd_per_org: float = 2.0
+    vapid_public_key: str | None = None  # Web Push (optional; pip install forsa[push])
+    vapid_private_key: str | None = None
+    vapid_subject: str = "mailto:ops@forsa.example"
 
-    features: set[str] = set()  # e.g. {"ai_explanations"}
+    features: Annotated[set[str], NoDecode] = set()  # e.g. FORSA_FEATURES=ai_explanations,ai_triage
     login_rate_limit_per_minute: int = 10
+
+    @field_validator("ai_providers", "features", mode="before")
+    @classmethod
+    def _split_list(cls, v: Any) -> Any:
+        """Accept `a,b,c` (what people type in env files) as well as a JSON array."""
+        if isinstance(v, str):
+            v = v.strip()
+            if v.startswith("["):
+                return json.loads(v)
+            return [x.strip() for x in v.split(",") if x.strip()]
+        return v
 
     def feature(self, name: str) -> bool:
         return name in self.features

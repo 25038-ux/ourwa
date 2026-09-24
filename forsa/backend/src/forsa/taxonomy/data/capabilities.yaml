@@ -6,7 +6,7 @@
 #   empty: do NOT add codes without checking the official code lists.
 # * Provenance: every term here is curated (`curated:forsa-core-v1`, confidence
 #   MEDIUM). Terms learned from data must be added with their own provenance.
-version: forsa-capabilities-v1
+version: forsa-capabilities-v1.1  # v1.1: bare "solaire"/"solar"/"شمسية" map to solar PV
 provenance: curated:forsa-core-v1
 default_confidence: MEDIUM
 
@@ -18,12 +18,12 @@ concepts:
     parent: energy
     labels: {en: Solar photovoltaic installation, fr: Installation photovoltaïque, ar: تركيب أنظمة الطاقة الشمسية}
     terms:
-      fr: [photovoltaïque, installation photovoltaïque, énergie solaire, panneaux solaires, panneau solaire,
+      fr: [solaire, photovoltaïque, installation photovoltaïque, énergie solaire, panneaux solaires, panneau solaire,
            systèmes pv, système pv, installation solaire, kits solaires, kit solaire, centrale solaire,
            modules photovoltaïques, électrification solaire]
-      ar: [الطاقة الشمسية, ألواح شمسية, الألواح الشمسية, تركيب أنظمة الطاقة الشمسية, الخلايا الكهروضوئية,
+      ar: [شمسية, الطاقة الشمسية, ألواح شمسية, الألواح الشمسية, تركيب أنظمة الطاقة الشمسية, الخلايا الكهروضوئية,
            محطة شمسية]
-      en: [solar photovoltaic, photovoltaic, solar pv, solar panels, solar energy, solar power plant,
+      en: [solar, solar photovoltaic, photovoltaic, solar pv, solar panels, solar energy, solar power plant,
            solar home systems, solar kits]
   - id: energy.solar_pumping
     parent: energy.solar_pv

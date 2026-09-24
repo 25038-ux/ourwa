@@ -29,6 +29,7 @@ from forsa.kernel.clock import utcnow
 from forsa.kernel.errors import Conflict, Forbidden, ForsaError, InvalidTransition, NotFound
 from forsa.services.companies import get_twin
 from forsa.services.events import audit, emit
+from forsa.services.notifications import notify
 
 TRANSITIONS: dict[str, set[str]] = {
     "QUALIFYING": {"PURSUING", "NO_BID"},
@@ -140,6 +141,10 @@ def decide(session: Session, ctx: TenantContext, bid_id: uuid.UUID, decision: st
     bid = get_bid(session, ctx, bid_id)
     match = session.get(Match, bid.match_id) if bid.match_id else None
     _transition(bid, "PURSUING" if decision == "BID" else "NO_BID")
+    if decision == "BID":
+        from forsa.services.tasks import tasks_from_conditions
+
+        tasks_from_conditions(session, ctx, bid)
     session.add(
         BidDecision(
             org_id=ctx.org_id,
@@ -228,6 +233,20 @@ def request_approval(
     )
     session.add(req)
     session.flush()
+    opp = session.get(Opportunity, bid.opportunity_id)
+    notify(
+        session,
+        ctx.org_id,
+        "approval_request",
+        opp.title if opp else action,
+        key=f"notif:approval:{req.id}",
+        payload={
+            "bid_id": str(bid.id),
+            "approval_id": str(req.id),
+            "action": action,
+            "opportunity_id": str(bid.opportunity_id),
+        },
+    )
     emit(
         session,
         "ApprovalRequested",

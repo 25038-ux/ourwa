@@ -58,6 +58,7 @@ def tenant_context(
     if not memberships:
         raise Forbidden("user has no organisation")
     chosen = memberships[0]
+    x_org_id = x_org_id or request.query_params.get("org")  # EventSource cannot send headers
     if x_org_id:
         try:
             wanted = uuid.UUID(x_org_id)

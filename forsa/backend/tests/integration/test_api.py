@@ -114,6 +114,9 @@ def test_full_bid_workflow_with_four_eyes(world):
         f"/api/v1/bids/{bid['id']}/decision", json={"decision": "BID", "rationale": "fit"}, headers=H
     ).json()
     assert bid["status"] == "PURSUING" and bid["decisions"][0]["system_recommendation"]
+    generated = [t for t in manager.get("/api/v1/tasks").json()["items"] if t["source"] == "condition"]
+    intel_conditions = manager.get(f"/api/v1/opportunities/{solar['id']}/intelligence").json()["conditions"]
+    assert len(generated) == len(intel_conditions) and all(t["bid_id"] == bid["id"] for t in generated)
 
     # Submission without approval is refused.
     assert manager.post(f"/api/v1/bids/{bid['id']}/submitted", headers=H).status_code in (403, 409)

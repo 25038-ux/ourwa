@@ -73,7 +73,9 @@ def notifications(
     unread_only: bool = False, ctx: TenantContext = Depends(tenant_context), db: Session = Depends(tenant_db)
 ) -> dict:
     ctx.require("notification.read")
-    stmt = select(Notification).where(Notification.org_id == ctx.org_id)
+    stmt = select(Notification).where(
+        Notification.org_id == ctx.org_id, (Notification.user_id.is_(None)) | (Notification.user_id == ctx.user_id)
+    )
     if unread_only:
         stmt = stmt.where(Notification.read_at.is_(None))
     rows = db.scalars(stmt.order_by(Notification.created_at.desc()).limit(100)).all()
@@ -83,7 +85,9 @@ def notifications(
                 "id": str(n.id),
                 "category": n.category,
                 "title": n.title,
+                "body": n.body,
                 "payload": n.payload,
+                "priority": n.priority,
                 "read": n.read_at is not None,
                 "at": n.created_at,
             }

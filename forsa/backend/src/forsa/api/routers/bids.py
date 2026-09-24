@@ -3,14 +3,16 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from forsa.api.deps import tenant_context, tenant_db
+from forsa.api.deps import runtime, tenant_context, tenant_db
 from forsa.api.schemas import ApprovalDecisionIn, ApprovalIn, BidIn, CompliancePatch, DecisionIn, OutcomeIn
-from forsa.db.models import ApprovalRequest, Bid, BidDecision, ComplianceItem, Evidence, Opportunity
+from forsa.db.models import ApprovalRequest, Bid, BidDecision, ComplianceItem, Evidence, Match, Opportunity
 from forsa.identity.rbac import TenantContext
+from forsa.runtime import Runtime
 from forsa.services import bids as svc
+from forsa.services.ai_features import polish_section
 
 router = APIRouter(tags=["bids"])
 
@@ -87,21 +89,36 @@ def _bid(db: Session, bid: Bid) -> dict:
 def list_bids(ctx: TenantContext = Depends(tenant_context), db: Session = Depends(tenant_db)) -> dict:
     ctx.require("bid.read")
     rows = db.execute(
-        select(Bid, Opportunity)
+        select(Bid, Opportunity, Match)
         .join(Opportunity, Opportunity.id == Bid.opportunity_id)
+        .outerjoin(Match, Match.id == Bid.match_id)
         .where(Bid.org_id == ctx.org_id)
         .order_by(Bid.updated_at.desc())
     ).all()
+    progress: dict = {}
+    for bid_id, status, n in db.execute(
+        select(ComplianceItem.bid_id, ComplianceItem.status, func.count())
+        .where(ComplianceItem.org_id == ctx.org_id)
+        .group_by(ComplianceItem.bid_id, ComplianceItem.status)
+    ).all():
+        entry = progress.setdefault(bid_id, {"total": 0, "complete": 0})
+        entry["total"] += n
+        entry["complete"] += n if status == "COMPLETE" else 0
     return {
         "items": [
             {
                 "id": str(b.id),
                 "status": b.status,
+                "outcome": b.outcome,
                 "title": o.title,
                 "deadline_at": o.deadline_at,
                 "opportunity_id": str(o.id),
+                "is_synthetic": o.is_synthetic,
+                "fit_score": m.fit_score if m else None,
+                "recommendation": m.recommendation if m else None,
+                "compliance": progress.get(b.id, {"total": 0, "complete": 0}),
             }
-            for b, o in rows
+            for b, o, m in rows
         ]
     }
 
@@ -183,18 +200,29 @@ def outcome(
 
 @router.post("/bids/{bid_id}/generate-draft")
 def generate_draft(
-    bid_id: uuid.UUID, ctx: TenantContext = Depends(tenant_context), db: Session = Depends(tenant_db)
+    bid_id: uuid.UUID,
+    ctx: TenantContext = Depends(tenant_context),
+    db: Session = Depends(tenant_db),
+    rt: Runtime = Depends(runtime),
 ) -> dict:
     """Evidence-classified response skeleton (spec §18). Nothing is invented: every section is either backed by
     linked evidence or explicitly marked as requiring user input."""
     ctx.require("bid.edit")
     bid = svc.get_bid(db, ctx, bid_id)
+    ai_on = rt.settings.feature("ai_drafting")
     sections = []
     for item in db.scalars(select(ComplianceItem).where(ComplianceItem.bid_id == bid.id)).all():
         found = [db.get(Evidence, uuid.UUID(e)) for e in item.evidence_ids or []]
         evidence = [e for e in found if e is not None and e.org_id == ctx.org_id]
+        polished = False
         if item.response and evidence:
             cls, text = "EVIDENCE_BACKED", item.response
+            if ai_on:
+                better = polish_section(
+                    db, rt.gateway, ctx.org_id, item.text, item.response, [e.quote or "" for e in evidence]
+                )
+                if better:
+                    text, polished = better, True
         elif item.response:
             cls, text = "USER_INPUT_REQUIRED", item.response
         else:
@@ -206,12 +234,13 @@ def generate_draft(
                 "source": item.source_locator,
                 "classification": cls,
                 "text": text,
+                "ai_polished": polished,
                 "evidence": [{"id": str(e.id), "quote": e.quote} for e in evidence],
             }
         )
     return {
         "bid_id": str(bid.id),
         "sections": sections,
-        "generator": "skeleton-v1",
+        "generator": "skeleton-v1+ai-polish" if ai_on else "skeleton-v1",
         "note": "Draft skeleton. AI drafting (Phase 10) will only fill EVIDENCE_BACKED sections.",
     }

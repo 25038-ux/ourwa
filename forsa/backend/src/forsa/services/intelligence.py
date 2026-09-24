@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import re
 import uuid
+from typing import Any
 
 from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert
@@ -148,7 +149,14 @@ def process_document_version(
     return doc.text, n
 
 
-def analyze_opportunity(session: Session, store: ObjectStore, onto: Ontology, opportunity_id: uuid.UUID) -> dict:
+def analyze_opportunity(
+    session: Session,
+    store: ObjectStore,
+    onto: Ontology,
+    opportunity_id: uuid.UUID,
+    gateway: Any = None,
+    features: frozenset[str] = frozenset(),
+) -> dict:
     opp = session.get(Opportunity, opportunity_id)
     if opp is None:
         return {"skipped": "missing"}
@@ -159,6 +167,7 @@ def analyze_opportunity(session: Session, store: ObjectStore, onto: Ontology, op
     )
     stats = {"requirements": 0, "documents": 0}
     doc_sources: list[tuple[str, float, str]] = []
+    fresh_docs: list[tuple[str, uuid.UUID]] = []
     dvs = session.scalars(
         select(DocumentVersion)
         .join(Document, Document.id == DocumentVersion.document_id)
@@ -170,6 +179,7 @@ def analyze_opportunity(session: Session, store: ObjectStore, onto: Ontology, op
             doc_sources.append(("\n".join(chunks), 0.5, f"document:{dv.document_id}"))
             continue
         text, n = process_document_version(session, store, onto, opp, dv)
+        fresh_docs.append((text, dv.id))
         stats["requirements"] += n
         stats["documents"] += 1
         doc_sources.append((text, 0.5, f"document:{dv.document_id}"))
@@ -179,6 +189,17 @@ def analyze_opportunity(session: Session, store: ObjectStore, onto: Ontology, op
         reqs = extract_requirements([Page(1, opp.description)], onto)
         ev_kwargs = {"snapshot_id": version.snapshot_id if version else None, "url": opp.url}
         stats["requirements"] += _store_requirements(session, opp, reqs, ev_kwargs, None)
+
+    if gateway is not None and features:
+        from forsa.services import ai_features
+
+        if "ai_extraction" in features:
+            for text, dv_id in fresh_docs:
+                stats["ai_requirements"] = stats.get("ai_requirements", 0) + ai_features.propose_requirements(
+                    session, gateway, opp, text, dv_id
+                )
+        if "ai_decisions" in features:
+            stats["ai_flagged"] = ai_features.jev_crosscheck(session, gateway, opp)
 
     opp.concepts = derive_concepts(
         onto, [(opp.title, 2.0, "title"), (opp.description or "", 1.0, "description"), *doc_sources]

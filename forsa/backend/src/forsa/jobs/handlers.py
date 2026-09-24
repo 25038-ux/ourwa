@@ -83,11 +83,31 @@ def fetch_document(session: Session, payload: dict[str, Any]) -> dict[str, Any]:
 
 def analyze(session: Session, payload: dict[str, Any]) -> dict[str, Any]:
     rt = get_runtime()
-    return analyze_opportunity(session, rt.store, rt.ontology, uuid.UUID(payload["opportunity_id"]))
+    return analyze_opportunity(
+        session,
+        rt.store,
+        rt.ontology,
+        uuid.UUID(payload["opportunity_id"]),
+        rt.gateway,
+        frozenset(rt.settings.features),
+    )
 
 
 def match_opportunity(session: Session, payload: dict[str, Any]) -> dict[str, Any]:
-    return {"matches": rematch_opportunity(session, get_runtime().engine, uuid.UUID(payload["opportunity_id"]))}
+    rt = get_runtime()
+    opp_id = uuid.UUID(payload["opportunity_id"])
+    out: dict[str, Any] = {"matches": rematch_opportunity(session, rt.engine, opp_id)}
+    if "ai_triage" in rt.settings.features:
+        from forsa.db.models import Match
+        from forsa.services.ai_features import jev_triage
+
+        opp = session.get(Opportunity, opp_id)
+        triaged = 0
+        for m in session.scalars(select(Match).where(Match.opportunity_id == opp_id)).all():
+            if opp is not None and "ai_triage" not in (m.result or {}) and jev_triage(session, rt.gateway, m, opp):
+                triaged += 1
+        out["ai_triaged"] = triaged
+    return out
 
 
 def match_company(session: Session, payload: dict[str, Any]) -> dict[str, Any]:
@@ -128,7 +148,17 @@ def schedule_tick(session: Session, payload: dict[str, Any] | None = None) -> di
     return {"queued": queued}
 
 
+def deliver_notification(session: Session, payload: dict[str, Any]) -> dict[str, Any]:
+    from forsa.services.notifications import deliver
+
+    s = get_runtime().settings
+    return deliver(
+        session, uuid.UUID(payload["notification_id"]), private_key=s.vapid_private_key, subject=s.vapid_subject
+    )
+
+
 HANDLERS: dict[str, Handler] = {
+    "deliver_notification": deliver_notification,
     "ingest_source": ingest_source,
     "fetch_document": fetch_document,
     "analyze_opportunity": analyze,

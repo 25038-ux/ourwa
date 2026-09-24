@@ -1,62 +1,76 @@
 "use client";
 
-import Link from "next/link";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { AssistantPanel } from "@/components/assistant";
+import { CommandPalette } from "@/components/palette";
+import { MobileTop, Sidebar, TabBar, Toasts, TopBar } from "@/components/shell";
 import { api, safeGet, safeSet } from "@/lib/api";
+import { AssistantProvider } from "@/lib/assistant";
 import { useI18n } from "@/lib/i18n";
+import { LiveProvider } from "@/lib/live";
+import { page } from "@/lib/motion";
 
-type Me = { user: { email: string; full_name: string }; memberships: { org_id: string; org_name: string; role: string }[] };
+type Me = { user: { full_name: string; is_platform_admin: boolean };
+  memberships: { org_id: string; org_name: string; role: string }[] };
 
 export default function AppLayout({ children }: { children: ReactNode }) {
-  const { t, lang, setLang } = useI18n();
+  const { lang } = useI18n();
   const path = usePathname();
   const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
+  const [palette, setPalette] = useState(false);
 
   useEffect(() => {
-    api<Me>("/auth/me").then((m) => {
-      setMe(m);
+    api<Me>("/auth/me").then(async (m) => {
       const saved = safeGet("forsa.org");
       if (!saved || !m.memberships.some((x) => x.org_id === saved)) safeSet("forsa.org", m.memberships[0]?.org_id ?? null);
+      const company = await api("/companies/me").catch(() => null);
+      if (company && !company.onboarding_completed_at && company.capabilities.length === 0 && !safeGet("forsa.onbSkipped")) {
+        router.replace("/onboarding");
+        return;
+      }
+      setMe(m);
     }).catch(() => router.replace("/login"));
   }, [router]);
 
-  const org = me?.memberships.find((m) => m.org_id === safeGet("forsa.org")) ?? me?.memberships[0];
-  const links: [string, string][] = [
-    ["/", t("command")], ["/opportunities", t("opportunities")], ["/company", t("company")], ["/bids", t("bids")],
-    ["/sources", t("sources")],
-  ];
-  const logout = async () => {
-    await api("/auth/logout", { method: "POST" }).catch(() => undefined);
-    safeSet("forsa.org", null);
-    router.replace("/login");
-  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPalette((p) => !p);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  if (!me) return <div className="login"><motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.4, repeat: Infinity }}
+    className="orb" /></div>;
+
   return (
-    <div className="shell">
-      <aside className="side">
-      <nav className="nav" aria-label="Main">
-        <div className="brand">FORSA<small>{org?.org_name ?? "…"}</small></div>
-        {links.map(([href, label]) => (
-          <Link key={href} href={href} className={(href === "/" ? path === "/" : path.startsWith(href)) ? "active" : ""}>
-            {label}
-          </Link>
-        ))}
-        <div className="spacer" />
-        <div className="who">
-          {me?.user.full_name}
-          <br />
-          <span className="faint">{org?.role}</span>
-          <div className="row" style={{ marginTop: 8 }}>
-            <button onClick={() => setLang(lang === "fr" ? "en" : "fr")} aria-label="Language">
-              {lang === "fr" ? "EN" : "FR"}
-            </button>
-            <button onClick={logout}>{t("logout")}</button>
+    <MotionConfig reducedMotion="user">
+      <LiveProvider>
+        <AssistantProvider lang={lang}>
+          <div className="app">
+            <Sidebar me={me} orgId={safeGet("forsa.org")} onSearch={() => setPalette(true)} />
+            <div style={{ minWidth: 0 }}>
+              <MobileTop />
+              <main className="main">
+                <TopBar onSearch={() => setPalette(true)} />
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div key={path} variants={page} initial="initial" animate="enter" exit="exit">{children}</motion.div>
+                </AnimatePresence>
+              </main>
+            </div>
+            <TabBar />
           </div>
-        </div>
-      </nav>
-      </aside>
-      <main className="main">{me ? children : null}</main>
-    </div>
+          <AssistantPanel />
+          <CommandPalette open={palette} onClose={() => setPalette(false)} />
+          <Toasts />
+        </AssistantProvider>
+      </LiveProvider>
+    </MotionConfig>
   );
 }

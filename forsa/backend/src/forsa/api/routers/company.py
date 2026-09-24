@@ -64,6 +64,8 @@ def get_company(
     return {
         "id": str(c.id),
         **fields,
+        "description": c.description,
+        "onboarding_completed_at": c.onboarding_completed_at,
         "capabilities": [
             _claim(x, {"concept_id": x.concept_id, "label": concept_label(x.concept_id, lang), "note": x.note})
             for x in caps

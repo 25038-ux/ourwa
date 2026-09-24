@@ -89,8 +89,18 @@ def requirement_specs(row: Requirement) -> list[RequirementSpec]:
     return specs
 
 
+def gate_requirements(session: Session, opp: Opportunity) -> list[Requirement]:
+    """Requirements allowed to influence gates: AI proposals only once a human verified them; rejected
+    clauses never (ADR-014)."""
+    return [
+        r
+        for r in session.scalars(select(Requirement).where(Requirement.opportunity_id == opp.id)).all()
+        if r.verification != "REJECTED" and (not r.extraction_method.startswith("ai:") or r.verification == "VERIFIED")
+    ]
+
+
 def opportunity_profile(session: Session, opp: Opportunity) -> OpportunityProfile:
-    reqs = session.scalars(select(Requirement).where(Requirement.opportunity_id == opp.id)).all()
+    reqs = gate_requirements(session, opp)
     specs = tuple(s for r in reqs for s in requirement_specs(r))
     concepts = tuple(
         ConceptNeed(

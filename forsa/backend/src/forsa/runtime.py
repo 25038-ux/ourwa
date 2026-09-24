@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import lru_cache
 
-from forsa.ai.anthropic_provider import build_gateway
+from forsa.ai.factory import build_gateway
 from forsa.ai.gateway import AIGateway
 from forsa.ingestion.registry import SourceRecord, load_registry
 from forsa.ingestion.storage import LocalObjectStore, ObjectStore

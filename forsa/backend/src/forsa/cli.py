@@ -77,6 +77,7 @@ def seed_demo_companies(path: Path, password: str) -> list[str]:
     from forsa.db.session import system_session, tenant_session
     from forsa.identity.rbac import Role, TenantContext
     from forsa.identity.security import hash_password
+    from forsa.kernel.clock import utcnow
     from forsa.runtime import get_runtime
     from forsa.services import companies as svc
 
@@ -106,7 +107,8 @@ def seed_demo_companies(path: Path, password: str) -> list[str]:
         assert owner_id is not None
         ctx = TenantContext(org_id=org_id, user_id=owner_id, role=Role.OWNER, request_id="seed")
         with tenant_session(org_id) as s:
-            svc.update_twin(s, ctx, spec["company"])
+            company = svc.update_twin(s, ctx, spec["company"])
+            company.onboarding_completed_at = company.onboarding_completed_at or utcnow()
             key, digest = rt.store.put(
                 f"Justificatifs de démonstration — {spec['org']['name']}".encode(), f"documents/org/{org_id}"
             )
@@ -229,6 +231,14 @@ def cmd_rematch(_: argparse.Namespace) -> None:
     print(f"processed {run_until_idle()} job(s)")
 
 
+def cmd_vapid_keys(_: argparse.Namespace) -> None:
+    """Print a Web Push VAPID key pair to put in FORSA_VAPID_PUBLIC_KEY / FORSA_VAPID_PRIVATE_KEY."""
+    from forsa.services.notifications import generate_vapid_keys
+
+    keys = generate_vapid_keys()
+    print(f"FORSA_VAPID_PUBLIC_KEY={keys['public_key']}\nFORSA_VAPID_PRIVATE_KEY={keys['private_key']}")
+
+
 def cmd_eval(args: argparse.Namespace) -> None:
     from forsa.evals import run_all
 
@@ -263,6 +273,9 @@ def main(argv: list[str] | None = None) -> None:
     cu.add_argument("--platform-admin", action="store_true")
     cu.set_defaults(fn=cmd_create_user)
     sub.add_parser("rematch", help="recompute all matches (after a scoring change)").set_defaults(fn=cmd_rematch)
+    sub.add_parser("vapid-keys", help="generate Web Push VAPID keys (needs forsa[push])").set_defaults(
+        fn=cmd_vapid_keys
+    )
     ev = sub.add_parser("eval", help="run AI/matching evaluation suites")
     ev.add_argument("--dir")
     ev.set_defaults(fn=cmd_eval)

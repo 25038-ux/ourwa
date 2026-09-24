@@ -4,6 +4,12 @@ Newest first. Significant decisions link to an ADR.
 
 | Date | Decision | Ref |
 |---|---|---|
+| 2026-09-24 | AI provider catalog (frontier, Chinese, free-tier, local, Jev) with tiers fast/reasoning/decision and per-provider data-sensitivity ceilings; keys env-only; model ids pinned via discovery, not guessed. | ADR-011 |
+| 2026-09-24 | Instant notifications via Postgres LISTEN/NOTIFY → SSE (`/api/v1/live`) + Web Push outbox job; no new infrastructure. API `Cache-Control` is now `no-store, no-transform` so proxies never buffer streams. | ADR-012 |
+| 2026-09-24 | Assistant answers only through tenant-scoped tools, proposes (never executes) actions, falls back to a deterministic FR/EN/AR planner; LLM answers with ungrounded numbers are discarded. Voice via the browser Web Speech API. | ADR-013 |
+| 2026-09-24 | AI features behind `FORSA_FEATURES` flags (explanations, extraction, decisions, triage, drafting); AI-proposed requirements are NEEDS_REVIEW and excluded from hard gates until verified. | ADR-014 |
+| 2026-09-24 | Mobile = installable PWA (manifest, service worker, push, bottom tab bar, sheets, swipe triage) sharing one codebase with desktop; native shells can wrap it later. Web rules now allow purposeful motion (springs, reduced-motion respected). | .claude/rules/web.md |
+| 2026-09-24 | Onboarding: describe → confirm ontology-backed suggestions (AI suggestions limited to catalogue ids) → capacity; nothing saved without confirmation. | services/onboarding.py |
 | 2026-09-24 | Scoring `fit-v1.0 → fit-v1.1`: credentials/per-bid instruments are obtained *in parallel* with bid preparation (need ≥1 day margin), no longer after it. Found while reviewing live demo output (a 5-day bank guarantee with 6 days left was a false NO-BID). Run `forsa rematch` after scoring changes. | engine.py |
 | 2026-09-24 | Planned (procurement-plan) items recommend REVIEW + "prepare now, decide at publication", never BID. | engine.py |
 | 2026-09-24 | Per-bid instruments (bid security) are GAP "obtain" when absent from the profile, not UNKNOWN. | ontology `per_bid` |

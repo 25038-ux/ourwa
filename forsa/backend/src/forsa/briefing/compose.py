@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-from forsa.db.models import ApprovalRequest, Briefing, Match, Notification, Opportunity, OpportunityEvent
+from forsa.db.models import ApprovalRequest, Briefing, Match, Opportunity, OpportunityEvent
 from forsa.kernel.clock import utcnow
 from forsa.matching.messages import render
 from forsa.taxonomy import default_ontology
@@ -120,16 +120,24 @@ def compose_briefing(
 def store_briefing(session: Session, org_id: uuid.UUID, payload: dict[str, Any], day: date) -> None:
     stmt = insert(Briefing).values(id=uuid.uuid4(), org_id=org_id, briefing_date=day, payload=payload)
     session.execute(stmt.on_conflict_do_update(index_elements=["org_id", "briefing_date"], set_={"payload": payload}))
+    from forsa.services.notifications import notify
+
     if payload["counts"]["high_fit"] or payload["counts"]["deadlines"]:
-        session.execute(
-            insert(Notification)
-            .values(
-                id=uuid.uuid4(),
-                org_id=org_id,
-                category="daily_briefing",
-                title=f"Briefing {day.isoformat()}",
-                payload={"counts": payload["counts"]},
-                idempotency_key=f"notif:briefing:{org_id}:{day.isoformat()}",
-            )
-            .on_conflict_do_nothing(index_elements=["idempotency_key"])
+        notify(
+            session,
+            org_id,
+            "daily_briefing",
+            f"Briefing {day.isoformat()}",
+            key=f"notif:briefing:{org_id}:{day.isoformat()}",
+            payload={"counts": payload["counts"]},
         )
+    for item in payload["deadlines"]:
+        if item["deadline_days"] is not None and item["deadline_days"] <= 3 and item["recommendation"] in PURSUE:
+            notify(
+                session,
+                org_id,
+                "deadline",
+                item["title"],
+                key=f"notif:deadline:{item['match_id']}:3d",
+                payload={"opportunity_id": item["opportunity_id"], "days": item["deadline_days"]},
+            )

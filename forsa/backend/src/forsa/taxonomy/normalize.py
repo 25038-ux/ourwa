@@ -128,8 +128,75 @@ def detect_language(text: str) -> str:
     if letters and sum(1 for ch in letters if _ARABIC_CHARS.match(ch)) / len(letters) > 0.3:
         return "ar"
     words = {w.casefold() for w in _TOKEN_RE.findall(text)}
-    fr_hits = len(words & {"le", "la", "les", "des", "pour", "et", "du", "avis", "marché", "travaux", "fourniture"})
-    en_hits = len(words & {"the", "and", "for", "of", "notice", "supply", "works", "services", "procurement"})
+    fr_hits = len(
+        words
+        & {
+            "le",
+            "la",
+            "les",
+            "des",
+            "pour",
+            "et",
+            "du",
+            "avis",
+            "marché",
+            "travaux",
+            "fourniture",
+            "quelles",
+            "quels",
+            "quel",
+            "pourquoi",
+            "comment",
+            "nous",
+            "notre",
+            "je",
+            "dois",
+            "cette",
+            "semaine",
+            "montre",
+            "trouve",
+            "est",
+            "sont",
+            "une",
+            "un",
+            "moi",
+            "mes",
+            "nos",
+        }
+    )
+    en_hits = len(
+        words
+        & {
+            "the",
+            "and",
+            "for",
+            "of",
+            "notice",
+            "supply",
+            "works",
+            "services",
+            "procurement",
+            "which",
+            "what",
+            "why",
+            "how",
+            "should",
+            "we",
+            "our",
+            "my",
+            "me",
+            "show",
+            "find",
+            "is",
+            "are",
+            "this",
+            "week",
+            "that",
+            "do",
+            "can",
+            "you",
+        }
+    )
     if fr_hits == en_hits == 0:
         return "und"
     return "fr" if fr_hits >= en_hits else "en"
