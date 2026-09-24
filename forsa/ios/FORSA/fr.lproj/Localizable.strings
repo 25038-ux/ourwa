@@ -9,8 +9,8 @@
 "setup.unreachable" = "Aucun serveur FORSA n'a répondu à cette adresse. Vérifiez-la et votre connexion.";
 
 /* Hors ligne */
-"offline.title" = "Pas de connexion";
-"offline.body" = "FORSA n'arrive pas à joindre votre serveur. Vérifiez votre connexion Internet puis réessayez.";
+"offline.title" = "Connexion impossible";
+"offline.body" = "FORSA n'arrive pas à joindre votre serveur. Vérifiez votre connexion Internet et l'adresse du serveur, puis réessayez.";
 "offline.retry" = "Réessayer";
 "offline.change_server" = "Changer de serveur";
 

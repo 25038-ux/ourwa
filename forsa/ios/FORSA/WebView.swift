@@ -28,7 +28,7 @@ struct WebShell: View {
                 .animation(.easeOut(duration: 0.2), value: state.loading)
 
             if state.offline {
-                OfflineView(retry: { state.retry() }, changeServer: { model.showSetup = true })
+                OfflineView(detail: state.errorText, retry: { state.retry() }, changeServer: { model.showSetup = true })
                     .transition(.opacity.combined(with: .scale(scale: 0.97)))
             }
         }
@@ -44,11 +44,13 @@ final class WebState: ObservableObject {
     @Published var loading = false
     @Published var hasLoaded = false
     @Published var offline = false
+    @Published var errorText: String?
     weak var webView: WKWebView?
     var start: URL?
 
     func retry() {
         offline = false
+        errorText = nil
         guard let webView else { return }
         if webView.url == nil, let start {
             webView.load(URLRequest(url: start))
@@ -200,37 +202,40 @@ struct WebView: UIViewRepresentable {
         }
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            NSLog("FORSA web: loaded %@", webView.url?.absoluteString ?? "-")
             webView.scrollView.refreshControl?.endRefreshing()
             state.hasLoaded = true
         }
 
+        /// The page could not be fetched at all: always tell the user why (never leave them on the splash).
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-            failed(webView, error)
+            failed(webView, error, beforeDisplay: true)
         }
 
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-            failed(webView, error)
+            failed(webView, error, beforeDisplay: false)
         }
 
         func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
             webView.reload()
         }
 
-        private func failed(_ webView: WKWebView, _ error: Error) {
+        private func failed(_ webView: WKWebView, _ error: Error, beforeDisplay: Bool) {
             webView.scrollView.refreshControl?.endRefreshing()
             let nsError = error as NSError
+            NSLog("FORSA web: load failed %@ %ld %@", nsError.domain, nsError.code, nsError.localizedDescription)
             // Cancelled loads and loads turned into downloads are not failures.
             if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled { return }
             if nsError.domain == "WebKitErrorDomain" && nsError.code == 102 { return }
-            let offlineCodes = [
+            let networkCodes = [
                 NSURLErrorNotConnectedToInternet, NSURLErrorTimedOut, NSURLErrorCannotFindHost,
                 NSURLErrorCannotConnectToHost, NSURLErrorNetworkConnectionLost, NSURLErrorDNSLookupFailed,
-                NSURLErrorSecureConnectionFailed, NSURLErrorServerCertificateUntrusted,
             ]
-            if nsError.domain == NSURLErrorDomain && offlineCodes.contains(nsError.code) {
-                UINotificationFeedbackGenerator().notificationOccurred(.warning)
-                state.offline = true
-            }
+            // A page already on screen stays usable after a late failure unless the network itself is gone.
+            guard beforeDisplay || (nsError.domain == NSURLErrorDomain && networkCodes.contains(nsError.code)) else { return }
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            state.errorText = nsError.localizedDescription
+            state.offline = true
         }
 
         // MARK: Windows, dialogs, microphone
@@ -408,6 +413,7 @@ private struct ProgressBar: View {
 }
 
 private struct OfflineView: View {
+    let detail: String?
     let retry: () -> Void
     let changeServer: () -> Void
     @State private var appeared = false
@@ -429,6 +435,13 @@ private struct OfflineView: View {
                     .foregroundColor(Color(red: 0.36, green: 0.40, blue: 0.38))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 36)
+                if let detail {
+                    Text(verbatim: detail)
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(red: 0.55, green: 0.58, blue: 0.56))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 36)
+                }
                 Button(action: {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     retry()

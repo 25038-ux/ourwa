@@ -43,6 +43,8 @@ targets:
             UIApplicationShortcutItemTitle: shortcut.change_server
             UIApplicationShortcutItemIconSymbolName: server.rack
         LSApplicationQueriesSchemes: [whatsapp, mailto, tel]
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true   # local test servers (CI smoke test); setup still requires https in release
         NSMicrophoneUsageDescription: FORSA utilise le micro pour la dictée vocale de l'assistant.
         NSSpeechRecognitionUsageDescription: FORSA transcrit votre voix pour répondre à vos questions.
         NSCameraUsageDescription: FORSA peut photographier un justificatif (attestation, référence) à joindre à votre profil.

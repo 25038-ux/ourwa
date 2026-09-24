@@ -91,12 +91,15 @@ jobs:
           # shell injected its marker, bridge, safe areas and user agent; then an unreachable server → offline screen.
           python3 -m http.server 8765 --bind 127.0.0.1 --directory ci/smoke > /dev/null 2>&1 &
           sleep 1
-          for case in "webshell-smoke|http://127.0.0.1:8765" "offline|http://127.0.0.1:9"; do
+          for case in "webshell-smoke|http://127.0.0.1:8765" "offline|http://127.0.0.1:8799"; do
             xcrun simctl terminate "$UDID" mr.forsa.app || true
             xcrun simctl launch "$UDID" mr.forsa.app -forsa.server "${case#*|}" -AppleLanguages "(fr)" -AppleLocale fr
             sleep 8
             xcrun simctl io "$UDID" screenshot "dist/simulator-screenshots/${case%%|*}.png"
           done
+          xcrun simctl spawn "$UDID" log show --last 5m --style compact --predicate 'process == "FORSA"' \
+            > dist/simulator-screenshots/app.log 2>&1 || true
+          grep "FORSA web" dist/simulator-screenshots/app.log || true
           xcrun simctl shutdown "$UDID" || true
 
       - uses: actions/upload-artifact@v4

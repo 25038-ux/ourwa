@@ -9,8 +9,8 @@
 "setup.unreachable" = "No FORSA server answered at this address. Check it and your connection.";
 
 /* Offline */
-"offline.title" = "No connection";
-"offline.body" = "FORSA can't reach your server. Check your internet connection and try again.";
+"offline.title" = "Can't connect";
+"offline.body" = "FORSA can't reach your server. Check your internet connection and the server address, then try again.";
 "offline.retry" = "Try again";
 "offline.change_server" = "Change server";
 
