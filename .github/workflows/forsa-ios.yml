@@ -87,6 +87,16 @@ jobs:
             sleep 6
             xcrun simctl io "$UDID" screenshot "dist/simulator-screenshots/setup-$lang.png"
           done
+          # Web shell smoke test: a local page (IP addresses are outside App Transport Security) reports whether the
+          # shell injected its marker, bridge, safe areas and user agent; then an unreachable server → offline screen.
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory ci/smoke > /dev/null 2>&1 &
+          sleep 1
+          for case in "webshell-smoke|http://127.0.0.1:8765" "offline|http://127.0.0.1:9"; do
+            xcrun simctl terminate "$UDID" mr.forsa.app || true
+            xcrun simctl launch "$UDID" mr.forsa.app -forsa.server "${case#*|}" -AppleLanguages "(fr)" -AppleLocale fr
+            sleep 8
+            xcrun simctl io "$UDID" screenshot "dist/simulator-screenshots/${case%%|*}.png"
+          done
           xcrun simctl shutdown "$UDID" || true
 
       - uses: actions/upload-artifact@v4

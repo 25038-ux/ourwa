@@ -1,0 +1,37 @@
+<!doctype html>
+<!-- CI smoke page: proves the iOS shell loads a page edge to edge and injects its bridge. -->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="/manifest.webmanifest">
+<title>FORSA smoke</title>
+<style>
+  body { margin: 0; min-height: 100vh; font: 17px -apple-system, system-ui, sans-serif; background: #f5f3ee; color: #15181b;
+    padding: calc(env(safe-area-inset-top) + 24px) 24px 24px; box-sizing: border-box; }
+  h1 { font-size: 32px; margin: 0 0 16px; }
+  .row { display: flex; justify-content: space-between; padding: 14px 16px; background: #fff; border-radius: 14px; margin: 10px 0; }
+  .ok { color: #0e7a5f; font-weight: 700; } .ko { color: #b33a3a; font-weight: 700; }
+</style>
+</head>
+<body>
+  <h1>FORSA — iOS shell</h1>
+  <div class="row"><span>Page loaded</span><span class="ok">✓</span></div>
+  <div class="row"><span>window.FORSA_SHELL</span><span id="shell"></span></div>
+  <div class="row"><span>Native bridge (forsa)</span><span id="bridge"></span></div>
+  <div class="row"><span>Safe area top</span><span id="safe"></span></div>
+  <div class="row"><span>User agent</span><span id="ua"></span></div>
+  <script>
+    const set = (id, ok, text) => { const el = document.getElementById(id); el.textContent = text; el.className = ok ? "ok" : "ko"; };
+    set("shell", window.FORSA_SHELL === "ios", String(window.FORSA_SHELL));
+    const bridge = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.forsa);
+    set("bridge", bridge, bridge ? "✓" : "missing");
+    if (bridge) window.webkit.messageHandlers.forsa.postMessage({ type: "haptic", style: "success" });
+    const probe = document.createElement("div");
+    probe.style.cssText = "position:fixed;top:0;height:env(safe-area-inset-top)";
+    document.body.appendChild(probe);
+    set("safe", probe.offsetHeight > 0, probe.offsetHeight + " px");
+    set("ua", /FORSA-iOS/.test(navigator.userAgent), (navigator.userAgent.match(/FORSA-iOS\/[\d.]+/) || ["missing"])[0]);
+  </script>
+</body>
+</html>
