@@ -1,0 +1,63 @@
+# FORSA iOS — generate the Xcode project with XcodeGen:  brew install xcodegen && xcodegen generate
+name: FORSA
+options:
+  bundleIdPrefix: mr.forsa
+  deploymentTarget:
+    iOS: "15.0"
+  developmentLanguage: fr
+  createIntermediateGroups: true
+settings:
+  base:
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1"          # iPhone (the web app adapts to iPad inside Safari)
+    DEVELOPMENT_TEAM: ""                 # your Apple Team ID (Xcode → Signing & Capabilities, or CI variable)
+    FORSA_DEFAULT_SERVER: ""             # optional: bake your server, e.g. https://forsa.example.mr
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+targets:
+  FORSA:
+    type: application
+    platform: iOS
+    sources:
+      - path: FORSA
+    info:
+      path: FORSA/Info.plist
+      properties:
+        CFBundleDisplayName: FORSA
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleDevelopmentRegion: fr
+        CFBundleLocalizations: [fr, en, ar]
+        FORSADefaultServer: $(FORSA_DEFAULT_SERVER)
+        ITSAppUsesNonExemptEncryption: false
+        LSRequiresIPhoneOS: true
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+          UIImageName: LaunchLogo
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UIApplicationShortcutItems:
+          - UIApplicationShortcutItemType: mr.forsa.app.change-server
+            UIApplicationShortcutItemTitle: shortcut.change_server
+            UIApplicationShortcutItemIconSymbolName: server.rack
+        LSApplicationQueriesSchemes: [whatsapp, mailto, tel]
+        NSMicrophoneUsageDescription: FORSA utilise le micro pour la dictée vocale de l'assistant.
+        NSSpeechRecognitionUsageDescription: FORSA transcrit votre voix pour répondre à vos questions.
+        NSCameraUsageDescription: FORSA peut photographier un justificatif (attestation, référence) à joindre à votre profil.
+        NSPhotoLibraryUsageDescription: FORSA peut joindre un justificatif depuis vos photos.
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: mr.forsa.app
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: NO
+schemes:
+  FORSA:
+    build:
+      targets:
+        FORSA: all
+    archive:
+      config: Release

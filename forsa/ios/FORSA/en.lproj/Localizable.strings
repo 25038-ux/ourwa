@@ -1,0 +1,19 @@
+/* First launch */
+"setup.title" = "Welcome to FORSA";
+"setup.subtitle" = "Enter your company's FORSA address. You'll find it in your invitation e-mail.";
+"setup.checking" = "Checking…";
+"setup.continue" = "Continue";
+"setup.footer" = "Your data stays on your organisation's server.";
+"setup.cancel" = "Cancel";
+"setup.invalid" = "Invalid address. Example: https://forsa.your-company.mr";
+"setup.unreachable" = "No FORSA server answered at this address. Check it and your connection.";
+
+/* Offline */
+"offline.title" = "No connection";
+"offline.body" = "FORSA can't reach your server. Check your internet connection and try again.";
+"offline.retry" = "Try again";
+"offline.change_server" = "Change server";
+
+/* Dialogs */
+"ok" = "OK";
+"cancel" = "Cancel";

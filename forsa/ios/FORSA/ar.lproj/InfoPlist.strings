@@ -1,0 +1,6 @@
+"CFBundleDisplayName" = "FORSA";
+"NSMicrophoneUsageDescription" = "يستخدم FORSA الميكروفون للإملاء الصوتي في المساعد.";
+"NSSpeechRecognitionUsageDescription" = "يحوّل FORSA صوتك إلى نص للإجابة عن أسئلتك.";
+"NSCameraUsageDescription" = "يمكن لـ FORSA تصوير وثيقة داعمة (شهادة، مرجع) لإضافتها إلى ملفك.";
+"NSPhotoLibraryUsageDescription" = "يمكن لـ FORSA إرفاق وثيقة داعمة من صورك.";
+"shortcut.change_server" = "تغيير الخادم";

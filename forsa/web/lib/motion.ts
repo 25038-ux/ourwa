@@ -22,9 +22,27 @@ export const page: Variants = {
   exit: { opacity: 0, y: -6, transition: { duration: 0.16 } },
 };
 
+type NativeShell = {
+  webkit?: { messageHandlers?: { forsa?: { postMessage(m: unknown): void } } };
+  ForsaAndroid?: { haptic(ms: number): void };
+};
+
+/** Short tap for a number, "success" pattern for an array. Uses the native iOS/Android shell when present. */
 export function haptic(pattern: number | number[] = 8): void {
   try {
-    if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(pattern);
+    if (typeof window === "undefined") return;
+    const shell = window as unknown as NativeShell;
+    const ios = shell.webkit?.messageHandlers?.forsa;
+    if (ios) {
+      const style = Array.isArray(pattern) ? "success" : pattern >= 12 ? "medium" : "light";
+      ios.postMessage({ type: "haptic", style });
+      return;
+    }
+    if (shell.ForsaAndroid) {
+      shell.ForsaAndroid.haptic(Array.isArray(pattern) ? pattern[0] : pattern);
+      return;
+    }
+    if ("vibrate" in navigator) navigator.vibrate(pattern);
   } catch {
     /* unsupported */
   }

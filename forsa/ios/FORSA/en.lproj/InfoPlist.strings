@@ -1,0 +1,6 @@
+"CFBundleDisplayName" = "FORSA";
+"NSMicrophoneUsageDescription" = "FORSA uses the microphone for the assistant's voice dictation.";
+"NSSpeechRecognitionUsageDescription" = "FORSA transcribes your voice to answer your questions.";
+"NSCameraUsageDescription" = "FORSA can photograph a supporting document (certificate, reference) to add to your profile.";
+"NSPhotoLibraryUsageDescription" = "FORSA can attach a supporting document from your photos.";
+"shortcut.change_server" = "Change server";

@@ -1,0 +1,19 @@
+/* التشغيل الأول */
+"setup.title" = "مرحبًا بك في FORSA";
+"setup.subtitle" = "أدخل عنوان FORSA الخاص بشركتك. ستجده في رسالة الدعوة.";
+"setup.checking" = "جارٍ التحقق…";
+"setup.continue" = "متابعة";
+"setup.footer" = "تبقى بياناتك على خادم مؤسستك.";
+"setup.cancel" = "إلغاء";
+"setup.invalid" = "عنوان غير صالح. مثال: https://forsa.your-company.mr";
+"setup.unreachable" = "لم يستجب أي خادم FORSA على هذا العنوان. تحقق منه ومن اتصالك.";
+
+/* بدون اتصال */
+"offline.title" = "لا يوجد اتصال";
+"offline.body" = "تعذر على FORSA الوصول إلى الخادم. تحقق من اتصالك بالإنترنت ثم أعد المحاولة.";
+"offline.retry" = "إعادة المحاولة";
+"offline.change_server" = "تغيير الخادم";
+
+/* مربعات الحوار */
+"ok" = "حسنًا";
+"cancel" = "إلغاء";
