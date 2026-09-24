@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import re
 import uuid
+from dataclasses import replace
 from typing import Any
 
 from sqlalchemy import delete, select
@@ -13,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from forsa.ai.boundaries import detect_injection
 from forsa.db.models import (
+    Assertion,
     Document,
     DocumentChunk,
     DocumentVersion,
@@ -22,7 +24,8 @@ from forsa.db.models import (
     Requirement,
     Signal,
 )
-from forsa.documents.extract import Page, UnsupportedDocument, extract
+from forsa.documents.deadlines import find_deadline
+from forsa.documents.extract import OcrFn, Page, UnsupportedDocument, extract
 from forsa.documents.requirements import ExtractedRequirement, extract_requirements
 from forsa.documents.segment import segment_pages
 from forsa.ingestion.storage import ObjectStore
@@ -30,6 +33,10 @@ from forsa.jobs.queue import enqueue
 from forsa.taxonomy.ontology import Ontology
 
 log = logging.getLogger("forsa.intelligence")
+
+DEADLINE_METHOD = "rules:deadline-v1"
+# Statuses whose extraction is final. NEEDS_OCR is retried once an OCR engine is available.
+_FINAL = ("DONE", "OCR_DONE", "FAILED")
 
 
 def derive_concepts(onto: Ontology, sources: list[tuple[str, float, str]]) -> list[dict]:
@@ -114,11 +121,16 @@ def _store_requirements(
 
 
 def process_document_version(
-    session: Session, store: ObjectStore, onto: Ontology, opp: Opportunity, dv: DocumentVersion
+    session: Session,
+    store: ObjectStore,
+    onto: Ontology,
+    opp: Opportunity,
+    dv: DocumentVersion,
+    ocr: OcrFn | None = None,
 ) -> tuple[str, int]:
-    """Extract → segment → chunk → requirements. Returns (document text, #requirements)."""
+    """Extract (OCR for scanned PDFs when available) → segment → chunk → requirements. Returns (text, #reqs)."""
     try:
-        doc = extract(store.get(dv.storage_key))
+        doc = extract(store.get(dv.storage_key), ocr=ocr)
     except (UnsupportedDocument, Exception) as exc:  # corrupt files must not stop the pipeline
         dv.extraction_status = "FAILED"
         dv.risk_flags = [*(dv.risk_flags or []), {"code": "extraction_failed", "detail": str(exc)[:300]}]
@@ -144,9 +156,66 @@ def process_document_version(
             )
         )
     reqs = extract_requirements(doc.pages, onto)
+    if doc.ocr_applied:  # OCR text is noisier: label the method and cap confidence
+        reqs = [replace(r, extraction_method=f"{r.extraction_method}+ocr"[:60], confidence="LOW") for r in reqs]
     n = _store_requirements(session, opp, reqs, {"content_hash": dv.content_hash}, dv)
-    dv.extraction_status = "NEEDS_OCR" if doc.needs_ocr else "DONE"
+    dv.extraction_status = "NEEDS_OCR" if doc.needs_ocr else ("OCR_DONE" if doc.ocr_applied else "DONE")
     return doc.text, n
+
+
+def _pages_of(session: Session, dv_id: uuid.UUID) -> list[Page]:
+    """Rebuild page texts from stored chunks (chunks keep their page number)."""
+    rows = session.execute(
+        select(DocumentChunk.page, DocumentChunk.text)
+        .where(DocumentChunk.document_version_id == dv_id)
+        .order_by(DocumentChunk.chunk_index)
+    ).all()
+    pages: dict[int, list[str]] = {}
+    for page, text in rows:
+        pages.setdefault(page or 1, []).append(text)
+    return [Page(n, "\n".join(parts)) for n, parts in sorted(pages.items())]
+
+
+def derive_deadline(session: Session, opp: Opportunity, dvs: list[DocumentVersion]) -> bool:
+    """When the source gave no deadline, look for it in the notice documents; store it with its quote.
+
+    The value is DERIVED (read from the official document, possibly via OCR), never guessed.
+    """
+    if opp.deadline_at is not None or opp.kind in ("AWARD", "PLAN_ITEM") or opp.status == "PLANNED":
+        return False
+    for dv in dvs:
+        hit = find_deadline(_pages_of(session, dv.id))
+        if hit is None:
+            continue
+        ev = Evidence(
+            kind="document",
+            document_version_id=dv.id,
+            page=hit.page,
+            char_start=hit.start,
+            char_end=hit.end,
+            quote=hit.quote[:2000],
+            content_hash=dv.content_hash,
+            extraction_method=DEADLINE_METHOD + ("+ocr" if dv.extraction_status == "OCR_DONE" else ""),
+        )
+        session.add(ev)
+        session.flush()
+        session.add(
+            Assertion(
+                subject_type="opportunity",
+                subject_id=opp.id,
+                predicate="deadline_at",
+                value={"v": hit.deadline.isoformat(), "time_stated": hit.has_time},
+                epistemic="DERIVED",
+                confidence="MEDIUM" if dv.extraction_status == "OCR_DONE" or not hit.has_time else "HIGH",
+                verification="UNVERIFIED",
+                evidence_id=ev.id,
+                method=DEADLINE_METHOD,
+                version=opp.current_version,
+            )
+        )
+        opp.deadline_at = hit.deadline
+        return True
+    return False
 
 
 def analyze_opportunity(
@@ -156,6 +225,7 @@ def analyze_opportunity(
     opportunity_id: uuid.UUID,
     gateway: Any = None,
     features: frozenset[str] = frozenset(),
+    ocr: OcrFn | None = None,
 ) -> dict:
     opp = session.get(Opportunity, opportunity_id)
     if opp is None:
@@ -174,11 +244,11 @@ def analyze_opportunity(
         .where(Document.opportunity_id == opp.id)
     ).all()
     for dv in dvs:
-        if dv.extraction_status in ("DONE", "NEEDS_OCR", "FAILED"):
+        if dv.extraction_status in _FINAL or (dv.extraction_status == "NEEDS_OCR" and ocr is None):
             chunks = session.scalars(select(DocumentChunk.text).where(DocumentChunk.document_version_id == dv.id)).all()
             doc_sources.append(("\n".join(chunks), 0.5, f"document:{dv.document_id}"))
             continue
-        text, n = process_document_version(session, store, onto, opp, dv)
+        text, n = process_document_version(session, store, onto, opp, dv, ocr)
         fresh_docs.append((text, dv.id))
         stats["requirements"] += n
         stats["documents"] += 1
@@ -201,6 +271,8 @@ def analyze_opportunity(
         if "ai_decisions" in features:
             stats["ai_flagged"] = ai_features.jev_crosscheck(session, gateway, opp)
 
+    if derive_deadline(session, opp, list(dvs)):
+        stats["deadline_from_document"] = 1
     opp.concepts = derive_concepts(
         onto, [(opp.title, 2.0, "title"), (opp.description or "", 1.0, "description"), *doc_sources]
     )

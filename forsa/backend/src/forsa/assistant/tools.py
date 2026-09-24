@@ -34,6 +34,7 @@ from forsa.db.session import system_session
 from forsa.identity.rbac import TenantContext
 from forsa.kernel.clock import utcnow
 from forsa.matching.render import concept_label, render_match
+from forsa.services.matching import still_open
 from forsa.taxonomy import default_ontology
 
 OPEN = ["PUBLISHED", "CLARIFICATION", "EXTENDED", "PLANNED"]
@@ -115,7 +116,7 @@ def search_opportunities(
         select(Opportunity, Match, Buyer.name)
         .outerjoin(Match, and_(Match.opportunity_id == Opportunity.id, Match.org_id == org))
         .outerjoin(Buyer, Buyer.id == Opportunity.buyer_id)
-        .where(Opportunity.status.in_(OPEN), or_(Opportunity.deadline_at.is_(None), Opportunity.deadline_at > utcnow()))
+        .where(Opportunity.status.in_(OPEN), Opportunity.kind != "AWARD", still_open(utcnow()))
     )
     if query:
         like = f"%{query}%"
@@ -164,7 +165,7 @@ def top_recommendations(tc: ToolContext, limit: int = 5) -> dict[str, Any]:
             Match.org_id == tc.ctx.org_id,
             Match.status != "DISMISSED",
             Opportunity.status.in_(OPEN),
-            or_(Opportunity.deadline_at.is_(None), Opportunity.deadline_at > utcnow()),
+            still_open(utcnow()),
         )
         .order_by(Match.fit_score.desc())
         .limit(20)
@@ -347,6 +348,56 @@ def find_partners(tc: ToolContext, opportunity: str | None = None) -> dict[str, 
     }
 
 
+def market_winners(tc: ToolContext, query: str | None = None, months: int = 36) -> dict[str, Any]:
+    """Firms that won public contracts (official award notices), optionally about a subject (e.g. "solaire")."""
+    from forsa.services import market
+
+    since = utcnow() - timedelta(days=30 * max(1, min(months, 120)))
+    awards = market._awards(tc.session, since, query)
+    firms: dict[str, dict[str, Any]] = {}
+    for o, buyer, _ in awards:
+        for w in (o.attributes or {}).get("winners") or []:
+            if w.get("type") != "firm" or not w.get("name"):
+                continue
+            e = firms.setdefault(w["name"], {"name": w["name"], "wins": 0, "buyers": set()})
+            e["wins"] += 1
+            if buyer:
+                e["buyers"].add(buyer)
+    top = sorted(firms.values(), key=lambda e: -e["wins"])[:6]
+    return {
+        "query": query,
+        "awards": len(awards),
+        "items": [
+            {"name": e["name"], "wins": e["wins"], "buyers": sorted(e["buyers"])[:2], "href": "/market"} for e in top
+        ],
+        "recent": [
+            {
+                "title": o.title,
+                "buyer": b,
+                "winners": [w.get("name") for w in (o.attributes or {}).get("winners") or []],
+            }
+            for o, b, _ in awards[:3]
+        ],
+        "note": "From official award notices (World Bank, ARMP).",
+    }
+
+
+def check_red_list(tc: ToolContext, name: str | None = None) -> dict[str, Any]:
+    """Is a company on the ARMP red list (excluded from public procurement)? A match is a signal to verify."""
+    from forsa.services import debarments
+
+    if not name:
+        from forsa.db.models import Debarment
+
+        rows = tc.session.scalars(select(Debarment).order_by(Debarment.effective_date.desc().nulls_last())).all()
+        return {
+            "name": None,
+            "count": len(rows),
+            "items": [{"name": d.entity_name, "href": "/market"} for d in rows[:5]],
+        }
+    return {"name": name, "matches": debarments.check(tc.session, name), "href": "/market"}
+
+
 ACTIONS = {"start_bid", "mark_irrelevant", "create_task", "open_opportunity"}
 
 
@@ -442,6 +493,22 @@ TOOLS: dict[str, tuple[Callable[..., dict[str, Any]], ToolSpec]] = {
             "find_partners",
             "Capability gaps for an opportunity and consenting partner companies that cover them.",
             _p(opportunity=_OPP),
+        ),
+    ),
+    "market_winners": (
+        market_winners,
+        ToolSpec(
+            "market_winners",
+            "Firms that won public contracts (official award notices), optionally about a subject such as 'solaire'.",
+            _p(query={"type": "string"}, months={"type": "integer"}),
+        ),
+    ),
+    "check_red_list": (
+        check_red_list,
+        ToolSpec(
+            "check_red_list",
+            "Check whether a company is on the ARMP red list (excluded from public procurement), or list it.",
+            _p(name={"type": "string"}),
         ),
     ),
     "propose_action": (

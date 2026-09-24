@@ -40,10 +40,14 @@ Or: `cp .env.example .env && docker compose up --build`.
 | Web app + mobile PWA | `web/` | 17 routes, light/dark, motion, ⌘K, swipe triage, kanban, onboarding, installable |
 | Evals | `evals/` + `forsa eval` | matching, extraction, multilingual, safety |
 
+## Deploy / mobile
+* **Production**: `infra/deployment/README.md` — one server, Docker Compose, automatic HTTPS, backups, `./deploy.sh`.
+* **Android**: `android/README.md` — signed APK/AAB (Trusted Web Activity with WebView fallback).
+
 ## Honest limitations (today)
-- The ARMP, UNGM and World Bank connectors are **not active**: their structure, terms and robots.txt could
-  not be verified from the build environment. Only synthetic demo data flows end-to-end.
-- OCR, malware scanning, S3 storage and embeddings are ports with honest no-op adapters (documents are
-  flagged `NEEDS_OCR` / `NOT_SCANNED`, never silently treated as fine).
+- Real sources are active: ARMP portal and World Bank. UNGM needs API credentials (AUTH_REQUIRED until then).
+  Demo data is still available and always flagged SYNTHETIC.
+- OCR runs when Tesseract is installed (the Docker image has it). Malware scanning, S3 storage and embeddings are
+  ports with honest no-op adapters (documents flagged `NOT_SCANNED`, never silently treated as fine).
 - No AI provider is on by default; everything works deterministically without one. To enable: set
   `FORSA_AI_PROVIDERS` + the provider's key (see `.env.example`), then *Settings → AI providers*.

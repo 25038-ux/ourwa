@@ -10,6 +10,7 @@ from __future__ import annotations
 import io
 import re
 import zipfile
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from xml.etree import ElementTree as ET
@@ -38,6 +39,7 @@ class ExtractedDocument:
     kind: str
     pages: list[Page]
     needs_ocr: bool = False
+    ocr_applied: bool = False  # text comes from OCR: lower confidence downstream
     warnings: list[str] = field(default_factory=list)
 
     @property
@@ -112,7 +114,10 @@ def _docx_text(content: bytes) -> str:
     return "\n".join(paras)
 
 
-def extract(content: bytes, declared_type: str | None = None) -> ExtractedDocument:
+OcrFn = Callable[[bytes], list[str] | None]
+
+
+def extract(content: bytes, declared_type: str | None = None, ocr: OcrFn | None = None) -> ExtractedDocument:
     if len(content) > MAX_BYTES:
         raise UnsupportedDocument("file too large")
     kind = sniff_kind(content, declared_type)
@@ -123,6 +128,14 @@ def extract(content: bytes, declared_type: str | None = None) -> ExtractedDocume
         pages = [Page(i + 1, (page.extract_text() or "").strip()) for i, page in enumerate(reader.pages)]
         empty = sum(1 for p in pages if len(p.text) < 20)
         doc = ExtractedDocument("pdf", pages, needs_ocr=bool(pages) and empty / len(pages) > 0.5)
+        if doc.needs_ocr and ocr is not None:
+            texts = ocr(content)
+            if texts and sum(len(t) for t in texts) >= 40:
+                doc.pages = [Page(i + 1, texts[i] if i < len(texts) else p.text) for i, p in enumerate(pages)]
+                doc.needs_ocr, doc.ocr_applied = False, True
+                doc.warnings.append("ocr_applied")
+                if len(texts) < len(pages):
+                    doc.warnings.append(f"ocr_truncated_at_page_{len(texts)}")
         if doc.needs_ocr:
             doc.warnings.append("scanned_pdf_ocr_required")
         return doc

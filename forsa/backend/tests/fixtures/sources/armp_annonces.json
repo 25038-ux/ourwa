@@ -1,0 +1,87 @@
+{
+ "data": [
+  {
+   "_id": "6aa7e2f3ef32db23159ebebe",
+   "autoriteId": "674297ec8e68f31f84b64312",
+   "titreFr": "avis attibution defenitive",
+   "titreAr": "achat veicules",
+   "file": {
+    "name": "AVIS ATTRIBUTION DEFINITIVE140926_0001.pdf",
+    "fileLink": "https://marchespublics.gov.mr/api/files/e96d2143-e7cd-4dbe-8bc2-cd4a84b96d72_AVIS_ATTRIBUTION_DEFINITIVE140926_0001.pdf"
+   },
+   "validated": "Validé",
+   "datePUB": "2026-09-14T12:05:07.108Z",
+   "createdAt": "2026-09-14T12:05:07.108Z",
+   "updatedAt": "2026-09-14T12:05:07.108Z",
+   "autorite": {
+    "_id": "674297ec8e68f31f84b64312",
+    "abreviation": "TECHGHIL",
+    "titlear": "الوكالة الوطنية للتشغيل",
+    "titlefr": "Agence Nationale pour l’Emploi",
+    "abreviationCncmp": null,
+    "parentAutorite": "6749dc37bb062f63ec4c8e4c",
+    "createdAt": "2024-11-24T03:05:16.047Z",
+    "updatedAt": "2025-04-29T18:41:40.147Z",
+    "logo": {
+     "name": "Unknown-4",
+     "fileLink": "https://marchespublics.gov.mr/api/files/e5763ec7-1f01-433f-9cd3-da0f78a77376_Unknown-4"
+    }
+   }
+  },
+  {
+   "_id": "6a79b1d9a5d485757545346f",
+   "autoriteId": "674297ec8e68f31f84b64312",
+   "titreFr": "Acquistion 2 vehicules legers et 4x4 pick uo",
+   "titreAr": "Acquistion 2 vehicules legers et 4x4 pick uo",
+   "file": {
+    "name": "AVIS vehicles legers.pdf",
+    "fileLink": "https://marchespublics.gov.mr/api/files/5d7430ce-6c85-4100-938c-c7418047f2cd_AVIS_vehicles_legers.pdf"
+   },
+   "validated": "Validé",
+   "datePUB": "2026-08-10T11:11:21.854Z",
+   "createdAt": "2026-08-10T11:11:21.854Z",
+   "updatedAt": "2026-08-10T11:11:21.854Z",
+   "autorite": {
+    "_id": "674297ec8e68f31f84b64312",
+    "abreviation": "TECHGHIL",
+    "titlear": "الوكالة الوطنية للتشغيل",
+    "titlefr": "Agence Nationale pour l’Emploi",
+    "abreviationCncmp": null,
+    "parentAutorite": "6749dc37bb062f63ec4c8e4c",
+    "createdAt": "2024-11-24T03:05:16.047Z",
+    "updatedAt": "2025-04-29T18:41:40.147Z",
+    "logo": {
+     "name": "Unknown-4",
+     "fileLink": "https://marchespublics.gov.mr/api/files/e5763ec7-1f01-433f-9cd3-da0f78a77376_Unknown-4"
+    }
+   }
+  },
+  {
+   "_id": "6a71ff86a5d48575754533aa",
+   "autoriteId": "672606862f92b080e947b0a7",
+   "titreFr": "REALISER UNE EVALUATION VISANT A IDENTIFIER LES ENTREPRISES COMMUNAUTAIRES LIEES A LA BIODIVERSITE QUI SONT ECONOMIQUEMENT VIABLES? SOCIALEMENT RESPONSABLES ET ACCEPTABLES, AINSI QUE LEURS CHAINES DE VALEUR",
+   "file": {
+    "name": "Avis IMPARA.pdf",
+    "fileLink": "https://marchespublics.gov.mr/api/files/01a59ad2-1eb7-4c69-b139-32f13a0bc9a3_Avis_IMPARA.pdf"
+   },
+   "validated": "Validé",
+   "datePUB": "2026-08-04T15:04:38.597Z",
+   "createdAt": "2026-08-04T15:04:38.597Z",
+   "updatedAt": "2026-08-04T15:04:38.597Z",
+   "autorite": {
+    "_id": "672606862f92b080e947b0a7",
+    "abreviationCncmp": "MENV",
+    "abreviation": "MEDD",
+    "titlefr": "Ministère de l'Environnement et du Développement Durable",
+    "titlear": "وزارة البيئة والتنمية المستدامة",
+    "logo": {
+     "name": "logorim.png",
+     "fileLink": "https://marchespublics.gov.mr/api/files/d1836e50-65ea-4672-8c10-177e9a35f281_logorim.png"
+    },
+    "parentAutorite": "672606862f92b080e947b0a7",
+    "updatedAt": "2025-02-11T11:37:54.746Z"
+   }
+  }
+ ],
+ "totalCount": 88
+}

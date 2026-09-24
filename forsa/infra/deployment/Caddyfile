@@ -1,0 +1,18 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$FORSA_DOMAIN} {
+	# Compress everything except live streams (instant notifications + assistant must not be buffered).
+	@compressible not path /api/v1/live* /api/v1/assistant/messages*
+	encode @compressible zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+
+	reverse_proxy web:3000 {
+		flush_interval -1
+	}
+}

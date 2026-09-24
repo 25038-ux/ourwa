@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from forsa.db.models import IngestionRun, Source
 from forsa.ingestion.contracts import SourceHealth
+from forsa.ingestion.registry import missing_env
 from forsa.kernel.clock import utcnow
 
 STALE_ALERT_HOURS = 12
@@ -20,6 +21,8 @@ def source_health(source: Source, runs: list[IngestionRun], now: datetime) -> tu
         return SourceHealth.UNVERIFIED, "registry entry not verified — connector disabled"
     if source.status != "active":
         return SourceHealth.BLOCKED, f"source status {source.status}"
+    if missing := missing_env(source.registry_entry):
+        return SourceHealth.AUTH_REQUIRED, "credentials not configured: " + ", ".join(missing)
     if not runs:
         return SourceHealth.STALE, "no ingestion run yet"
     last = runs[0]
@@ -72,6 +75,8 @@ def sources_overview(session: Session) -> list[dict[str, Any]]:
                     "stats": last.stats,
                 },
                 "notes": (src.registry_entry or {}).get("notes"),
+                "attribution": (src.registry_entry or {}).get("attribution"),
+                "licence": (src.registry_entry or {}).get("data_license"),
             }
         )
     return out

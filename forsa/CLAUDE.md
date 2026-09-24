@@ -37,7 +37,7 @@ backend/src/forsa/
   kernel/      epistemics (Epistemic, Confidence, Verification, Truth), hashing, errors, clock
   taxonomy/    multilingual normalisation + capability ontology (data/capabilities.yaml)
   matching/    PURE engine: gates → components → recommendation; messages (FR/EN explanations)
-  documents/   extraction (PDF/DOCX/HTML/text), structure-aware segmentation, rule-based requirements
+  documents/   extraction (PDF/DOCX/HTML/text), OCR port (tesseract), segmentation, requirements, deadlines
   ingestion/   connector contract, polite HTTP client (SSRF/robots/rate-limit), pipeline, change detection
   ai/          provider catalog (catalog.yaml) + gateway (tiers, sensitivity routing, budgets, cache),
                adapters: OpenAI-compatible, Anthropic SDK, Jev decision model; prompt boundaries (ADR-011)
@@ -47,6 +47,8 @@ backend/src/forsa/
   api/         FastAPI /api/v1 routers, deps (auth, tenant context), presenter, live.py (LISTEN/NOTIFY → SSE)
   db/          SQLAlchemy models, tenant-aware sessions;  migrations in backend/migrations (Alembic)
 web/           Next.js app + installable PWA (App Router, TypeScript, motion), same-origin /api proxy
+android/       Android shell (Trusted Web Activity + WebView fallback) — see android/README.md
+infra/deployment/  production Compose (Caddy HTTPS, non-superuser DB role, backups), deploy.sh
 sources/       source registry (YAML)      fixtures/  SYNTHETIC demo data      evals/  golden eval cases
 ```
 Dependency direction: `api → services → (matching, documents, ingestion, ai, taxonomy) → kernel`.

@@ -11,9 +11,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from forsa.briefing.compose import compose_briefing, store_briefing
-from forsa.db.models import Document, DocumentVersion, Opportunity, Organization, Source
+from forsa.db.models import Bid, Document, DocumentVersion, Match, Opportunity, Organization, Source
 from forsa.documents.extract import sniff_kind
-from forsa.ingestion.connectors.factory import build_connector
+from forsa.ingestion.connectors.factory import build_connector, http_client
 from forsa.ingestion.http import HttpPolicy, PoliteHttpClient
 from forsa.ingestion.pipeline import IngestionPipeline
 from forsa.ingestion.registry import sync_registry
@@ -81,6 +81,15 @@ def fetch_document(session: Session, payload: dict[str, Any]) -> dict[str, Any]:
     return {"stored": key}
 
 
+def _ocr_fn(settings: Any) -> Any:
+    from forsa.documents import ocr
+
+    if not settings.ocr_enabled or not ocr.available():
+        return None
+    cfg = ocr.OcrConfig(langs=settings.ocr_langs, max_pages=settings.ocr_max_pages)
+    return lambda content: ocr.ocr_pdf(content, cfg)
+
+
 def analyze(session: Session, payload: dict[str, Any]) -> dict[str, Any]:
     rt = get_runtime()
     return analyze_opportunity(
@@ -90,6 +99,7 @@ def analyze(session: Session, payload: dict[str, Any]) -> dict[str, Any]:
         uuid.UUID(payload["opportunity_id"]),
         rt.gateway,
         frozenset(rt.settings.features),
+        ocr=_ocr_fn(rt.settings),
     )
 
 
@@ -128,12 +138,17 @@ def schedule_tick(session: Session, payload: dict[str, Any] | None = None) -> di
     now = utcnow()
     queued = 0
     for rec in rt.registry.values():
-        if not rec.runnable:
+        if not rec.runnable or rec.missing_env:  # credential-gated sources wait for their keys (AUTH_REQUIRED)
             continue
         period = max(1, rec.update_frequency_hours) * 3600
         bucket = int(now.timestamp() // period)
         enqueue(session, "ingest_source", {"source_key": rec.id}, key=f"ingest:{rec.id}:{bucket}")
         queued += 1
+        if rec.config.get("red_list_path"):
+            enqueue(session, "sync_red_list", {"source_key": rec.id}, key=f"redlist:{rec.id}:{now.date().isoformat()}")
+            queued += 1
+    enqueue(session, "deadline_reminders", {}, key=f"reminders:{now:%Y%m%d%H}")
+    queued += 1
     briefing_at = datetime.combine(now.date(), datetime.min.time(), UTC) + timedelta(hours=6)
     if now >= briefing_at:
         for org_id in session.scalars(select(Organization.id)).all():
@@ -157,7 +172,71 @@ def deliver_notification(session: Session, payload: dict[str, Any]) -> dict[str,
     )
 
 
+def sync_red_list(session: Session, payload: dict[str, Any]) -> dict[str, Any]:
+    """Refresh a source's list of companies excluded from public procurement (e.g. ARMP « liste rouge »)."""
+    from forsa.ingestion.connectors.armp import parse_red_list
+    from forsa.services import debarments
+
+    rec = get_runtime().registry[payload["source_key"]]
+    if not rec.runnable:
+        return {"skipped": "source not active"}
+    base = str(rec.config.get("base_url", "")).rstrip("/")
+    client = http_client(rec)
+    try:
+        res = client.get(f"{base}{rec.config['red_list_path']}")
+    finally:
+        client.close()
+    if res.status != 200:
+        raise RuntimeError(f"red list returned HTTP {res.status}")
+    return debarments.upsert(session, rec.id, parse_red_list(res.content, base), rec.country)
+
+
+REMINDER_DAYS = (7, 3, 1)
+ACTIVE_BIDS = ("QUALIFYING", "PURSUING", "IN_REVIEW", "APPROVED")
+
+
+def deadline_reminders(session: Session, payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    """J-7 / J-3 / J-1 reminders for opportunities an organisation pursues or bids on (idempotent per threshold)."""
+    from forsa.services.notifications import notify
+
+    now = utcnow()
+    horizon = now + timedelta(days=max(REMINDER_DAYS))
+    rows = session.execute(
+        select(Match.org_id, Opportunity.id)
+        .join(Opportunity, Opportunity.id == Match.opportunity_id)
+        .where(Match.status == "PURSUED", Opportunity.deadline_at > now, Opportunity.deadline_at <= horizon)
+        .union_all(
+            select(Bid.org_id, Opportunity.id)
+            .join(Opportunity, Opportunity.id == Bid.opportunity_id)
+            .where(Bid.status.in_(ACTIVE_BIDS), Opportunity.deadline_at > now, Opportunity.deadline_at <= horizon)
+        )
+    ).all()
+    sent = 0
+    for org_id, opp_id in {(r[0], r[1]) for r in rows}:
+        opp = session.get(Opportunity, opp_id)
+        if opp is None or opp.deadline_at is None:
+            continue
+        days_left = (opp.deadline_at - now).total_seconds() / 86400
+        threshold = min((d for d in REMINDER_DAYS if days_left <= d), default=None)
+        if threshold is None:
+            continue
+        label = "demain" if threshold == 1 else f"dans {threshold} jours"
+        created = notify(
+            session,
+            org_id,
+            "deadline",
+            f"Échéance {label} : {opp.title[:180]}",
+            key=f"reminder:{org_id}:{opp.id}:{threshold}d",
+            body=f"Date limite : {opp.deadline_at:%d/%m/%Y %H:%M} UTC",
+            payload={"opportunity_id": str(opp.id), "days": threshold},
+        )
+        sent += 1 if created else 0
+    return {"reminders": sent}
+
+
 HANDLERS: dict[str, Handler] = {
+    "sync_red_list": sync_red_list,
+    "deadline_reminders": deadline_reminders,
     "deliver_notification": deliver_notification,
     "ingest_source": ingest_source,
     "fetch_document": fetch_document,

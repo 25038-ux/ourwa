@@ -61,6 +61,7 @@ PROJECTED = (
     "language",
     "url",
     "consortium_allowed",
+    "attributes",
 )
 
 
@@ -112,6 +113,26 @@ class IngestionPipeline:
         run.error = "\n".join(errors[:20]) or None
         return run
 
+    def reparse(self, source: Source, connector: SourceConnector, *, synthetic: bool = False) -> dict[str, int]:
+        """Re-apply the current parser to stored snapshots (after a parser fix). No network access."""
+        from forsa.ingestion.contracts import RawRecord, SourceRef
+
+        latest: dict[str, SourceSnapshot] = {}
+        for snap in self.session.scalars(
+            select(SourceSnapshot).where(SourceSnapshot.source_id == source.id).order_by(SourceSnapshot.retrieved_at)
+        ):
+            latest[snap.canonical_url] = snap
+        stats: Counter[str] = Counter()
+        for snap in latest.values():
+            meta = {"feed": "activities"} if "/activities/" in snap.canonical_url else {}
+            ref = SourceRef(url=snap.canonical_url, external_ref=snap.external_ref, kind="listing", meta=meta)
+            raw = RawRecord(
+                ref, self.store.get(snap.storage_key), snap.content_type, snap.retrieved_at, snap.canonical_url
+            )
+            for norm in connector.parse(raw):
+                stats[self.apply(source, connector, norm, snap, synthetic)] += 1
+        return dict(stats)
+
     # ── internals ───────────────────────────────────────────────────────────
     def _snapshot(self, source: Source, run: IngestionRun, raw: RawRecord) -> tuple[SourceSnapshot, bool]:
         key, digest = self.store.put(raw.content, f"snapshots/{source.key}")
@@ -158,7 +179,7 @@ class IngestionPipeline:
         payload = norm.payload()
         for field in NormalizedOpportunity.TRACKED:
             value = payload.get(field)
-            if value is None:
+            if value is None or value == {}:
                 continue
             fe = norm.evidence.get(field)
             ev = Evidence(

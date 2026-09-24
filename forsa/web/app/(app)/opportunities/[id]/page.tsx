@@ -2,13 +2,13 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import {
-  BadgeCheck, Banknote, Briefcase, CalendarClock, ChevronDown, CircleHelp, FileText, Gauge, History, MapPin, Quote as QuoteIcon,
-  ShieldCheck, Sparkles, ThumbsDown, TriangleAlert,
+  BadgeCheck, Banknote, Briefcase, CalendarClock, CalendarPlus, ChevronDown, CircleHelp, ExternalLink, FileText, Gauge, History,
+  MapPin, Quote as QuoteIcon, ScanText, Share2, ShieldCheck, Sparkles, ThumbsDown, TriangleAlert,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Bar, Card, Chip, DemoBadge, ErrorBox, FitRing, Quote, RecChip, Skeleton } from "@/components/ui";
-import { api } from "@/lib/api";
+import { api, safeGet } from "@/lib/api";
 import { useAssistant } from "@/lib/assistant";
 import { date, days, dirOf, money } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
@@ -34,6 +34,20 @@ const COMPONENT_LABEL: Record<string, [string, string]> = {
   evidence: ["Preuves", "Evidence"], capacity: ["Capacité", "Capacity"], geography: ["Géographie", "Geography"],
   strategic: ["Stratégie", "Strategic fit"], timeline: ["Calendrier", "Timeline"],
 };
+
+/** Native share sheet on phones (WhatsApp, SMS, e-mail…); WhatsApp link as a fallback on desktop. */
+async function share(opp: any, lang: string) {
+  haptic(8);
+  const deadline = opp.deadline_at ? `${lang === "fr" ? "Date limite" : "Deadline"} : ${date(opp.deadline_at, lang)}` : "";
+  const text = [opp.title, opp.buyer, deadline].filter(Boolean).join("\n");
+  const url = window.location.href;
+  try {
+    if (navigator.share) return await navigator.share({ title: opp.title, text, url });
+  } catch {
+    return; // user dismissed the share sheet
+  }
+  window.open(`https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}`, "_blank", "noopener");
+}
 
 function ReasonLine({ r }: { r: Reason }) {
   const { t } = useI18n();
@@ -124,13 +138,20 @@ export default function OpportunityPage() {
               <DemoBadge show={opp.is_synthetic} /></div>
             <h1 style={{ fontSize: "clamp(22px, 3vw, 30px)", marginTop: 6 }}>{opp.title}</h1>
             <div className="muted" style={{ marginTop: 6 }}>{opp.buyer ?? "—"}</div>
+            {opp.source_detail?.attribution && <div className="faint" style={{ marginTop: 4 }}>{opp.source_detail.attribution}</div>}
           </div>
           {intel.available !== false && <FitRing score={intel.fit_score} rec={intel.recommendation} size={92} stroke={8} label />}
         </div>
         <motion.div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12, marginTop: 18 }}
           variants={stagger(0.05)} initial="hidden" animate="show">
-          {[[<CalendarClock key="d" size={14} />, t("deadline"), <span key="v">{date(opp.deadline_at, lang)} <span className="faint num">
-              {opp.days_left !== null && `· ${days(opp.days_left, t("daysLeft"))}`}</span></span>],
+          {[[<CalendarClock key="d" size={14} />, opp.attributes?.planned_launch ? (lang === "fr" ? "Lancement prévu" : "Planned launch")
+              : t("deadline"), opp.attributes?.planned_launch ? <span key="v">{date(opp.attributes.planned_launch, lang)}</span> : (
+              <span key="v">{date(opp.deadline_at, lang)} <span className="faint num">
+              {opp.days_left !== null && `· ${days(opp.days_left, t("daysLeft"))}`}</span>
+              {opp.deadline_evidence && (
+                <span className="chip MEDIUM" style={{ marginLeft: 6 }} title={`« ${opp.deadline_evidence.quote} » (p.${opp.deadline_evidence.page})`}>
+                  <ScanText size={11} />{lang === "fr" ? "lue dans l'avis" : "read from notice"}</span>
+              )}</span>)],
             [<Banknote key="b" size={14} />, t("value"), money(opp.estimated_value, opp.currency, lang)],
             [<MapPin key="m" size={14} />, t("region"), opp.region ?? "—"],
             [<Briefcase key="p" size={14} />, t("method"), opp.method ?? "—"]].map(([icon, label, v], i) => (
@@ -141,6 +162,15 @@ export default function OpportunityPage() {
           <motion.button className="btn accent" whileTap={{ scale: 0.96 }} onClick={startBid}><Briefcase size={16} />{t("startBid")}</motion.button>
           <motion.button className="btn" whileTap={{ scale: 0.96 }} onClick={() => { setOpen(true); }}>
             <Sparkles size={16} color="var(--accent)" />{lang === "fr" ? "Demander à FORSA" : "Ask FORSA"}</motion.button>
+          {opp.deadline_at && (
+            <a className="btn" href={`/api/v1/opportunities/${opp.id}/calendar.ics?org=${safeGet("forsa.org") ?? ""}`} onClick={() => haptic(6)}>
+              <CalendarPlus size={16} />{t("addToCalendar")}</a>
+          )}
+          <motion.button className="btn" whileTap={{ scale: 0.96 }} onClick={() => share(opp, lang)}><Share2 size={16} />{t("share")}</motion.button>
+          {opp.url && !opp.is_synthetic && (
+            <a className="btn ghost" href={opp.url} target="_blank" rel="noreferrer"><ExternalLink size={15} />
+              {lang === "fr" ? "Avis officiel" : "Official notice"}</a>
+          )}
           {intel.match_id && <button className="btn ghost" onClick={() => feedback("irrelevant")}><ThumbsDown size={15} />{t("irrelevant")}</button>}
           {intel.match_id && <button className="btn ghost" onClick={() => feedback("incorrect")}><TriangleAlert size={15} />{t("reportError")}</button>}
           <AnimatePresence>{notice && <motion.span className="chip BID" initial={{ scale: 0 }} animate={{ scale: 1 }}>{notice}</motion.span>}</AnimatePresence>
@@ -250,8 +280,11 @@ export default function OpportunityPage() {
             <Card title={t("documents")} icon={<FileText size={16} />} delay={0.2}>
               {opp.documents.length ? opp.documents.map((d: any) => (
                 <div key={d.id} className="col" style={{ gap: 4, padding: "6px 0" }}>
-                  <span>{d.title}</span>
-                  <div className="row faint" style={{ gap: 6 }}><span>{d.extraction_status}</span>{d.needs_ocr && <Chip kind="MEDIUM">OCR</Chip>}
+                  {d.source_url?.startsWith("http") ? <a href={d.source_url} target="_blank" rel="noreferrer" className="row" style={{ gap: 6 }}>
+                    <FileText size={14} />{d.title}<ExternalLink size={12} color="var(--faint)" /></a> : <span>{d.title}</span>}
+                  <div className="row faint" style={{ gap: 6 }}><span>{d.extraction_status === "OCR_DONE"
+                    ? (lang === "fr" ? "Texte lu par OCR (à vérifier)" : "Text read by OCR (verify)") : d.extraction_status}</span>
+                    {d.needs_ocr && <Chip kind="MEDIUM">OCR</Chip>}
                     {d.risk_flags?.map((f: any, i: number) => <Chip key={i} kind="HIGH">{f.code}</Chip>)}</div>
                 </div>
               )) : <p className="muted">{t("noData")}</p>}

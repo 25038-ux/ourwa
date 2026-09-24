@@ -7,7 +7,8 @@ export type Lang = "fr" | "en";
 
 const M = {
   fr: {
-    command: "Aujourd'hui", opportunities: "Opportunités", company: "Entreprise", bids: "Offres", tasks: "Tâches",
+    command: "Aujourd'hui", market: "Marché", addToCalendar: "Ajouter au calendrier", share: "Partager",
+    exportCalendar: "Exporter mes échéances (.ics)", opportunities: "Opportunités", company: "Entreprise", bids: "Offres", tasks: "Tâches",
     team: "Équipe", sources: "Sources", settings: "Réglages", notifications: "Notifications", assistant: "Assistant",
     more: "Plus", logout: "Déconnexion", email: "E-mail", password: "Mot de passe", signin: "Se connecter",
     goodMorning: "Bonjour", goodAfternoon: "Bon après-midi", goodEvening: "Bonsoir",
@@ -59,7 +60,8 @@ const M = {
     installApp: "Installer l'application", offline: "Hors ligne", viewAll: "Tout voir", empty: "Rien à afficher.",
   },
   en: {
-    command: "Today", opportunities: "Opportunities", company: "Company", bids: "Bids", tasks: "Tasks", team: "Team",
+    command: "Today", market: "Market", addToCalendar: "Add to calendar", share: "Share",
+    exportCalendar: "Export my deadlines (.ics)", opportunities: "Opportunities", company: "Company", bids: "Bids", tasks: "Tasks", team: "Team",
     sources: "Sources", settings: "Settings", notifications: "Notifications", assistant: "Assistant", more: "More",
     logout: "Sign out", email: "Email", password: "Password", signin: "Sign in", goodMorning: "Good morning",
     goodAfternoon: "Good afternoon", goodEvening: "Good evening", today: "Here's what deserves your attention today.",

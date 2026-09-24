@@ -1,3 +1,4 @@
+import os
 import shutil
 
 import pytest
@@ -174,7 +175,11 @@ def test_briefing_and_sources(world):
     assert set(b["counts"]) >= {"high_fit", "deadlines", "early_signals"}
     assert "win probabilities" in b["note"]
     src = {x["key"]: x for x in c.get("/api/v1/sources").json()["items"]}
-    assert src["mr-armp-portal"]["health"] == "UNVERIFIED"
+    assert src["mr-armp-portal"]["status"] == "active"
+    assert src["mr-armp-portal"]["health"] in ("STALE", "UP", "DEGRADED", "DOWN")  # never silently hidden
+    if not all(os.environ.get(k) for k in ("UNGM_CLIENT_ID", "UNGM_CLIENT_SECRET", "UNGM_REFRESH_TOKEN")):
+        assert src["ungm-notices"]["health"] == "AUTH_REQUIRED"
+    assert src["worldbank-procurement-notices"]["attribution"].endswith("(CC BY 4.0)")
     assert src["forsa-demo"]["health"] in ("UP", "STALE")
 
 

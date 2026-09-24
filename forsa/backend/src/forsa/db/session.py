@@ -26,6 +26,26 @@ def get_engine(url: str | None = None) -> Engine:
     return create_engine(url or get_settings().database_url, pool_pre_ping=True, future=True)
 
 
+def check_role_safety(env: str, url: str | None = None) -> str | None:
+    """Row-level security is the tenant wall; superusers and BYPASSRLS roles walk through it.
+
+    Returns a warning in dev/test; raises in prod so a misconfigured deployment never serves tenants.
+    """
+    import logging
+
+    from sqlalchemy import text
+
+    with get_engine(url).connect() as conn:
+        row = conn.execute(text("select rolsuper, rolbypassrls from pg_roles where rolname = current_user")).first()
+    if row and (row[0] or row[1]):
+        msg = "database role is SUPERUSER/BYPASSRLS: row-level tenant isolation would be bypassed"
+        if env == "prod":
+            raise RuntimeError(msg + " — connect with a normal role (see infra/deployment)")
+        logging.getLogger("forsa.db").warning(msg)
+        return msg
+    return None
+
+
 @lru_cache(maxsize=4)
 def _factory(url: str | None = None) -> sessionmaker[Session]:
     return sessionmaker(bind=get_engine(url), expire_on_commit=False, future=True)

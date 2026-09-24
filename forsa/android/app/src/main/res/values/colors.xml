@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="forsa_bg">#F5F3EE</color>
+    <color name="forsa_ink">#15181B</color>
+    <color name="forsa_muted">#6B7075</color>
+    <color name="forsa_accent">#0E7A5F</color>
+    <color name="forsa_accent_2">#1FC293</color>
+    <color name="forsa_deep">#06231C</color>
+    <color name="forsa_gold">#F3C86B</color>
+    <color name="ic_launcher_background">#0A5C47</color>
+</resources>

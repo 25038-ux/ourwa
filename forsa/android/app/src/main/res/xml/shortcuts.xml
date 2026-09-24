@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="change_server" android:enabled="true" android:icon="@drawable/ic_notification"
+        android:shortcutShortLabel="@string/change_server">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="mr.forsa.app"
+            android:targetClass="mr.forsa.app.SetupActivity" />
+    </shortcut>
+</shortcuts>

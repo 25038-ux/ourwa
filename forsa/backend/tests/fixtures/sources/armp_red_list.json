@@ -1,0 +1,45 @@
+[
+ {
+  "_id": "6749dc218bd3f4507e10e34a",
+  "entreprise": "EBPF",
+  "nature": "Exclusion temporaire de 48 mois",
+  "reference": "Marché N°1179/131/107/CPMP/DPEF/PNDSE16/FDS/001-PE, relatif aux travaux de construction de 9 écoles à l'intérieur  du pays (lot n° 3)",
+  "nrc": "54579",
+  "dateEffet": "2021-09-14T23:00:00.000Z",
+  "file": {
+   "name": "Liste rouge_CD_ARMP.pdf",
+   "fileLink": "https://marchespublics.gov.mr/api/files/0bbc1b0a-1af1-4133-8671-edbd27197f10_Liste_rouge_CD_ARMP.pdf"
+  },
+  "createdAt": "2024-11-29T15:22:09.242Z",
+  "updatedAt": "2024-11-29T15:26:17.957Z"
+ },
+ {
+  "_id": "6749dcef8bd3f4507e10e357",
+  "entreprise": "EMBE-TP",
+  "nature": "Exclusion temporaire de 48 mois",
+  "reference": "Marché N°1180/131/107/CPMP/DPEF/PNDSE16/FDS/001-PE, relatif aux travaux de construction de 9 écoles à l'intérieur du pays (lot n° 4)",
+  "nrc": "57987/4482",
+  "dateEffet": "2021-09-14T23:00:00.000Z",
+  "file": {
+   "name": "Liste rouge_CD_ARMP.pdf",
+   "fileLink": "https://marchespublics.gov.mr/api/files/f2fd217d-676f-4159-bde0-0fb5e462a615_Liste_rouge_CD_ARMP.pdf"
+  },
+  "createdAt": "2024-11-29T15:25:35.430Z",
+  "updatedAt": "2024-11-29T15:25:35.430Z"
+ },
+ {
+  "_id": "6814982add1ad592389ba817",
+  "entreprise": "EGS",
+  "nature": "Exlusion temporaire de 12 mois ",
+  "natureAr": "Exlusion temporaire de 12 mois ",
+  "reference": "Lot n° 1 du marché relatif au « suivi du programme de construction, d’extension, et de réhabilitation des infrastructures de santé au niveau de cinq (5) moughataa à Nouakchott en trois (03) lots distincts",
+  "nrc": "NIF : 00712372",
+  "dateEffet": "2025-03-21T00:00:00.000Z",
+  "file": {
+   "name": "Listerouge29042025VF.pdf",
+   "fileLink": "https://marchespublics.gov.mr/api/files/95a0785a-649a-4ef5-809a-feac6217832f_Listerouge29042025VF.pdf"
+  },
+  "createdAt": "2025-05-02T10:02:18.340Z",
+  "updatedAt": "2025-05-06T10:50:02.600Z"
+ }
+]

@@ -1,0 +1,428 @@
+{
+ "activities": [
+  {
+   "_id": "6ab2e53255026229d9d51e59",
+   "order": 7,
+   "types": {
+    "_id": "67262f361706a2cca1b9ec66",
+    "titre": "Fournitures",
+    "abreviationCncmp": "F",
+    "abreviation": "F",
+    "createdAt": "2024-11-02T13:55:02.052Z",
+    "updatedAt": "2024-11-27T15:26:57.593Z",
+    "alias": null,
+    "titleAr": null,
+    "updateAt": "2024-11-18T19:56:20.043Z",
+    "titreAr": "التوريدات"
+   },
+   "modeselection": {
+    "_id": "673f1e7d955ddcffd86264d4",
+    "titre": "Appel Offres Ouvert National",
+    "titreAr": "استدراج مناقصة وطنية مفتوحة ",
+    "abreviation": "AOON",
+    "types": [
+     "67262f361706a2cca1b9ec66",
+     "67262f371706a2cca1b9ec68",
+     "67262f381706a2cca1b9ec6b"
+    ],
+    "createdAt": "2024-11-21T11:50:21.274Z",
+    "updatedAt": "2026-05-05T17:21:33.002Z",
+    "typepublicationIds": [
+     "671f6f4bfc4df9be79d65141",
+     "6978da6af036c55bb80812c2",
+     "671f6f4bfc4df9be79d65147",
+     "671f6f4bfc4df9be79d65146",
+     "671f6f4bfc4df9be79d65145",
+     "689cb401d536611b8ca2b5c4",
+     "671f6f4bfc4df9be79d65142",
+     "67657126510fa4c8ca1aacb1",
+     "671f6f4bfc4df9be79d6513c",
+     "67265af83a2f2492ffe271b3",
+     "67608461f84dfdd39cc84841",
+     "674dab5f54cb016349cab5bb",
+     "674da833a139a4d440ea63dd",
+     "671f6f4bfc4df9be79d6513d",
+     "671f6f4bfc4df9be79d65140",
+     "671f6f4bfc4df9be79d6513e"
+    ],
+    "dp": null,
+    "ispaa": null
+   },
+   "sourcefinancementId": [
+    "67a4cce2e97f48cc2ffb8d7f"
+   ],
+   "bailleurIds": [
+    "67a4cce2e97f48cc2ffb8d7f"
+   ],
+   "budget": [],
+   "realisation": "Acquisition de lubrifiants et liquides de refroidissement (Marché à commandes)",
+   "datelancement": "2026-05-21T00:00:00.000Z",
+   "dateattribution": "2026-06-11T00:00:00.000Z",
+   "datedemarrage": "2026-06-22T00:00:00.000Z",
+   "datedeachevement": "2027-05-20T00:00:00.000Z",
+   "montant": {
+    "montantMRU": 0
+   },
+   "ppmId": "6ab2e53255026229d9d51e52",
+   "createdAt": "2026-09-22T20:29:38.416Z",
+   "updatedAt": "2026-09-22T20:29:38.416Z",
+   "avis": [],
+   "ppm": {
+    "_id": "6ab2e53255026229d9d51e52",
+    "annee": 2026,
+    "autoriteIds": [
+     "67426945f1a7d356ef0f979e"
+    ],
+    "datecncmp": "2026-09-21T00:00:00.000Z",
+    "datePUB": "2026-09-21T00:00:00.000Z",
+    "montant": {
+     "montantMRU": 0
+    },
+    "file": {
+     "name": "PPM_STP_2026_4.pdf",
+     "fileLink": "https://marchespublics.gov.mr/api/files/80ac88b4-968f-404b-844f-13a64f9c70e8_PPM_STP_2026_4.pdf"
+    },
+    "fileCncmp": {
+     "name": "PPM_STP_2026_4.pdf",
+     "fileLink": "https://marchespublics.gov.mr/api/files/79b8c7a8-7813-4414-9a28-dff4d7c9c060_PPM_STP_2026_4.pdf"
+    },
+    "reference": "PPM_STP_2026_4",
+    "validated": "Validé",
+    "createdAt": "2026-09-22T20:29:38.396Z",
+    "updatedAt": "2026-09-22T20:29:38.396Z",
+    "nombrerevision": 0,
+    "source": "SIGMAP"
+   },
+   "autorites": [
+    {
+     "_id": "67426945f1a7d356ef0f979e",
+     "logo": {
+      "name": "Unknown.jpeg",
+      "fileLink": "https://marchespublics.gov.mr/api/files/e0b4251a-eca6-46ea-8dc3-4b4079f23b3f_Unknown.jpeg"
+     },
+     "abreviation": "STP",
+     "titlear": "شركة النقل العمومي",
+     "titlefr": "Société de Transport Public",
+     "abreviationCncmp": null,
+     "parentAutorite": "67426945f1a7d356ef0f979e",
+     "createdAt": "2024-11-23T23:46:13.712Z",
+     "updatedAt": "2025-01-23T09:27:40.557Z"
+    }
+   ]
+  },
+  {
+   "_id": "6ab2e53255026229d9d51e53",
+   "order": 1,
+   "types": {
+    "_id": "67262f371706a2cca1b9ec68",
+    "titre": "Travaux",
+    "abreviationCncmp": "T",
+    "abreviation": "T",
+    "createdAt": "2024-11-02T13:55:03.605Z",
+    "updatedAt": "2024-11-27T15:26:46.263Z",
+    "alias": null,
+    "titreAr": "الأشغال",
+    "updateAt": "2024-11-18T19:58:14.517Z",
+    "titleAr": null
+   },
+   "modeselection": {
+    "_id": "673f1e7d955ddcffd86264d4",
+    "titre": "Appel Offres Ouvert National",
+    "titreAr": "استدراج مناقصة وطنية مفتوحة ",
+    "abreviation": "AOON",
+    "types": [
+     "67262f361706a2cca1b9ec66",
+     "67262f371706a2cca1b9ec68",
+     "67262f381706a2cca1b9ec6b"
+    ],
+    "createdAt": "2024-11-21T11:50:21.274Z",
+    "updatedAt": "2026-05-05T17:21:33.002Z",
+    "typepublicationIds": [
+     "671f6f4bfc4df9be79d65141",
+     "6978da6af036c55bb80812c2",
+     "671f6f4bfc4df9be79d65147",
+     "671f6f4bfc4df9be79d65146",
+     "671f6f4bfc4df9be79d65145",
+     "689cb401d536611b8ca2b5c4",
+     "671f6f4bfc4df9be79d65142",
+     "67657126510fa4c8ca1aacb1",
+     "671f6f4bfc4df9be79d6513c",
+     "67265af83a2f2492ffe271b3",
+     "67608461f84dfdd39cc84841",
+     "674dab5f54cb016349cab5bb",
+     "674da833a139a4d440ea63dd",
+     "671f6f4bfc4df9be79d6513d",
+     "671f6f4bfc4df9be79d65140",
+     "671f6f4bfc4df9be79d6513e"
+    ],
+    "dp": null,
+    "ispaa": null
+   },
+   "sourcefinancementId": [
+    "67a4cce2e97f48cc2ffb8d7f"
+   ],
+   "bailleurIds": [
+    "67a4cce2e97f48cc2ffb8d7f"
+   ],
+   "budget": [],
+   "realisation": "Construction et aménagement d'un nouveau centre bus annexe dépôt BHNS à Dar Naim ",
+   "datelancement": "2026-03-20T00:00:00.000Z",
+   "dateattribution": "2026-05-04T00:00:00.000Z",
+   "datedemarrage": "2026-05-19T00:00:00.000Z",
+   "datedeachevement": "2026-10-16T00:00:00.000Z",
+   "montant": {
+    "montantMRU": 0
+   },
+   "ppmId": "6ab2e53255026229d9d51e52",
+   "createdAt": "2026-09-22T20:29:38.416Z",
+   "updatedAt": "2026-09-22T20:29:38.416Z",
+   "avis": [],
+   "ppm": {
+    "_id": "6ab2e53255026229d9d51e52",
+    "annee": 2026,
+    "autoriteIds": [
+     "67426945f1a7d356ef0f979e"
+    ],
+    "datecncmp": "2026-09-21T00:00:00.000Z",
+    "datePUB": "2026-09-21T00:00:00.000Z",
+    "montant": {
+     "montantMRU": 0
+    },
+    "file": {
+     "name": "PPM_STP_2026_4.pdf",
+     "fileLink": "https://marchespublics.gov.mr/api/files/80ac88b4-968f-404b-844f-13a64f9c70e8_PPM_STP_2026_4.pdf"
+    },
+    "fileCncmp": {
+     "name": "PPM_STP_2026_4.pdf",
+     "fileLink": "https://marchespublics.gov.mr/api/files/79b8c7a8-7813-4414-9a28-dff4d7c9c060_PPM_STP_2026_4.pdf"
+    },
+    "reference": "PPM_STP_2026_4",
+    "validated": "Validé",
+    "createdAt": "2026-09-22T20:29:38.396Z",
+    "updatedAt": "2026-09-22T20:29:38.396Z",
+    "nombrerevision": 0,
+    "source": "SIGMAP"
+   },
+   "autorites": [
+    {
+     "_id": "67426945f1a7d356ef0f979e",
+     "logo": {
+      "name": "Unknown.jpeg",
+      "fileLink": "https://marchespublics.gov.mr/api/files/e0b4251a-eca6-46ea-8dc3-4b4079f23b3f_Unknown.jpeg"
+     },
+     "abreviation": "STP",
+     "titlear": "شركة النقل العمومي",
+     "titlefr": "Société de Transport Public",
+     "abreviationCncmp": null,
+     "parentAutorite": "67426945f1a7d356ef0f979e",
+     "createdAt": "2024-11-23T23:46:13.712Z",
+     "updatedAt": "2025-01-23T09:27:40.557Z"
+    }
+   ]
+  },
+  {
+   "_id": "6ab2e53355026229d9d51e65",
+   "order": 10,
+   "types": {
+    "_id": "67262f381706a2cca1b9ec6b",
+    "titre": "Services Courants",
+    "abreviationCncmp": "S",
+    "abreviation": "S",
+    "createdAt": "2024-11-02T13:55:04.631Z",
+    "updatedAt": "2024-11-27T15:25:31.207Z",
+    "alias": null,
+    "titleAr": null,
+    "updateAt": "2024-11-18T21:57:15.723Z",
+    "titreAr": "خدمات الصيانة"
+   },
+   "modeselection": {
+    "_id": "673f2fb1955ddcffd8626514",
+    "titre": "Entente Directe",
+    "titreAr": "التفاهم المباشر",
+    "abreviation": "ED",
+    "types": [
+     "67262a92b02a533e9ae0daaa",
+     "67262f361706a2cca1b9ec66",
+     "67262f371706a2cca1b9ec68",
+     "67262f381706a2cca1b9ec6b"
+    ],
+    "createdAt": "2024-11-21T13:03:45.200Z",
+    "updatedAt": "2024-12-02T12:50:20.579Z",
+    "typepublicationIds": [
+     "671f6f4bfc4df9be79d65146",
+     "671f6f4bfc4df9be79d65147",
+     "671f6f4bfc4df9be79d65140",
+     "671f6f4bfc4df9be79d65142",
+     "671f6f4bfc4df9be79d65143",
+     "671f6f4bfc4df9be79d6513d",
+     "671f6f4bfc4df9be79d65141",
+     "671f6f4bfc4df9be79d65145",
+     "674da833a139a4d440ea63dd",
+     "671f6f4bfc4df9be79d65144",
+     "674dab5f54cb016349cab5bb"
+    ]
+   },
+   "sourcefinancementId": [
+    "67a4cce2e97f48cc2ffb8d7f"
+   ],
+   "bailleurIds": [
+    "67a4cce2e97f48cc2ffb8d7f"
+   ],
+   "budget": [],
+   "realisation": "Achat carburant avion sur le site de Abidjan-Cote d’Ivoire",
+   "datelancement": "2026-06-05T00:00:00.000Z",
+   "dateattribution": "2026-06-12T00:00:00.000Z",
+   "datedemarrage": "2026-06-17T00:00:00.000Z",
+   "datedeachevement": "2027-06-18T00:00:00.000Z",
+   "montant": {
+    "montantMRU": 0
+   },
+   "ppmId": "6ab2e53255026229d9d51e5b",
+   "createdAt": "2026-09-22T20:29:39.016Z",
+   "updatedAt": "2026-09-22T20:29:39.016Z",
+   "avis": [],
+   "ppm": {
+    "_id": "6ab2e53255026229d9d51e5b",
+    "annee": 2026,
+    "autoriteIds": [
+     "67426aa9f1a7d356ef0f97a5"
+    ],
+    "datecncmp": "2026-09-21T00:00:00.000Z",
+    "datePUB": "2026-09-21T00:00:00.000Z",
+    "montant": {
+     "montantMRU": 0
+    },
+    "file": {
+     "name": "PPM_الموريتانية للطيران_2026_9.pdf",
+     "fileLink": "https://marchespublics.gov.mr/api/files/edd990e0-b5de-4e48-8c50-2f888034010e_PPM_almwrytanyh_lltyran_2026_9.pdf"
+    },
+    "fileCncmp": {
+     "name": "PPM_الموريتانية للطيران_2026_9.pdf",
+     "fileLink": "https://marchespublics.gov.mr/api/files/1d058376-05ab-4e18-8a90-3124b4b08077_PPM_almwrytanyh_lltyran_2026_9.pdf"
+    },
+    "reference": "PPM_الموريتانية للطيران_2026_9",
+    "validated": "Validé",
+    "createdAt": "2026-09-22T20:29:38.996Z",
+    "updatedAt": "2026-09-22T20:29:38.996Z",
+    "nombrerevision": 0,
+    "source": "SIGMAP"
+   },
+   "autorites": [
+    {
+     "_id": "67426aa9f1a7d356ef0f97a5",
+     "logo": {
+      "name": "Unknown.jpeg",
+      "fileLink": "https://marchespublics.gov.mr/api/files/0b427faf-f1eb-4aff-96d6-609579269397_Unknown.jpeg"
+     },
+     "abreviation": "MAIL",
+     "titlear": "الموريتانية للطيران",
+     "titlefr": "Mauritania Airlines",
+     "abreviationCncmp": null,
+     "parentAutorite": "67426aa9f1a7d356ef0f97a5",
+     "createdAt": "2024-11-23T23:52:09.905Z",
+     "updatedAt": "2024-11-25T14:32:16.716Z"
+    }
+   ]
+  },
+  {
+   "_id": "6ab051f455026229d9d51692",
+   "order": 50,
+   "types": {
+    "_id": "67262a92b02a533e9ae0daaa",
+    "titre": "Prestations intellectuelles",
+    "abreviationCncmp": "PI",
+    "abreviation": "PI",
+    "createdAt": "2024-11-02T13:35:14.737Z",
+    "updatedAt": "2024-12-16T21:22:16.635Z",
+    "alias": null,
+    "titleAr": null,
+    "updateAt": "2024-11-18T19:56:04.606Z",
+    "titreAr": "الخدمات ذات الطابع الفكري "
+   },
+   "modeselection": {
+    "_id": "675a20b954e62b460be596dc",
+    "titre": "Sélection Fondée sur les Qualifications des Consultants",
+    "titreAr": "الاختيار على أساس كفاءة الاستشاريين",
+    "abreviation": "SFQC",
+    "types": [
+     "67262a92b02a533e9ae0daaa"
+    ],
+    "createdAt": "2024-12-11T23:31:05.337Z",
+    "updatedAt": "2025-12-18T21:11:22.506Z",
+    "ispaa": true,
+    "typepublicationIds": [
+     "671f6f4bfc4df9be79d65142",
+     "672d125892b729a07c058e38",
+     "671f6f4bfc4df9be79d6513c",
+     "67608461f84dfdd39cc84841",
+     "6745dd22e9470f69e29f3c6b",
+     "671f6f4bfc4df9be79d65145",
+     "671f6f4bfc4df9be79d6513f",
+     "671f6f4bfc4df9be79d6513d",
+     "671f6f4bfc4df9be79d65140",
+     "672d0e7d36f763b5d7662d1d",
+     "671f6f4bfc4df9be79d6513e",
+     "671f6f4bfc4df9be79d65147"
+    ],
+    "dp": null
+   },
+   "sourcefinancementId": [],
+   "bailleurIds": [],
+   "budget": [],
+   "realisation": "ONG pour la sensibilisation des questions de genre",
+   "datelancement": "2026-08-31T00:00:00.000Z",
+   "dateattribution": "2026-09-21T00:00:00.000Z",
+   "datedemarrage": "2026-10-26T00:00:00.000Z",
+   "datedeachevement": "2027-03-29T00:00:00.000Z",
+   "montant": {
+    "montantMRU": 0
+   },
+   "ppmId": "6ab051f455026229d9d51660",
+   "createdAt": "2026-09-20T21:36:52.558Z",
+   "updatedAt": "2026-09-20T21:36:52.558Z",
+   "avis": [],
+   "ppm": {
+    "_id": "6ab051f455026229d9d51660",
+    "annee": 2026,
+    "autoriteIds": [
+     "672606a72f92b080e947b12f"
+    ],
+    "datecncmp": "2026-09-20T00:00:00.000Z",
+    "datePUB": "2026-09-20T00:00:00.000Z",
+    "montant": {
+     "montantMRU": 0
+    },
+    "file": {
+     "name": "PPM_Société Mauritanienne d'Electricité_2026_8.pdf",
+     "fileLink": "https://marchespublics.gov.mr/api/files/5e978f9e-7e0f-494e-ac24-73018f6388d2_PPM_Societe_Mauritanienne_d'Electricite_2026_8.pdf"
+    },
+    "fileCncmp": {
+     "name": "PPM_Société Mauritanienne d'Electricité_2026_8.pdf",
+     "fileLink": "https://marchespublics.gov.mr/api/files/f5e789fa-a43c-4a25-ba3d-86a354a6b1b5_PPM_Societe_Mauritanienne_d'Electricite_2026_8.pdf"
+    },
+    "reference": "PPM_Société Mauritanienne d'Electricité_2026_8",
+    "validated": "Validé",
+    "createdAt": "2026-09-20T21:36:52.537Z",
+    "updatedAt": "2026-09-20T21:36:52.537Z",
+    "nombrerevision": 0,
+    "source": "SIGMAP"
+   },
+   "autorites": [
+    {
+     "_id": "672606a72f92b080e947b12f",
+     "abreviationCncmp": "SOMELEC",
+     "abreviation": "SOMELEC",
+     "titlefr": "Société Mauritanienne d'Electricité",
+     "titlear": "الشركة الموريتانية للكهرباء",
+     "logo": {
+      "name": "Unknown.jpeg",
+      "fileLink": "https://marchespublics.gov.mr/api/files/25266b95-5c5a-40aa-974e-32d71c362d7c_Unknown.jpeg"
+     },
+     "parentAutorite": "672606a72f92b080e947b12f",
+     "updatedAt": "2024-11-27T18:43:18.708Z"
+    }
+   ]
+  }
+ ],
+ "totalCount": 4422
+}

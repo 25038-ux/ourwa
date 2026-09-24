@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useScroll, useMotionValueEvent } from "motion/react";
 import {
   Bell, BellRing, Briefcase, Building2, ChevronLeft, Ellipsis, House, ListTodo, Radar, Search, Settings, Sparkles, Users,
-  Radio,
+  Radio, TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -30,6 +30,7 @@ export function Sidebar({ me, orgId, onSearch }: { me: Me; orgId: string | null;
     ["/opportunities", t("opportunities"), <Radar key="r" size={18} />],
     ["/assistant", t("assistant"), <Sparkles key="s" size={18} />],
     ["/bids", t("bids"), <Briefcase key="b" size={18} />],
+    ["/market", t("market"), <TrendingUp key="mk" size={18} />],
     ["/tasks", t("tasks"), <ListTodo key="t" size={18} />],
     ["/company", t("company"), <Building2 key="c" size={18} />],
   ];
@@ -118,7 +119,7 @@ export function TopBar({ onSearch }: { onSearch: () => void }) {
 const TITLES: Record<string, string> = {
   "/": "command", "/opportunities": "opportunities", "/assistant": "assistant", "/bids": "bids", "/tasks": "tasks",
   "/company": "company", "/notifications": "notifications", "/team": "team", "/sources": "sources",
-  "/settings": "settings", "/more": "more",
+  "/settings": "settings", "/more": "more", "/market": "market",
 };
 
 export function MobileTop() {
@@ -171,7 +172,7 @@ export function TabBar() {
         </div>
       ) : (
         <Link key={href} href={href} className="tab" data-active={isActive(path, href) || (href === "/more" &&
-          ["/company", "/tasks", "/team", "/sources", "/settings", "/notifications", "/more"].some((p) => isActive(path, p)))}
+          ["/company", "/tasks", "/team", "/sources", "/settings", "/notifications", "/more", "/market"].some((p) => isActive(path, p)))}
           onClick={() => haptic(6)}>
           {(isActive(path, href)) && <motion.span layoutId="tab-dot" className="tab-dot" transition={spring} />}
           <motion.span whileTap={{ scale: 0.85 }} style={{ display: "grid" }}>{icon}</motion.span>

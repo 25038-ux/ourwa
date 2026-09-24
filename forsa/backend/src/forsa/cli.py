@@ -43,6 +43,30 @@ def cmd_sources_sync(_: argparse.Namespace) -> None:
             print(f"{r.key:32} {r.status:22} {r.connector}")
 
 
+def cmd_reparse(args: argparse.Namespace) -> None:
+    """Re-apply the current connector parser to stored snapshots (after a parser fix); then run follow-up jobs."""
+    from sqlalchemy import select as _select
+
+    from forsa.db.models import Source
+    from forsa.db.session import system_session
+    from forsa.ingestion.connectors.factory import build_connector
+    from forsa.ingestion.pipeline import IngestionPipeline
+    from forsa.jobs.worker import run_until_idle
+    from forsa.runtime import get_runtime
+
+    rt = get_runtime()
+    rec = rt.registry[args.source]
+    with system_session() as s:
+        source = s.scalar(_select(Source).where(Source.key == rec.id))
+        if source is None:
+            raise SystemExit(f"source {rec.id} has never been ingested")
+        stats = IngestionPipeline(s, rt.store).reparse(
+            source, build_connector(rec), synthetic=rec.access_type == "synthetic_fixture"
+        )
+    print(json.dumps(stats, indent=2))
+    print(f"processed {run_until_idle()} follow-up job(s)")
+
+
 def cmd_ingest(args: argparse.Namespace) -> None:
     from forsa.db.session import system_session
     from forsa.jobs.handlers import ingest_source
@@ -259,6 +283,9 @@ def main(argv: list[str] | None = None) -> None:
     ing.add_argument("source")
     ing.add_argument("--no-process", action="store_true", help="do not run follow-up jobs inline")
     ing.set_defaults(fn=cmd_ingest)
+    rp = sub.add_parser("reparse", help="re-apply the current parser to stored snapshots (no network)")
+    rp.add_argument("source")
+    rp.set_defaults(fn=cmd_reparse)
     w = sub.add_parser("worker", help="run the background worker")
     w.add_argument("--once", action="store_true", help="drain the queue and exit")
     w.set_defaults(fn=cmd_worker)

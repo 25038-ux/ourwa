@@ -28,6 +28,7 @@ from forsa.identity.rbac import TenantContext
 from forsa.kernel.clock import utcnow
 from forsa.kernel.errors import NotFound
 from forsa.runtime import Runtime
+from forsa.services.matching import still_open
 from forsa.services.profiles import company_profile, opportunity_profile
 
 router = APIRouter(prefix="/opportunities", tags=["opportunities"])
@@ -111,10 +112,11 @@ def list_opportunities(
                 Buyer.name.ilike(like),
             )
         )
+    if kind != "AWARD":
+        stmt = stmt.where(Opportunity.kind != "AWARD")  # awards live in Market intelligence
     if not include_closed:
         stmt = stmt.where(
-            Opportunity.status.in_(["PUBLISHED", "CLARIFICATION", "EXTENDED", "PLANNED"]),
-            or_(Opportunity.deadline_at.is_(None), Opportunity.deadline_at > utcnow()),
+            Opportunity.status.in_(["PUBLISHED", "CLARIFICATION", "EXTENDED", "PLANNED"]), still_open(utcnow())
         )
     for col, val in (
         (Opportunity.status, status),
@@ -137,6 +139,33 @@ def list_opportunities(
     }[sort]
     rows = db.execute(stmt.order_by(*order).limit(limit).offset(offset)).all()
     return {"total": total, "items": [_summary(o, m, b, s, lang) for o, m, b, s in rows]}
+
+
+def _deadline_evidence(db: Session, o: Opportunity) -> dict | None:
+    """When the deadline was read from the notice document (not a structured field), show the quote."""
+    if o.deadline_at is None:
+        return None
+    row = db.execute(
+        select(Assertion, Evidence)
+        .join(Evidence, Evidence.id == Assertion.evidence_id)
+        .where(
+            Assertion.subject_type == "opportunity",
+            Assertion.subject_id == o.id,
+            Assertion.predicate == "deadline_at",
+            Assertion.epistemic == "DERIVED",
+        )
+        .order_by(Assertion.created_at.desc())
+    ).first()
+    if row is None:
+        return None
+    a, ev = row
+    return {
+        "quote": ev.quote,
+        "page": ev.page,
+        "method": ev.extraction_method,
+        "confidence": a.confidence,
+        "time_stated": (a.value or {}).get("time_stated", True),
+    }
 
 
 @router.get("/{opportunity_id}")
@@ -172,7 +201,15 @@ def get_opportunity(
             "consortium_allowed": o.consortium_allowed,
             "version": o.current_version,
             "buyer_id": str(o.buyer_id) if o.buyer_id else None,
-            "source_detail": source and {"key": source.key, "name": source.name, "access_type": source.access_type},
+            "source_detail": source
+            and {
+                "key": source.key,
+                "name": source.name,
+                "access_type": source.access_type,
+                "attribution": (source.registry_entry or {}).get("attribution"),
+            },
+            "attributes": o.attributes or {},
+            "deadline_evidence": _deadline_evidence(db, o),
             "documents": [
                 {
                     "id": str(d.id),

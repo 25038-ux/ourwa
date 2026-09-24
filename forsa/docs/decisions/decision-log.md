@@ -4,6 +4,10 @@ Newest first. Significant decisions link to an ADR.
 
 | Date | Decision | Ref |
 |---|---|---|
+| 2026-09-24 | Real sources activated: ARMP portal JSON API (notices + procurement plans + red list), World Bank Search API (CC BY 4.0), UNGM official API (credential-gated, AUTH_REQUIRED until keys). Field allow-lists; no personal data stored. | ADR-015 |
+| 2026-09-24 | OCR (Tesseract fra+ara, single-threaded pages in parallel) + deadline extraction from notice documents as DERIVED assertions with quotes; undated notices >90 days presumed closed. | ADR-015 |
+| 2026-09-24 | Awards feed Market intelligence (winners, buyers, pipeline, red list), never matching. Amounts per currency, no FX assumptions. | ADR-015 |
+| 2026-09-24 | Android = Trusted Web Activity + WebView fallback, server chosen at first launch; production = single-server Compose with Caddy, non-superuser DB role enforced at startup. | ADR-016 |
 | 2026-09-24 | AI provider catalog (frontier, Chinese, free-tier, local, Jev) with tiers fast/reasoning/decision and per-provider data-sensitivity ceilings; keys env-only; model ids pinned via discovery, not guessed. | ADR-011 |
 | 2026-09-24 | Instant notifications via Postgres LISTEN/NOTIFY → SSE (`/api/v1/live`) + Web Push outbox job; no new infrastructure. API `Cache-Control` is now `no-store, no-transform` so proxies never buffer streams. | ADR-012 |
 | 2026-09-24 | Assistant answers only through tenant-scoped tools, proposes (never executes) actions, falls back to a deterministic FR/EN/AR planner; LLM answers with ungrounded numbers are discarded. Voice via the browser Web Speech API. | ADR-013 |

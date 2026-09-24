@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_title">Welcome to FORSA</string>
+    <string name="setup_subtitle">Evidence-first commercial intelligence. Enter your organisation\'s FORSA server address.</string>
+    <string name="setup_hint">https://forsa.your-company.com</string>
+    <string name="setup_continue">Continue</string>
+    <string name="setup_checking">Checking…</string>
+    <string name="setup_invalid">Invalid address. Use https://…</string>
+    <string name="setup_unreachable">Server unreachable, or not a FORSA server.</string>
+    <string name="setup_footer">Your data stays on your organisation\'s server.</string>
+    <string name="offline_title">Offline</string>
+    <string name="offline_body">Can\'t reach FORSA. Check your connection.</string>
+    <string name="retry">Retry</string>
+    <string name="change_server">Change server</string>
+    <string name="download_started">Download started</string>
+    <string name="mic_denied">Microphone denied: voice dictation is off.</string>
+</resources>

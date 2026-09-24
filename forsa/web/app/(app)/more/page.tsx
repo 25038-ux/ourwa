@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Bell, Building2, ChevronRight, Languages, ListTodo, LogOut, Moon, Radio, Settings, Sparkles, Sun, Users } from "lucide-react";
+import { Bell, Building2, ChevronRight, Languages, ListTodo, LogOut, Moon, Radio, Settings, Sparkles, Sun, TrendingUp, Users } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Segmented } from "@/components/ui";
@@ -54,6 +54,7 @@ export default function More() {
         <Tile href="/company" icon={<Building2 size={20} />} label={t("company")} tint="var(--accent)" />
         <Tile href="/notifications" icon={<Bell size={20} />} label={t("notifications")} tint="var(--nobid)" badge={unread} />
         <Tile href="/team" icon={<Users size={20} />} label={t("team")} tint="var(--gold)" />
+        <Tile href="/market" icon={<TrendingUp size={20} />} label={t("market")} tint="var(--gold)" />
         <Tile href="/assistant" icon={<Sparkles size={20} />} label={t("assistant")} tint="var(--accent-2)" />
         <Tile href="/sources" icon={<Radio size={20} />} label={t("sources")} tint="var(--cond)" />
       </div>

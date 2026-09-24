@@ -32,6 +32,10 @@ class CircuitOpen(RuntimeError):
     pass
 
 
+class RobotsUnavailable(RuntimeError):
+    """robots.txt could not be fetched (network/5xx): we conservatively do not crawl, but it is not a disallow."""
+
+
 @dataclass
 class HttpPolicy:
     allowed_hosts: frozenset[str]
@@ -50,6 +54,7 @@ class _HostState:
     last_request: float = 0.0
     consecutive_failures: int = 0
     robots: urllib.robotparser.RobotFileParser | None = None
+    robots_error: str | None = None
 
 
 @dataclass
@@ -115,24 +120,51 @@ class PoliteHttpClient:
                 resp = self._client.get(f"https://{host}/robots.txt")
                 if resp.status_code in (401, 403) or resp.status_code >= 500:
                     parser.disallow_all = True  # type: ignore[attr-defined]  # RFC 9309: unreachable (5xx) ⇒ assume complete disallow
+                    if resp.status_code >= 500:
+                        state.robots_error = f"robots.txt returned HTTP {resp.status_code}"
                 elif resp.status_code >= 400:
                     parser.allow_all = True  # type: ignore[attr-defined]  # RFC 9309: unavailable (4xx) ⇒ no restrictions
                 else:
                     parser.parse(resp.text.splitlines())
-            except httpx.HTTPError:
+            except httpx.HTTPError as exc:
                 parser.disallow_all = True  # type: ignore[attr-defined]  # network failure: be conservative
+                state.robots_error = f"robots.txt unreachable ({type(exc).__name__}) — check outbound network access"
             state.robots = parser
         agent = str(self._client.headers.get("User-Agent", "*"))
         return state.robots.can_fetch(agent, url)
 
-    def get(self, url: str, *, etag: str | None = None, last_modified: str | None = None) -> FetchResult:
+    def post_form(self, url: str, data: dict[str, str]) -> FetchResult:
+        """Form POST for OAuth token endpoints of official APIs (same allowlist, robots and rate limits; no retry)."""
+        host = self._check_url(url)
+        state = self._hosts.setdefault(host, _HostState())
+        if not self._robots_allows(host, url, state):
+            if state.robots_error:
+                raise RobotsUnavailable(f"{state.robots_error}; not crawling {host}")
+            raise RobotsDisallowed(f"robots.txt disallows {url}")
+        wait = state.last_request + self.policy.min_interval_s - time.monotonic()
+        if wait > 0:
+            self._sleep(wait)
+        state.last_request = time.monotonic()
+        resp = self._client.post(url, data=data, headers={"Accept": "application/json"})
+        return FetchResult(url, resp.status_code, resp.content, resp.headers.get("content-type"), None, None)
+
+    def get(
+        self,
+        url: str,
+        *,
+        etag: str | None = None,
+        last_modified: str | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> FetchResult:
         host = self._check_url(url)
         state = self._hosts.setdefault(host, _HostState())
         if state.consecutive_failures >= self.policy.breaker_threshold:
             raise CircuitOpen(f"circuit open for {host}")
         if not self._robots_allows(host, url, state):
+            if state.robots_error:
+                raise RobotsUnavailable(f"{state.robots_error}; not crawling {host}")
             raise RobotsDisallowed(f"robots.txt disallows {url}")
-        headers = {}
+        headers = dict(headers or {})
         if etag:
             headers["If-None-Match"] = etag
         if last_modified:

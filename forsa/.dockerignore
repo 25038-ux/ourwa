@@ -1,0 +1,15 @@
+# Keep images reproducible and small: dependencies are installed inside the image, never copied from the host.
+**/.venv
+**/node_modules
+**/.next
+**/__pycache__
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+var/
+android/
+infra/deployment/.env
+infra/deployment/backups/
+**/.env
+**/*.jks
+.git

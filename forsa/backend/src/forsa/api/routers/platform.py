@@ -42,6 +42,24 @@ def taxonomy(
     }
 
 
+@router.get("/meta/assetlinks")
+def assetlinks(rt: Runtime = Depends(runtime)) -> list:
+    """Digital Asset Links for the Android app (served at /.well-known/assetlinks.json by the web proxy)."""
+    fingerprints = [f.strip().upper() for f in rt.settings.android_sha256 if f.strip()]
+    if not fingerprints:
+        return []
+    return [
+        {
+            "relation": ["delegate_permission/common.handle_all_urls"],
+            "target": {
+                "namespace": "android_app",
+                "package_name": rt.settings.android_package,
+                "sha256_cert_fingerprints": fingerprints,
+            },
+        }
+    ]
+
+
 @router.get("/meta/countries")
 def countries() -> dict:
     return {"items": [get_pack(code) for code in available_packs()]}

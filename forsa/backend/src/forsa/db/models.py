@@ -170,6 +170,27 @@ class Buyer(Base, Timestamps):
     country: Mapped[str | None] = mapped_column(String(2))
 
 
+class Debarment(Base):
+    """A company excluded from public procurement by an authority (e.g. the ARMP "liste rouge"). Public data."""
+
+    __tablename__ = "debarments"
+    __table_args__ = (UniqueConstraint("source_key", "external_ref"),)
+    id: Mapped[uuid.UUID] = uuid_pk()
+    source_key: Mapped[str] = mapped_column(String(80))
+    external_ref: Mapped[str] = mapped_column(String(200))
+    entity_name: Mapped[str] = mapped_column(String(300))
+    name_key: Mapped[str] = mapped_column(String(300), index=True)  # normalised for matching
+    registry_number: Mapped[str | None] = mapped_column(String(80))
+    country: Mapped[str | None] = mapped_column(String(2))
+    nature: Mapped[str | None] = mapped_column(Text)
+    reference: Mapped[str | None] = mapped_column(Text)
+    effective_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    document_url: Mapped[str | None] = mapped_column(String(1000))
+    content_hash: Mapped[str] = mapped_column(String(64))
+    first_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class Opportunity(Base, Timestamps):
     """Projection of the latest OpportunityVersion. Core entity — not "Tender" (spec §5, Phase 15)."""
 
@@ -177,6 +198,7 @@ class Opportunity(Base, Timestamps):
     __table_args__ = (
         UniqueConstraint("source_id", "external_ref"),
         Index("ix_opportunities_status_deadline", "status", "deadline_at"),
+        Index("ix_opportunities_kind_published", "kind", "published_at"),
         Index("ix_opportunities_title_trgm", "title", postgresql_using="gin", postgresql_ops={"title": "gin_trgm_ops"}),
     )
     id: Mapped[uuid.UUID] = uuid_pk()
@@ -199,6 +221,7 @@ class Opportunity(Base, Timestamps):
     language: Mapped[str | None] = mapped_column(String(5))
     url: Mapped[str | None] = mapped_column(String(1000))
     consortium_allowed: Mapped[bool | None] = mapped_column(Boolean)
+    attributes: Mapped[dict[str, Any]] = mapped_column(default=dict, server_default="{}")  # source-specific extras
     concepts: Mapped[list[Any]] = mapped_column(default=list)  # [{concept_id, weight, quote, locator}]
     current_version: Mapped[int] = mapped_column(Integer, default=1)
     content_hash: Mapped[str] = mapped_column(String(64))

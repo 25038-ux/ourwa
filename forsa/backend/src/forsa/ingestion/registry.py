@@ -34,6 +34,17 @@ class SourceRecord:
     def runnable(self) -> bool:
         return self.status == "active"
 
+    @property
+    def missing_env(self) -> list[str]:
+        """Credentials the source needs (``requires_env`` in the registry) that are not set in the environment."""
+        return missing_env(self.raw)
+
+
+def missing_env(entry: dict[str, Any] | None) -> list[str]:
+    import os
+
+    return [name for name in (entry or {}).get("requires_env", []) or [] if not os.environ.get(name)]
+
 
 def load_registry(path: Path) -> dict[str, SourceRecord]:
     data = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}

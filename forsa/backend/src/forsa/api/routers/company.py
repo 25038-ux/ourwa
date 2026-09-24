@@ -4,6 +4,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -19,6 +20,7 @@ from forsa.db.models import (
     DocumentVersion,
     Evidence,
 )
+from forsa.documents import ocr
 from forsa.documents.extract import MAX_BYTES, UnsupportedDocument, extract
 from forsa.identity.rbac import TenantContext
 from forsa.kernel.errors import ForsaError
@@ -185,8 +187,13 @@ async def upload_document(
     content = await file.read(MAX_BYTES + 1)
     if len(content) > MAX_BYTES:
         raise ForsaError("file too large")
+    ocr_fn = None
+    if rt.settings.ocr_enabled and ocr.available():  # scanned certificates (CNSS, quitus…) are the norm
+        cfg = ocr.OcrConfig(langs=rt.settings.ocr_langs, max_pages=10)
+        ocr_fn = lambda b: ocr.ocr_pdf(b, cfg)  # noqa: E731
     try:
-        doc = extract(content, file.content_type)  # validates type by magic bytes
+        # Magic-byte validation + extraction (+ OCR) off the event loop.
+        doc = await run_in_threadpool(extract, content, file.content_type, ocr_fn)
     except UnsupportedDocument as exc:
         raise ForsaError(str(exc)) from exc
     key, digest = rt.store.put(content, f"documents/org/{ctx.org_id}")
@@ -209,6 +216,7 @@ async def upload_document(
         "evidence_id": str(evidence.id),
         "pages": len(doc.pages),
         "needs_ocr": doc.needs_ocr,
+        "ocr_applied": doc.ocr_applied,
         "risk_flags": flags,
         "scan_status": "NOT_SCANNED",
     }

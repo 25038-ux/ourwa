@@ -53,6 +53,10 @@ def run_until_idle(max_jobs: int = 10_000) -> int:
 
 
 def run_forever(poll_s: float = 2.0, tick_s: float = 60.0) -> None:
+    from forsa.db.session import check_role_safety
+    from forsa.settings import get_settings
+
+    check_role_safety(get_settings().env)
     worker_id = f"{socket.gethostname()}-{os.getpid()}"
     stopping = False
 

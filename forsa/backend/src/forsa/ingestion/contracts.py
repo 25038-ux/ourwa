@@ -78,6 +78,9 @@ class NormalizedOpportunity:
     language: str | None = None
     url: str | None = None
     consortium_allowed: bool | None = None
+    # Source-specific structure that has no dedicated column (e.g. award winners, planned launch dates).
+    # Tracked and versioned like every other field; keep it JSON-serialisable and free of personal data.
+    attributes: dict[str, Any] = field(default_factory=dict)
     documents: list[DocumentRef] = field(default_factory=list)
     evidence: dict[str, FieldEvidence] = field(default_factory=dict)
 
@@ -99,6 +102,7 @@ class NormalizedOpportunity:
         "language",
         "url",
         "consortium_allowed",
+        "attributes",
     )
 
     def payload(self) -> dict[str, Any]:

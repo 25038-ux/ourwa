@@ -42,8 +42,16 @@ class Settings(BaseSettings):
 
     features: Annotated[set[str], NoDecode] = set()  # e.g. FORSA_FEATURES=ai_explanations,ai_triage
     login_rate_limit_per_minute: int = 10
+    # Android app (Trusted Web Activity): package + SHA-256 signing-certificate fingerprints (comma list), served at
+    # /.well-known/assetlinks.json so Chrome opens FORSA full-screen inside the app.
+    android_package: str = "mr.forsa.app"
+    android_sha256: Annotated[list[str], NoDecode] = []
+    # OCR for scanned PDFs (needs `tesseract` + `pdftoppm` on the PATH; the Docker image installs them).
+    ocr_enabled: bool = True
+    ocr_langs: str = "fra+ara"
+    ocr_max_pages: int = 40
 
-    @field_validator("ai_providers", "features", mode="before")
+    @field_validator("ai_providers", "features", "android_sha256", mode="before")
     @classmethod
     def _split_list(cls, v: Any) -> Any:
         """Accept `a,b,c` (what people type in env files) as well as a JSON array."""

@@ -4,17 +4,19 @@ services:
   db:
     image: pgvector/pgvector:pg16
     environment:
-      POSTGRES_USER: forsa
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-forsa}
-      POSTGRES_DB: forsa
+      POSTGRES_USER: postgres          # admin only; the app uses the non-superuser role "forsa" (initdb script)
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:-postgres}
+      FORSA_DB_PASSWORD: ${FORSA_DB_PASSWORD:-forsa}
     ports: ["5432:5432"]
-    volumes: [pgdata:/var/lib/postgresql/data]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/deployment/initdb:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U forsa"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d forsa"]
       interval: 5s
       retries: 10
-    # NB: the app connects as the table owner; RLS is FORCEd so the owner is still subject to policies.
-    # Never connect the app as a superuser — superusers bypass row-level security.
+    # The app connects as the table owner "forsa" (NOSUPERUSER, NOBYPASSRLS); RLS is FORCEd so the owner is still
+    # subject to policies. Superusers bypass RLS — the API refuses to start in prod if its role is one.
 
   migrate:
     build: {context: ., dockerfile: backend/Dockerfile}
@@ -37,9 +39,7 @@ services:
     depends_on: {migrate: {condition: service_completed_successfully}}
 
   web:
-    build: {context: ., dockerfile: web/Dockerfile}
-    environment:
-      FORSA_API_URL: http://api:8000
+    build: {context: ., dockerfile: web/Dockerfile, args: {FORSA_API_URL: "http://api:8000"}}
     ports: ["3000:3000"]
     depends_on: [api]
 

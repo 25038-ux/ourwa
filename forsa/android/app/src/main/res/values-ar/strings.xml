@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_title">مرحبًا بكم في فرصة</string>
+    <string name="setup_subtitle">ذكاء تجاري مبني على الأدلة. أدخل عنوان خادم فرصة الخاص بمؤسستك.</string>
+    <string name="setup_hint">https://forsa.example.mr</string>
+    <string name="setup_continue">متابعة</string>
+    <string name="setup_checking">جارٍ التحقق…</string>
+    <string name="setup_invalid">عنوان غير صالح. استخدم https://…</string>
+    <string name="setup_unreachable">تعذر الوصول إلى الخادم أو أنه ليس خادم فرصة.</string>
+    <string name="setup_footer">تبقى بياناتك على خادم مؤسستك.</string>
+    <string name="offline_title">غير متصل</string>
+    <string name="offline_body">تعذر الوصول إلى فرصة. تحقق من اتصالك.</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="change_server">تغيير الخادم</string>
+    <string name="download_started">بدأ التنزيل</string>
+    <string name="mic_denied">تم رفض الميكروفون: الإملاء الصوتي معطل.</string>
+</resources>

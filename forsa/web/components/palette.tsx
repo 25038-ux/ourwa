@@ -37,7 +37,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
     return () => clearTimeout(h);
   }, [q, open]);
 
-  const pages: [string, string][] = [["/", t("command")], ["/opportunities", t("opportunities")], ["/bids", t("bids")],
+  const pages: [string, string][] = [["/", t("command")], ["/opportunities", t("opportunities")], ["/market", t("market")], ["/bids", t("bids")],
     ["/tasks", t("tasks")], ["/company", t("company")], ["/notifications", t("notifications")], ["/team", t("team")],
     ["/sources", t("sources")], ["/settings", t("settings")]];
   const options: Opt[] = useMemo(() => {

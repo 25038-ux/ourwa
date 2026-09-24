@@ -7,7 +7,11 @@ const nextConfig = {
   // Same-origin proxy: the browser only talks to the web origin, so the session cookie stays
   // first-party (SameSite=Lax, httpOnly) and CORS is not needed in production.
   async rewrites() {
-    return [{ source: "/api/:path*", destination: `${API}/api/:path*` }];
+    return [
+      { source: "/api/:path*", destination: `${API}/api/:path*` },
+      // Android Trusted Web Activity verification (fingerprints come from FORSA_ANDROID_SHA256 on the API).
+      { source: "/.well-known/assetlinks.json", destination: `${API}/api/v1/meta/assetlinks` },
+    ];
   },
   async headers() {
     return [

@@ -1,10 +1,11 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Briefcase, CalendarClock, ChevronRight } from "lucide-react";
+import { Briefcase, CalendarClock, CalendarPlus, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Card, DemoBadge, Empty, ErrorBox, FitRing, PageHead, RecChip, Segmented, SkeletonList } from "@/components/ui";
+import { safeGet } from "@/lib/api";
 import { date } from "@/lib/format";
 import { BID_ACTIVE, BID_STATUS } from "@/lib/labels";
 import { useI18n } from "@/lib/i18n";
@@ -28,8 +29,12 @@ export default function BidsPage() {
     <div className="stack">
       <PageHead title={t("bids")} sub={lang === "fr" ? "Chaque offre : décision, conformité, approbation humaine, résultat."
         : "Every bid: decision, compliance, human approval, outcome."}
-        actions={<Segmented id="bids-tab" value={tab} onChange={setTab} options={[
-          { value: "active", label: lang === "fr" ? "En cours" : "Active" }, { value: "closed", label: lang === "fr" ? "Clôturées" : "Closed" }]} />} />
+        actions={<>
+          <a className="btn" href={`/api/v1/calendar.ics?org=${safeGet("forsa.org") ?? ""}`}><CalendarPlus size={16} />
+            <span className="hide-m">{t("exportCalendar")}</span></a>
+          <Segmented id="bids-tab" value={tab} onChange={setTab} options={[
+            { value: "active", label: lang === "fr" ? "En cours" : "Active" }, { value: "closed", label: lang === "fr" ? "Clôturées" : "Closed" }]} />
+        </>} />
       <Card flush>
         {!data ? <SkeletonList rows={4} /> : items.length ? (
           <motion.ul className="list" variants={stagger()} initial="hidden" animate="show" key={tab}>

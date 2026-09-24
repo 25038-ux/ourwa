@@ -3,8 +3,9 @@
 _Last updated: 2026-09-24 — update after every meaningful work session._
 
 ## Current phase
-**Phase 1–2 foundation + MVP loop (§91) on synthetic data, plus: multi-provider AI (incl. Jev), tool-using
-assistant (text + voice), instant notifications, team/tasks/onboarding, and the full web + mobile PWA UI.**
+**Phase 3 started on real data.** Official sources verified and active (ARMP portal, World Bank; UNGM
+credential-gated), OCR for scanned notices, market intelligence, Android app, production deployment bundle — on top
+of the MVP loop, multi-provider AI (incl. Jev), voice assistant, instant notifications and the web/mobile UI.
 Phase 0 (discovery) is **partially blocked**: official sources could not be reached from the build
 environment (egress policy). Phase 3 (real ingestion) cannot start until Phase 0 source verification is done.
 
@@ -46,7 +47,18 @@ environment (egress policy). Phase 3 (real ingestion) cannot start until Phase 0
   kanban / swipe on phones), company twin (profile strength, drag-drop evidence), team, invite, notifications,
   settings (profile, notifications, appearance, voice, AI providers), sources, more. Light/dark, ⌘K palette,
   bottom tab bar + assistant orb on phones, manifest + service worker + icons (installable).
-- API: 65 paths / 74 operations. Data model: 40 tables. Migration `0002` adds AI settings, assistant,
+- **Real sources (ADR-015)**: `armp_api` (88 notices, ~4,400 plan lines → 345 upcoming early signals, red list),
+  `worldbank_api` (1,000 most recent Mauritania notices: open calls + 700+ awards), `ungm_api` (AUTH_REQUIRED
+  until credentials). Verified 2026-09-24; fixtures captured (PII stripped); `forsa reparse`.
+- **OCR** fra+ara (66 real scanned notices read); **deadline extraction** from documents with quotes (33/79).
+- **Market intelligence** page + API: awards by month, top winners/buyers, competitors with wins/losses, pipeline of
+  planned purchases, ARMP red list + partner check; assistant tools `market_winners`, `check_red_list`.
+- **Deadline reminders** J-7/J-3/J-1 (hourly job), **calendar export** (.ics per opportunity and per org),
+  **WhatsApp / native share**, OCR on company document uploads.
+- **Android app** (`android/`, TWA + WebView fallback, signed APK + AAB) and **production deployment**
+  (`infra/deployment/`: Caddy HTTPS, non-superuser DB role enforced, nightly backups, deploy/restore scripts) —
+  images built and the stack run end-to-end locally.
+- API: 65 paths / 74 operations (before this round; now + market, calendar, assetlinks). Data model: 40 tables. Migration `0002` adds AI settings, assistant,
   invites, push subscriptions, task sources and the NOTIFY trigger (+ RLS on the new tenant tables).
 
 ## Test status (2026-09-24, local)
@@ -60,16 +72,20 @@ environment (egress policy). Phase 3 (real ingestion) cannot start until Phase 0
 - The CI workflow is written but has **not run on GitHub yet**.
 
 ## Blockers
-1. **Source access/verification**: marchespublics.gov.mr, search.worldbank.org and UNGM were unreachable
-   (egress policy). Needed: allow these hosts in the environment network settings, or do the inspection
-   manually, then fill `docs/research/source-registry.md`.
-2. No real procurement documents yet → extraction accuracy on real DAOs is unmeasured (Phase 4 gate).
+1. **UNGM API credentials** (client id/secret + authorised UNGM user) — request from eprocurement@ungm.org.
+2. **ARMP data-use confirmation** — no licence published; request written confirmation before large-scale
+   commercial redistribution. Also report the `/api/avisgenerale` personal-data exposure to ARMP.
+3. Full tender dossiers (DAO) are not on the portal (only notices) → requirement-extraction accuracy on complete
+   DAOs is still unmeasured (Phase 4 gate); 86 real notices are now processed.
 
 ## Known limitations / bugs
 - Provider endpoints/model ids marked `verified: false` in `ai/catalog.yaml` were not reachable from the build
   environment; model ids are pinned via *Discover* after keys are added. Jev paths follow typesafe-sdk 0.7.1.
 - Voice depends on the browser's Web Speech API (not Firefox); Arabic speech output depends on installed voices.
 - Web Push needs VAPID keys + `forsa[push]`; iOS delivers push only to installed (home-screen) PWAs.
+- The Android app was built, signed and inspected (apksigner, aapt2) but not run on a device/emulator here (no KVM).
+- ARMP notices currently in the feed are all past their deadline; forward-looking value comes from plan lines.
+- OCR/deadline recall on ARMP scans is partial; misses are shown as "deadline unknown", never guessed.
 - Credential `obtainable_days` and effort estimates are uncalibrated estimates (labelled as such in UI).
 - Login rate limiter is per-process; OCR and malware scanning are no-op ports; local-FS object storage only.
 - Requirement extraction is rule-based; clauses spanning line breaks may be split.

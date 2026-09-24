@@ -6,6 +6,8 @@ import json
 import logging
 import secrets
 import time
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,14 +21,16 @@ from forsa.api.routers import (
     assistant,
     auth,
     bids,
+    calendar,
     company,
     live,
+    market,
     matches,
     opportunities,
     platform,
     workspace,
 )
-from forsa.db.session import get_engine
+from forsa.db.session import check_role_safety, get_engine
 from forsa.kernel.errors import ForsaError
 from forsa.logging_setup import configure_logging
 from forsa.settings import get_settings
@@ -35,10 +39,19 @@ log = logging.getLogger("forsa.api")
 UNSAFE = {"POST", "PUT", "PATCH", "DELETE"}
 
 
+@asynccontextmanager
+async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
+    settings = get_settings()
+    settings.validate_for_prod()
+    check_role_safety(settings.env)  # refuses to start in prod if the DB role bypasses row-level security
+    yield
+
+
 def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging()
     app = FastAPI(
+        lifespan=_lifespan,
         title="FORSA API",
         version=__version__,
         openapi_url="/api/v1/openapi.json",
@@ -110,7 +123,21 @@ def create_app() -> FastAPI:
             conn.execute(text("select 1"))
         return {"ok": True}
 
-    for module in (auth, opportunities, company, matches, bids, platform, assistant, live, workspace, admin_ai):
+    modules = (
+        auth,
+        opportunities,
+        company,
+        matches,
+        bids,
+        platform,
+        assistant,
+        live,
+        workspace,
+        admin_ai,
+        market,
+        calendar,
+    )
+    for module in modules:
         app.include_router(module.router, prefix="/api/v1")
     return app
 

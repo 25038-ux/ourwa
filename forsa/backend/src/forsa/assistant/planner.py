@@ -61,6 +61,16 @@ def plan(text: str, focus_opportunity_id: str | None = None) -> list[tuple[str, 
 
     if _has(folded, "pourquoi", "why", "لماذا", "explique", "explain", "justif"):
         return [("explain_recommendation", opp_args)] if target else [("top_recommendations", {"limit": 3})]
+    if _has(
+        folded, "liste rouge", "red list", "redlist", "blacklist", "liste noire", "debarr", "exclu", "القائمة الحمراء"
+    ):
+        return [("check_red_list", {"name": _company_name(text)} if _company_name(text) else {})]
+    if _has(
+        folded, "qui gagne", "qui a gagne", "qui remporte", "attributaire", "gagnant", "who wins", "who won", "winner",
+        "concurrent", "competitor", "المنافس", "فاز", "الفائز", "qui obtient",
+    ):  # fmt: skip
+        hits = default_ontology().find(text)
+        return [("market_winners", {"query": hits[0].quote} if hits else {})]
     if _has(folded, "partenaire", "partner", "groupement", "consortium", "شريك", "sous-trait"):
         return [("find_partners", opp_args)] if target else [("top_recommendations", {"limit": 3})]
     if _has(folded, "exigence", "requirement", "pieces", "dossier", "شروط", "critere", "criteria") and target:
@@ -202,6 +212,23 @@ def _list(items: list[dict[str, Any]], lang: str) -> str:
     return " ".join(f"{n}) {_item(i, lang)}." for n, i in enumerate(items, 1))
 
 
+_STOP = {"est", "ce", "que", "la", "le", "les", "sur", "liste", "rouge", "is", "on", "the", "red", "list", "check",
+         "verifie", "vérifie", "vérifier", "verifier", "l'entreprise", "entreprise", "société", "societe", "company",
+         "est-ce", "il", "elle", "exclue", "exclu", "excluded", "debarred", "?", "de", "des", "du"}  # fmt: skip
+
+
+def _company_name(text: str) -> str | None:
+    """A company name in the question: quoted text, or the words left after removing the question's own words."""
+    quoted = re.search(r"[«\"“]\s*([^»\"”]{2,80})\s*[»\"”]", text)
+    if quoted:
+        return quoted.group(1).strip()
+    caps = re.findall(r"\b[A-Z][A-Z0-9&\-]{1,}(?:\s+[A-Z][A-Z0-9&\-]{1,})*\b", text)
+    if caps:
+        return max(caps, key=len)
+    words = [w for w in re.findall(r"[\w'&\-]+", text) if w.lower() not in _STOP]
+    return " ".join(words)[:80] or None
+
+
 def compose(results: list[tuple[str, dict[str, Any]]], lang: str) -> str:
     fr = lang == "fr"
     parts: list[str] = []
@@ -314,6 +341,45 @@ def compose(results: list[tuple[str, dict[str, Any]]], lang: str) -> str:
                     (f"Action prioritaire : {t['title']}" if fr else f"Top action: {t['title']}")
                     + (f" — {t['blocker']}" if t.get("blocker") else "")
                     + "."
+                )
+        elif name == "market_winners":
+            items = r.get("items", [])
+            subject = f" ({r['query']})" if r.get("query") else ""
+            if not items:
+                parts.append(
+                    f"Aucune attribution trouvée{subject} dans les avis officiels."
+                    if fr
+                    else f"No award found{subject} in official notices."
+                )
+            else:
+                firms = ", ".join(f"{i['name']} ({i['wins']})" for i in items)
+                parts.append(
+                    f"Sur {r['awards']} attribution(s){subject}, les entreprises qui gagnent le plus : {firms}."
+                    if fr
+                    else f"Across {r['awards']} award(s){subject}, the most frequent winners: {firms}."
+                )
+        elif name == "check_red_list":
+            if r.get("name") is None:
+                names = ", ".join(i["name"] for i in r.get("items", []))
+                parts.append(
+                    f"La liste rouge de l'ARMP compte {r['count']} entreprise(s) exclue(s), dont : {names}."
+                    if fr
+                    else f"The ARMP red list has {r['count']} excluded firm(s), including: {names}."
+                )
+            elif r["matches"]:
+                m = r["matches"][0]
+                parts.append(
+                    f"Attention : « {m['entity_name']} » figure sur la liste rouge de l'ARMP ({m['nature']}). "
+                    "Vérifiez le NRC avant tout engagement."
+                    if fr
+                    else f"Warning: “{m['entity_name']}” is on the ARMP red list ({m['nature']}). "
+                    "Verify the registry number before any commitment."
+                )
+            else:
+                parts.append(
+                    f"« {r['name']} » ne figure pas sur la liste rouge de l'ARMP."
+                    if fr
+                    else f"“{r['name']}” is not on the ARMP red list."
                 )
         elif name == "find_partners":
             if not r["gaps"]:

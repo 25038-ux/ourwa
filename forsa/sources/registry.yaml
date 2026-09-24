@@ -20,34 +20,43 @@ sources:
     notes: Hand-written synthetic notices for development, demos and tests. Flagged is_synthetic everywhere.
 
   - id: mr-armp-portal
-    name: Portail national des marchés publics (Mauritanie)
+    name: Portail National des Marchés Publics (Mauritanie)
     country: MR
     category: public_procurement
     official_url: https://marchespublics.gov.mr/
-    access_type: public_web
-    api_available: unknown
-    scraping_allowed: unknown  # terms of use + robots.txt not yet reviewed
-    terms_url: null
+    access_type: public_json_api  # the portal's own public, unauthenticated JSON endpoints (no login/CAPTCHA)
+    api_available: true
+    scraping_allowed: true  # robots.txt absent (HTTP 404, 2026-09-24) ⇒ no restrictions (RFC 9309)
+    terms_url: null  # no terms-of-use page found; footer "Copyright © 2024 Portail National des Marchés Publics"
     robots_url: https://marchespublics.gov.mr/robots.txt
-    authentication: none (public notices); alerts require registration
-    rate_limit: {min_interval_s: 5}
+    authentication: none
+    rate_limit: {min_interval_s: 3}
     update_frequency_hours: 6
-    reliability: unknown
-    data_license: unknown — do not assume commercial reuse rights
-    status: pending_verification
-    connector: html_table
+    reliability: official
+    data_license: >-
+      No explicit licence. Official publication platform for procurement notices ("plateforme officielle pour la
+      publication des informations et documents relatifs aux marchés publics"). FORSA shows metadata, extracted
+      requirements and links to the official PDF, with attribution. Obtain ARMP written confirmation before
+      large-scale commercial redistribution.
+    attribution: "Source : Portail National des Marchés Publics (ARMP, Mauritanie)"
+    status: active
+    verified_at: "2026-09-24"
+    connector: armp_api
     allowed_hosts: [marchespublics.gov.mr]
     config:
-      # PLACEHOLDERS — must be filled from a real inspection of the portal (Phase 0).
-      listing_url: "https://marchespublics.gov.mr/TODO-verify-listing-path?page={page}"
-      max_pages: 5
-      currency: MRU
-      column_map: {}
-      value_maps:
-        category: {Fournitures: goods, Travaux: works, "Prestations intellectuelles": consulting, "Services courants": services}
-    notes: >
-      Primary MVP source. Portal was unreachable from the build environment (egress policy), so structure,
-      terms and robots.txt are NOT verified. Pipeline refuses to run it until status=active.
+      base_url: https://marchespublics.gov.mr
+      page_size: 50
+      max_pages: 10
+      plan_page_size: 100
+      plan_max_pages: 50
+      plan_window_days: 365
+      plan_grace_days: 30
+      red_list_path: /api/listerouge
+    notes: >-
+      Notices (/api/annonces, ~88) + procurement-plan lines (/api/activities/forSite, ~4,400; direct agreements
+      skipped) + « liste rouge » (/api/listerouge). Notice PDFs are mostly scans: deadlines and requirements come
+      from OCR (fra+ara) and are labelled as such. The portal API embeds staff records on some endpoints; the
+      connector keeps an explicit allow-list of fields and never stores them.
 
   - id: ungm-notices
     name: United Nations Global Marketplace — notices
@@ -55,25 +64,51 @@ sources:
     category: multilateral_procurement
     official_url: https://www.ungm.org/Public/Notice
     access_type: official_api
-    api_available: true  # per spec; developer.ungm.org — authorization terms to confirm
-    scraping_allowed: false  # use the official API only
-    authentication: to confirm (developer.ungm.org)
+    api_available: true  # https://www.ungm.org/API/Notices (OData), verified 2026-09-24 via developer.ungm.org
+    scraping_allowed: false  # official API only; the web UI is never scraped
+    authentication: OAuth 2.0 (Authorization Code Grant user token; refresh token rotation)
+    requires_env: [UNGM_CLIENT_ID, UNGM_CLIENT_SECRET, UNGM_REFRESH_TOKEN]
+    rate_limit: {min_interval_s: 2}
     update_frequency_hours: 12
-    status: pending_verification
-    connector: ungm_api  # not implemented yet — official API docs must be read first
-    allowed_hosts: []
-    notes: Implement only against the official API documentation; never scrape the web UI.
+    reliability: official
+    data_license: UNGM terms of use — to be accepted with the API client agreement (eprocurement@ungm.org)
+    attribution: "Source : United Nations Global Marketplace (UNGM)"
+    status: active
+    verified_at: "2026-09-24"
+    connector: ungm_api
+    allowed_hosts: [www.ungm.org]
+    config:
+      country: MR
+      country_iso3: MRT
+      max_pages: 20
+    notes: >-
+      Active but credential-gated: shows AUTH_REQUIRED until the UNGM Secretariat issues an API client and a UNGM
+      user authorises it. /API/Ping answers "Pong - Production"; /API/Notices answers 401 without a token.
 
   - id: worldbank-procurement-notices
-    name: World Bank procurement notices
-    country: null
+    name: World Bank procurement notices (Mauritania)
+    country: MR
     category: development_finance
     official_url: https://datacatalog.worldbank.org/search/dataset/0037795/world-bank-procurement-notices
-    access_type: official_dataset
-    api_available: to_confirm
-    scraping_allowed: false
-    update_frequency_hours: 24
-    status: pending_verification
-    connector: worldbank_api  # not implemented yet
-    allowed_hosts: []
-    notes: Filter to Mauritania (and later the expansion countries). Confirm dataset licence before reuse.
+    access_type: official_api
+    api_available: true  # https://search.worldbank.org/api/v2/procnotices (JSON), verified 2026-09-24
+    scraping_allowed: false  # API only
+    authentication: none
+    rate_limit: {min_interval_s: 2}
+    update_frequency_hours: 12
+    reliability: official
+    data_license: Creative Commons Attribution 4.0 (CC BY 4.0) — dataset page, verified 2026-09-24
+    attribution: "Source : World Bank Procurement Notices (CC BY 4.0)"
+    status: active
+    verified_at: "2026-09-24"
+    connector: worldbank_api
+    allowed_hosts: [search.worldbank.org]
+    config:
+      country: MR
+      country_name: Mauritania
+      rows: 100
+      max_pages: 10
+      utc_offset_hours: 0
+    notes: >-
+      ~1,900 Mauritania notices (open calls with structured deadlines + contract awards). Awards feed market
+      intelligence; contact persons are not stored; individual-consultant winners are anonymised.

@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from sqlalchemy import or_, select
+from sqlalchemy import ColumnElement, and_, or_, select
 from sqlalchemy.orm import Session
 
 from forsa.db.models import Company, Match, MatchHistory, Opportunity, OpportunityEvent
@@ -20,6 +20,23 @@ from forsa.services.profiles import company_profile, opportunity_profile
 RELEVANCE_MIN = 0.25  # minimum capability score to create a *new* match row
 NOTIFY_FIT = 70
 MATCHABLE = [s.value for s in OPEN_STATES] + [Lifecycle.PLANNED.value]
+# A notice whose deadline could not be read is presumed closed once it is this old (shown again with filters).
+UNDATED_MAX_AGE = timedelta(days=90)
+
+
+def still_open(now: datetime) -> ColumnElement[bool]:
+    """Deadline in the future, or unknown deadline on a recent notice (never an old undated one)."""
+    return or_(
+        Opportunity.deadline_at > now,
+        and_(
+            Opportunity.deadline_at.is_(None),
+            or_(
+                Opportunity.status == Lifecycle.PLANNED.value,
+                Opportunity.published_at.is_(None),
+                Opportunity.published_at > now - UNDATED_MAX_AGE,
+            ),
+        ),
+    )
 
 
 def match_pair(
@@ -142,7 +159,7 @@ def match_pair(
 def rematch_opportunity(session: Session, engine: MatchingEngine, opportunity_id: uuid.UUID) -> int:
     """System context: evaluate one opportunity against every company twin."""
     opp = session.get(Opportunity, opportunity_id)
-    if opp is None:
+    if opp is None or opp.kind == "AWARD":  # awards are market intelligence, not something to bid on
         return 0
     count = 0
     for company in session.scalars(select(Company)).all():
@@ -159,7 +176,8 @@ def rematch_company(session: Session, engine: MatchingEngine, company_id: uuid.U
     opps = session.scalars(
         select(Opportunity).where(
             Opportunity.status.in_(MATCHABLE),
-            or_(Opportunity.deadline_at.is_(None), Opportunity.deadline_at > now),
+            Opportunity.kind != "AWARD",
+            still_open(now),
             Opportunity.analyzed_version.is_not(None),
         )
     ).all()

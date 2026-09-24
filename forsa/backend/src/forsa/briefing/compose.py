@@ -41,7 +41,16 @@ def compose_briefing(
         .join(Opportunity, Opportunity.id == Match.opportunity_id)
         .where(Match.org_id == org_id, Match.status != "DISMISSED")
     ).all()
-    live = [(m, o) for m, o in rows if o.deadline_at is None or o.deadline_at > now]
+    stale = now - timedelta(days=90)  # same rule as services.matching.still_open
+    live = [
+        (m, o)
+        for m, o in rows
+        if o.kind != "AWARD"
+        and (
+            (o.deadline_at is not None and o.deadline_at > now)
+            or (o.deadline_at is None and (o.status == "PLANNED" or o.published_at is None or o.published_at > stale))
+        )
+    ]
     items = []
     for m, o in live:
         conditions = m.result.get("conditions", [])
