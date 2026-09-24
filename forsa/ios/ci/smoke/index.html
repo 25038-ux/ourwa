@@ -27,10 +27,14 @@
     const bridge = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.forsa);
     set("bridge", bridge, bridge ? "✓" : "missing");
     if (bridge) window.webkit.messageHandlers.forsa.postMessage({ type: "haptic", style: "success" });
-    const probe = document.createElement("div");
-    probe.style.cssText = "position:fixed;top:0;height:env(safe-area-inset-top)";
-    document.body.appendChild(probe);
-    set("safe", probe.offsetHeight > 0, probe.offsetHeight + " px");
+    // Safe-area insets are applied after the first layout: measure once the page has settled.
+    window.addEventListener("load", () => setTimeout(() => {
+      const probe = document.createElement("div");
+      probe.style.cssText = "position:fixed;top:0;width:1px;height:env(safe-area-inset-top)";
+      document.body.appendChild(probe);
+      const top = Math.round(probe.getBoundingClientRect().height);
+      set("safe", top > 0, top + " px");
+    }, 600));
     set("ua", /FORSA-iOS/.test(navigator.userAgent), (navigator.userAgent.match(/FORSA-iOS\/[\d.]+/) || ["missing"])[0]);
   </script>
 </body>
