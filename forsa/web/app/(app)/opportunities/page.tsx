@@ -87,7 +87,7 @@ export default function Explorer() {
     <div className="stack">
       <PageHead title={t("opportunities")} sub={data ? `${data.total} · ${t("notProbability")}` : " "}
         actions={<Segmented id="view" value={view} onChange={setView} options={[
-          { value: "list", label: <span className="row" style={{ gap: 6 }}><Layers size={14} />Liste</span> },
+          { value: "list", label: <span className="row" style={{ gap: 6 }}><Layers size={14} />{lang === "fr" ? "Liste" : "List"}</span> },
           { value: "triage", label: <span className="row" style={{ gap: 6 }}><Radar size={14} />{t("triage")}</span> }]} />} />
 
       <AnimatePresence mode="wait">
