@@ -29,6 +29,13 @@ type Intel = {
   ai_triage?: { relevant: number; model: string };
 };
 
+const KIND_LABEL: Record<string, { fr: string; en: string }> = {
+  TENDER: { fr: "Appel d'offres", en: "Tender" }, EOI: { fr: "Manifestation d'intérêt", en: "Expression of interest" },
+  RFQ: { fr: "Demande de cotation", en: "Request for quotation" }, RFP: { fr: "Demande de propositions", en: "Request for proposals" },
+  PLAN_ITEM: { fr: "Plan de passation (à venir)", en: "Procurement plan (upcoming)" }, AWARD: { fr: "Attribution", en: "Award" },
+  INFO: { fr: "Information", en: "Notice" },
+};
+
 const COMPONENT_LABEL: Record<string, [string, string]> = {
   eligibility: ["Éligibilité", "Eligibility"], capability: ["Compétences", "Capability"], experience: ["Expérience", "Experience"],
   evidence: ["Preuves", "Evidence"], capacity: ["Capacité", "Capacity"], geography: ["Géographie", "Geography"],
@@ -134,7 +141,8 @@ export default function OpportunityPage() {
         style={{ padding: 22, background: "radial-gradient(700px 260px at 100% 0%, var(--accent-soft), transparent 70%), var(--surface)" }}>
         <div className="row" style={{ gap: 20, alignItems: "flex-start", flexWrap: "nowrap" }}>
           <div style={{ flex: 1, minWidth: 0 }} dir={dirOf(opp.language)}>
-            <div className="row faint" style={{ gap: 8 }}><span className="mono">{opp.external_ref}</span><span>· {opp.kind}</span>
+            <div className="row faint" style={{ gap: 8 }}><span className="mono">{opp.attributes?.plan_reference ?? opp.attributes?.reference
+              ?? (opp.external_ref.includes(":") ? opp.external_ref.split(":")[0] : opp.external_ref)}</span><span>· {KIND_LABEL[opp.kind]?.[lang] ?? opp.kind}</span>
               <DemoBadge show={opp.is_synthetic} /></div>
             <h1 style={{ fontSize: "clamp(22px, 3vw, 30px)", marginTop: 6 }}>{opp.title}</h1>
             <div className="muted" style={{ marginTop: 6 }}>{opp.buyer ?? "—"}</div>

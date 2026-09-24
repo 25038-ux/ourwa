@@ -1,0 +1,191 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>FORSA</title><style>/* latin-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url(fonts/inter-latin-ext.woff2) format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url(fonts/inter-latin.woff2) format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@page { size: 1600px 900px; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: Inter, "IBM Plex Sans Arabic", system-ui, sans-serif; color: #15181b; -webkit-font-smoothing: antialiased; }
+.slide { width: 1600px; height: 900px; position: relative; overflow: hidden; page-break-after: always; padding: 84px 96px;
+  background: #f5f3ee; }
+.slide.dark { background: radial-gradient(1000px 600px at 15% -10%, rgba(47,197,155,.35), transparent 60%),
+  radial-gradient(900px 600px at 110% 110%, rgba(183,134,43,.30), transparent 60%), #06231c; color: #eaf6f1; }
+.kicker { font-size: 20px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #0e7a5f; }
+.dark .kicker { color: #5fe0b9; }
+h1 { font-size: 64px; line-height: 1.06; letter-spacing: -.03em; margin: 18px 0 0; font-weight: 800; max-width: 1250px; }
+h1.xl { font-size: 92px; max-width: 1100px; }
+p.sub { font-size: 27px; line-height: 1.45; color: #3d4247; max-width: 1000px; margin: 26px 0 0; }
+.dark p.sub { color: #b8d8cf; }
+.foot { position: absolute; left: 96px; right: 96px; bottom: 34px; display: flex; justify-content: space-between;
+  align-items: center; font-size: 15px; color: #979ba0; }
+.dark .foot { color: #6fa395; }
+.foot .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .14em; color: inherit; }
+.logo { width: 30px; height: 30px; }
+.cover > .logo { width: 88px; height: 88px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 26px; margin-top: 64px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; margin-top: 56px; }
+.grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px 40px; margin-top: 40px; }
+.card { background: #fff; border-radius: 28px; padding: 34px; box-shadow: 0 24px 60px -30px rgba(20,24,28,.35);
+  border: 1px solid rgba(24,28,32,.06); }
+.dark .card { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.1); box-shadow: none; }
+.card b { display: block; font-size: 30px; letter-spacing: -.01em; margin-bottom: 12px; }
+.card span { font-size: 21px; line-height: 1.45; color: #3d4247; }
+.dark .card span { color: #b8d8cf; }
+.num { font-size: 26px; width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; font-weight: 800;
+  background: rgba(14,122,95,.12); color: #0e7a5f; margin-bottom: 22px; }
+.dark .num { background: rgba(95,224,185,.14); color: #5fe0b9; }
+.big { font-size: 96px; font-weight: 800; letter-spacing: -.04em; line-height: 1; color: #fff; }
+.big small { display: block; font-size: 21px; font-weight: 500; color: #b8d8cf; letter-spacing: 0; line-height: 1.4;
+  margin-top: 14px; }
+.split { display: grid; grid-template-columns: 1fr 1.35fr; gap: 64px; align-items: center; height: calc(100% - 30px); }
+.split h1 { font-size: 52px; }
+.split ul.points li { font-size: 21px; padding: 11px 0 11px 42px; }
+.split ul.points li::before { top: 17px; }
+.caption { font-size: 15px; color: #979ba0; margin-top: 16px; text-align: center; }
+.split.rev { grid-template-columns: 1.35fr 1fr; }
+.shot { width: 100%; border-radius: 18px; box-shadow: 0 40px 90px -40px rgba(6,35,28,.55), 0 0 0 1px rgba(0,0,0,.06);
+  display: block; }
+.laptop { background: #0c0f11; padding: 14px 14px 18px; border-radius: 26px; box-shadow: 0 50px 100px -40px rgba(0,0,0,.6); }
+.laptop img { width: 100%; display: block; border-radius: 12px; }
+.phone { width: 300px; border-radius: 46px; background: #0c0f11; padding: 11px; box-shadow: 0 50px 90px -35px rgba(0,0,0,.6); }
+.phone img { width: 100%; display: block; border-radius: 36px; }
+.phones { display: flex; gap: 28px; align-items: flex-end; justify-content: center; }
+.phones .phone:nth-child(2) { transform: translateY(-34px); }
+ul.points { list-style: none; padding: 0; margin: 36px 0 0; }
+ul.points li { font-size: 24px; line-height: 1.4; padding: 14px 0 14px 46px; position: relative; border-top: 1px solid rgba(24,28,32,.08); }
+.dark ul.points li { border-color: rgba(255,255,255,.1); }
+ul.points li::before { content: ""; position: absolute; left: 0; top: 22px; width: 22px; height: 22px; border-radius: 7px;
+  background: linear-gradient(135deg, #5fe0b9, #0e7a5f); }
+ul.points li b { font-weight: 700; }
+.note { font-size: 16px; color: #979ba0; margin-top: 18px; }
+.dark .note { color: #6fa395; }
+.chips { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 60px; }
+.chips span { font-size: 28px; font-weight: 600; padding: 18px 30px; border-radius: 999px; background: #fff;
+  box-shadow: 0 16px 40px -24px rgba(20,24,28,.4); }
+.dark .chips span { background: rgba(255,255,255,.08); }
+.radar { position: absolute; right: -140px; top: 90px; width: 760px; height: 760px; opacity: .9; }
+.sources { margin-top: 40px; font-size: 21px; color: #b8d8cf; }
+.gold { color: #f3c86b; }
+.contact { margin-top: 30px; font-size: 26px; color: #5fe0b9; font-weight: 600; }
+</style></head><body><section class="slide dark cover"><svg class="radar" viewBox="0 0 400 400"><defs><radialGradient id="rg"><stop offset="0" stop-color="#5fe0b9"
+stop-opacity=".45"/><stop offset="1" stop-color="#5fe0b9" stop-opacity="0"/></radialGradient></defs>
+<circle cx="200" cy="200" r="190" fill="none" stroke="rgba(255,255,255,.12)"/><circle cx="200" cy="200" r="140" fill="none"
+stroke="rgba(255,255,255,.12)"/><circle cx="200" cy="200" r="90" fill="none" stroke="rgba(255,255,255,.12)"/>
+<circle cx="200" cy="200" r="40" fill="none" stroke="rgba(255,255,255,.12)"/>
+<path d="M200 200 L390 200 A190 190 0 0 0 334 66 Z" fill="url(#rg)"/>
+<circle cx="296" cy="120" r="7" fill="#f3c86b"/><circle cx="120" cy="170" r="6" fill="#5fe0b9"/><circle cx="250" cy="280" r="6"
+fill="#5fe0b9"/><circle cx="160" cy="300" r="5" fill="#5fe0b9"/><circle cx="200" cy="200" r="16" fill="#fff"/></svg><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gc" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gc)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>
+<div class="kicker" style="margin-top:40px">Présentation client · Septembre 2026</div>
+<h1 class="xl">Trouvez les marchés publics que vous pouvez gagner.</h1><p class="sub">FORSA surveille les sources officielles, lit les avis à votre place, vous dit ce qui vous correspond — et pourquoi. Conçu pour les entreprises mauritaniennes.</p><div class="foot"><span class="brand"><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gf1" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gf1)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>FORSA</span><span>FORSA — intelligence commerciale fondée sur les preuves</span><span>1 / 14</span></div></section><section class="slide "><div class="kicker">Le constat</div><h1>Chaque année, des marchés vous échappent.</h1>
+<div class="grid4"><div class="card"><b>Dispersés</b><span>Portail national, bailleurs, Nations unies… des centaines d'avis, souvent en PDF scannés.</span></div><div class="card"><b>Trop tard</b><span>On découvre l'appel d'offres à quelques jours de la date limite — ou jamais.</span></div><div class="card"><b>Rejetés</b><span>Un dossier solide est écarté pour une seule attestation manquante ou expirée.</span></div><div class="card"><b>Au feeling</b><span>On répond sans savoir si le marché correspond vraiment à nos capacités.</span></div></div><div class="foot"><span class="brand"><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gf2" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gf2)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>FORSA</span><span>FORSA — intelligence commerciale fondée sur les preuves</span><span>2 / 14</span></div></section><section class="slide dark"><div class="kicker">La solution</div><h1>FORSA fait la veille, l'analyse et l'organisation. Vous gardez la décision.</h1>
+<div class="grid4"><div class="card"><div class="num">1</div><b>Détecter</b><span>Tous les avis et plans de passation officiels, surveillés jour et nuit.</span></div><div class="card"><div class="num">2</div><b>Comprendre</b><span>Exigences, pièces, délais et risques extraits — avec la citation de l'avis.</span></div><div class="card"><div class="num">3</div><b>Décider</b><span>Un score d'adéquation expliqué, et ce qu'il faut obtenir pour y aller.</span></div><div class="card"><div class="num">4</div><b>Gagner</b><span>Espace d'offre, tâches, rappels et approbations jusqu'à la soumission.</span></div></div><div class="foot"><span class="brand"><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gf3" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gf3)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>FORSA</span><span>FORSA — intelligence commerciale fondée sur les preuves</span><span>3 / 14</span></div></section><section class="slide "><div class="split"><div><div class="kicker">Comment ça marche</div>
+<h1>Opérationnel en une matinée.</h1><ul class="points"><li><b>Décrivez votre entreprise</b><br>En 2 minutes, à la voix ou par écrit, en français, arabe ou anglais. FORSA comprend vos métiers ; vous confirmez.</li><li><b>FORSA surveille pour vous</b><br>Portail national des marchés publics, Banque mondiale, Nations unies… Même les avis scannés sont lus.</li><li><b>Recevez ce qui vous correspond</b><br>Chaque matin, les opportunités à forte adéquation, les échéances et les pièces à préparer — avec la preuve.</li></ul></div>
+<div class="phones"><div class="phone"><img src="img/m-onboarding.jpg"></div><div class="phone"><img src="img/m-today.jpg"></div></div></div><div class="foot"><span class="brand"><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gf4" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gf4)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>FORSA</span><span>FORSA — intelligence commerciale fondée sur les preuves</span><span>4 / 14</span></div></section><section class="slide dark"><div class="kicker">Déjà branché sur les sources officielles</div><h1>Des données réelles, pas des promesses.</h1>
+<div class="grid4" style="margin-top:80px"><div class="big">1 434<small>avis et lignes de plans de passation analysés</small></div><div class="big">859<small>attributions étudiées : qui gagne quoi, à quel prix</small></div><div class="big">345<small>achats publics annoncés dans les plans de passation</small></div><div class="big">90+<small>acheteurs publics suivis</small></div></div>
+<div class="grid3" style="margin-top:64px"><div class="card"><b style="font-size:24px">Portail National des Marchés Publics</b><span>avis, plans de passation et liste rouge de l'ARMP — même les avis scannés sont lus.</span></div><div class="card"><b style="font-size:24px">Banque mondiale</b><span>appels d'offres et attributions des projets financés en Mauritanie (CC BY 4.0).</span></div><div class="card"><b style="font-size:24px">Nations unies — UNGM</b><span>avis des agences onusiennes, via l'API officielle (sur accréditation).</span></div></div>
+<div class="note">Chiffres au 24 septembre 2026, lus sur les sources officielles.</div><div class="foot"><span class="brand"><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gf5" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gf5)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>FORSA</span><span>FORSA — intelligence commerciale fondée sur les preuves</span><span>5 / 14</span></div></section><section class="slide "><div class="split"><div><div class="kicker">Chaque matin</div>
+<h1>Votre briefing : ce qui mérite votre attention aujourd'hui.</h1><ul class="points"><li>L'action prioritaire du jour</li><li>Les échéances à moins de 7 jours</li><li>Les pièces à obtenir avant qu'il ne soit trop tard</li><li>Les signaux précoces des plans de passation</li></ul></div>
+<div class="laptop"><img src="img/d-today.jpg"></div></div><div class="foot"><span class="brand"><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gf6" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gf6)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>FORSA</span><span>FORSA — intelligence commerciale fondée sur les preuves</span><span>6 / 14</span></div></section><section class="slide "><div class="split rev"><div><div class="laptop"><img src="img/d-opp.jpg"></div>
+<div class="caption">Exemple réel : une ligne du plan de passation publiée sur le portail national.</div></div><div>
+<div class="kicker">Transparence</div><h1>Chaque recommandation est expliquée.</h1>
+<ul class="points"><li><b>Score d'adéquation</b> — sur 100, calculé à partir de vos capacités et des exigences de l'avis — jamais présenté comme une probabilité de gain.</li><li><b>Les raisons</b> — ce qui joue pour vous, ce qui manque, ce qui est inconnu.</li><li><b>La preuve</b> — chaque exigence est citée depuis l'avis officiel, page à l'appui.</li><li><b>L'économie de l'offre</b> — effort, coût de réponse et contribution estimés, en fourchettes.</li></ul></div></div><div class="foot"><span class="brand"><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gf7" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gf7)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>FORSA</span><span>FORSA — intelligence commerciale fondée sur les preuves</span><span>7 / 14</span></div></section><section class="slide dark"><div class="split"><div><div class="kicker">Veille concurrentielle</div>
+<h1>Voyez qui gagne, qui achète, ce qui arrive.</h1>
+<ul class="points"><li><b>Concurrents</b> — marchés gagnés et perdus, montants, acheteurs servis.</li><li><b>Acheteurs</b> — les administrations et projets les plus actifs dans votre secteur.</li><li><b>À venir</b> — les achats prévus dans les 12 prochains mois, avant même l'appel d'offres.</li><li><b>Liste rouge</b> — vérifiez en une seconde qu'un partenaire n'est pas exclu des marchés publics.</li></ul></div>
+<div class="laptop"><img src="img/d-market-dark.jpg"></div></div><div class="foot"><span class="brand"><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gf8" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gf8)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>FORSA</span><span>FORSA — intelligence commerciale fondée sur les preuves</span><span>8 / 14</span></div></section><section class="slide "><div class="split"><div><div class="kicker">Assistant intelligent</div>
+<h1>Posez vos questions. À la voix.</h1><ul class="points"><li>« Qui gagne les marchés de forage ? »  « Quelles échéances arrivent ? »</li><li>Français, arabe, anglais — à l'écrit comme à l'oral</li><li>Répond uniquement à partir de vos données et des sources officielles</li><li>Propose des actions que vous validez : rien n'est fait sans vous</li></ul></div>
+<div class="phones"><div class="phone"><img src="img/m-assistant.jpg"></div><div class="phone"><img src="img/m-triage.jpg"></div></div></div><div class="foot"><span class="brand"><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gf9" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gf9)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>FORSA</span><span>FORSA — intelligence commerciale fondée sur les preuves</span><span>9 / 14</span></div></section><section class="slide "><div class="kicker">Du repérage à la soumission</div><h1>Toute l'équipe, au même endroit.</h1>
+<div class="grid3"><div class="card"><div class="num">1</div><b>Espace d'offre</b><span>décision soumissionner / ne pas soumissionner, tracée</span></div><div class="card"><div class="num">2</div><b>Matrice de conformité</b><span>chaque exigence, son statut, sa réponse</span></div><div class="card"><div class="num">3</div><b>Tâches automatiques</b><span>les conditions deviennent des tâches assignées</span></div><div class="card"><div class="num">4</div><b>Approbation à 4 yeux</b><span>aucune soumission sans validation humaine</span></div><div class="card"><div class="num">5</div><b>Rappels J-7, J-3, J-1</b><span>notifications instantanées, même sur mobile</span></div><div class="card"><div class="num">6</div><b>Calendrier &amp; WhatsApp</b><span>export Google / Outlook, partage en un geste</span></div></div><div class="foot"><span class="brand"><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gf10" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gf10)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>FORSA</span><span>FORSA — intelligence commerciale fondée sur les preuves</span><span>10 / 14</span></div></section><section class="slide dark"><div class="split"><div><div class="kicker">Partout</div>
+<h1>Sur ordinateur, et dans votre poche.</h1><ul class="points"><li>Application Android</li><li>Application web installable sur iPhone</li><li>Notifications instantanées</li><li>Tri rapide d'un glissement de doigt</li><li>Mode sombre</li></ul></div>
+<div class="phones"><div class="phone"><img src="img/m-today.jpg"></div><div class="phone"><img src="img/m-market.jpg"></div>
+<div class="phone"><img src="img/m-opp.jpg"></div></div></div><div class="foot"><span class="brand"><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gf11" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gf11)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>FORSA</span><span>FORSA — intelligence commerciale fondée sur les preuves</span><span>11 / 14</span></div></section><section class="slide "><div class="kicker">Confiance</div><h1>Vos données restent les vôtres.</h1>
+<div class="grid3"><div class="card"><b>Cloisonnement strict</b><span>chaque entreprise est isolée au niveau de la base de données.</span></div><div class="card"><b>Hébergement maîtrisé</b><span>sur votre serveur ou sur un serveur dédié, en HTTPS.</span></div><div class="card"><b>Vous décidez</b><span>aucune soumission, aucun contact acheteur sans votre approbation.</span></div><div class="card"><b>IA encadrée</b><span>optionnelle ; les informations confidentielles ne partent pas sans accord.</span></div><div class="card"><b>Sources citées</b><span>chaque fait renvoie à l'avis officiel ; l'inconnu est affiché comme tel.</span></div><div class="card"><b>Liste rouge</b><span>vérification des partenaires et sous-traitants intégrée.</span></div></div><div class="foot"><span class="brand"><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gf12" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gf12)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>FORSA</span><span>FORSA — intelligence commerciale fondée sur les preuves</span><span>12 / 14</span></div></section><section class="slide "><div class="kicker">Pour qui</div><h1>Pour les entreprises qui répondent aux marchés publics et des bailleurs.</h1>
+<div class="chips"><span>BTP &amp; travaux</span><span>Énergie solaire &amp; électricité</span><span>Hydraulique &amp; forages</span><span>Informatique &amp; télécoms</span><span>Bureaux d'études &amp; conseil</span><span>Fournitures &amp; équipements</span></div>
+<p class="sub" style="margin-top:56px">Vous répondez déjà aux appels d'offres ? FORSA vous fait répondre plus souvent, aux bons marchés, avec des dossiers complets — et vous montre ceux que vous ne voyiez pas.</p>
+<div class="note" style="margin-top:60px">Captures d'écran : profil d'entreprise de démonstration ; opportunités et attributions réelles.</div><div class="foot"><span class="brand"><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gf13" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gf13)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>FORSA</span><span>FORSA — intelligence commerciale fondée sur les preuves</span><span>13 / 14</span></div></section><section class="slide dark cover"><svg class="radar" viewBox="0 0 400 400"><defs><radialGradient id="rg"><stop offset="0" stop-color="#5fe0b9"
+stop-opacity=".45"/><stop offset="1" stop-color="#5fe0b9" stop-opacity="0"/></radialGradient></defs>
+<circle cx="200" cy="200" r="190" fill="none" stroke="rgba(255,255,255,.12)"/><circle cx="200" cy="200" r="140" fill="none"
+stroke="rgba(255,255,255,.12)"/><circle cx="200" cy="200" r="90" fill="none" stroke="rgba(255,255,255,.12)"/>
+<circle cx="200" cy="200" r="40" fill="none" stroke="rgba(255,255,255,.12)"/>
+<path d="M200 200 L390 200 A190 190 0 0 0 334 66 Z" fill="url(#rg)"/>
+<circle cx="296" cy="120" r="7" fill="#f3c86b"/><circle cx="120" cy="170" r="6" fill="#5fe0b9"/><circle cx="250" cy="280" r="6"
+fill="#5fe0b9"/><circle cx="160" cy="300" r="5" fill="#5fe0b9"/><circle cx="200" cy="200" r="16" fill="#fff"/></svg><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="ge" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#ge)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>
+<div class="kicker" style="margin-top:40px">Démarrer</div><h1 class="xl" style="font-size:78px">Parlons de vos prochains marchés.</h1>
+<div class="grid3" style="max-width:1100px"><div class="card"><div class="num">1</div><b style="font-size:26px">Démo de 30 minutes</b><span>sur vos propres métiers et vos régions</span></div><div class="card"><div class="num">2</div><b style="font-size:26px">Mise en place accompagnée</b><span>profil, attestations, alertes — en une matinée</span></div><div class="card"><div class="num">3</div><b style="font-size:26px">Programme pilote</b><span>vos premières opportunités qualifiées dès le premier jour</span></div></div><div class="foot"><span class="brand"><svg viewBox="0 0 64 64" class="logo"><defs><linearGradient id="gf14" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#1fc293"/><stop offset="1" stop-color="#0a5c47"/></linearGradient></defs>
+<rect width="64" height="64" rx="18" fill="url(#gf14)"/><path d="M16 44c8-1 12-6 16-14s8-12 16-12" fill="none"
+stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="48" cy="18" r="4.5" fill="#f3c86b"/>
+<path d="M14 50h36" stroke="rgba(255,255,255,.45)" stroke-width="3" stroke-linecap="round"/></svg>FORSA</span><span>FORSA — intelligence commerciale fondée sur les preuves</span><span>14 / 14</span></div></section></body></html>
