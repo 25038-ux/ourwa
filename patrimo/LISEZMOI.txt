@@ -1,0 +1,108 @@
+PATRIMO — Suivi du patrimoine matériel
+Mini-projet L1 Informatique : application web de gestion et de suivi
+des matériels administratifs (PHP / MySQL / HTML5 / CSS3 / JavaScript).
+
+------------------------------------------------------------------------
+1. CONTENU
+------------------------------------------------------------------------
+
+  index.php            tableau de bord
+  connexion.php        connexion / deconnexion.php
+  materiels.php        liste, recherche et filtres
+  materiel.php         fiche d'un matériel (état, transfert, historique)
+  materiel_form.php    ajout / modification d'un matériel
+  transferts.php       demandes de transfert et validation
+  mouvements.php       historique complet + export CSV
+  directions.php       gestion des directions        (admin)
+  categories.php       gestion des catégories        (admin)
+  utilisateurs.php     gestion des comptes           (admin)
+  includes/            configuration, connexion BDD, fonctions, gabarits
+  assets/              CSS, JavaScript, polices, icône
+  sql/                 schema.sql (structure seule) et patrimo.sql
+                       (structure + données de démonstration)
+  tests/               parcours complet dans un navigateur (Playwright),
+                       25 vérifications — à lancer sur une base de test
+
+  Dans l'archive "patrimo_infinityfree.zip" :
+    htdocs/            les fichiers à envoyer sur l'hébergeur
+    base_de_donnees/   patrimo.sql et schema.sql à importer
+    tests/             le script de test (inutile sur l'hébergeur)
+
+------------------------------------------------------------------------
+2. MISE EN LIGNE SUR INFINITYFREE
+------------------------------------------------------------------------
+
+  a) Dans le panneau de contrôle (vPanel) > "MySQL Databases",
+     créer une base, par exemple "patrimo". Noter :
+        - MySQL Hostname   (ex. sql312.infinityfree.com)
+        - MySQL Username   (ex. if0_12345678)
+        - MySQL Password   (mot de passe du compte d'hébergement)
+        - nom complet de la base (ex. if0_12345678_patrimo)
+
+  b) Ouvrir phpMyAdmin à côté de la base, la sélectionner à gauche,
+     onglet "Importer", choisir base_de_donnees/patrimo.sql (sql/ dans
+     le code source), jeu de caractères utf-8, puis "Exécuter".
+     (Utiliser schema.sql pour partir d'une base vide ; il faudra
+     alors créer un premier compte admin, voir plus bas.)
+
+  c) Ouvrir includes/config.php et remplacer les 4 valeurs DB_HOST,
+     DB_NAME, DB_USER et DB_PASS par celles notées en a).
+
+  d) Envoyer TOUT le contenu du dossier htdocs/ de l'archive dans le
+     dossier htdocs/ de l'hébergement :
+        - soit par le gestionnaire de fichiers (Online File Manager) :
+          envoyer l'archive puis clic droit > Extract ;
+        - soit par FTP (FileZilla) : hôte ftpupload.net, port 21,
+          identifiants FTP du panneau.
+     Supprimer le fichier par défaut "index2.html" s'il existe.
+     Le fichier .htaccess doit bien être envoyé (fichier caché).
+
+  e) Ouvrir l'adresse du site : la page de connexion s'affiche.
+     Il est conseillé d'activer le certificat SSL gratuit dans le
+     panneau (rubrique "SSL Certificates").
+
+------------------------------------------------------------------------
+3. COMPTES DE DÉMONSTRATION
+------------------------------------------------------------------------
+
+  Mot de passe commun : patrimo2026
+
+  admin          Mohamed Lemine Ould Sidi   responsable du patrimoine
+  k.brahim       Khadijetou Mint Brahim     inventaire DSI
+  c.beibakar     Cheikh Ould Beibakar       inventaire DAF
+  a.ely          Aminetou Mint Ely          inventaire DRH
+  s.cheikh       Sidi Ould Cheikh           inventaire DG
+  f.abdallahi    Fatimetou Mint Abdallahi   inventaire DEP
+  b.vall         Brahim Ould Vall           inventaire SCA
+
+  Penser à changer ces mots de passe (menu Utilisateurs) après la
+  présentation, et à retirer le bloc "Comptes de démonstration" de
+  connexion.php si le site reste en ligne.
+
+  Base vide (schema.sql) : créer l'administrateur dans phpMyAdmin avec
+  un mot de passe haché. Exemple pour "patrimo2026" :
+    INSERT INTO utilisateurs (nom_complet, identifiant, mot_de_passe, role)
+    VALUES ('Administrateur', 'admin',
+      '$2y$12$MYRkPSOJthB.fthecWUDPu6fjUUW6PZ1Cp2AojfzIqK.0oVRo1r0K', 'admin');
+
+------------------------------------------------------------------------
+4. EN LOCAL (XAMPP / WAMP)
+------------------------------------------------------------------------
+
+  Copier le contenu de htdocs/ dans un dossier "patrimo" de htdocs
+  (XAMPP) ou www (WAMP), créer une base "patrimo" dans phpMyAdmin,
+  importer patrimo.sql, puis créer
+  includes/config.local.php :
+
+    <?php
+    define('DB_HOST', 'localhost');
+    define('DB_NAME', 'patrimo');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
+    define('MODE_DEBUG', true);
+
+  Ce fichier est prioritaire sur config.php et n'a pas besoin d'être
+  envoyé sur l'hébergeur.
+
+  Configuration minimale : PHP 7.4 ou plus (testé en PHP 8.4),
+  MySQL 5.7+ ou MariaDB 10.3+.
