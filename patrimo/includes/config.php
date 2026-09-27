@@ -16,6 +16,7 @@ defined('DB_HOST') || define('DB_HOST', 'sql000.infinityfree.com');
 defined('DB_NAME') || define('DB_NAME', 'if0_00000000_patrimo');
 defined('DB_USER') || define('DB_USER', 'if0_00000000');
 defined('DB_PASS') || define('DB_PASS', 'mot_de_passe_mysql');
+defined('DB_PORT') || define('DB_PORT', 3306);
 
 define('APP_NOM', 'Patrimo');
 define('APP_ORGANISME', 'Ministère — Direction du Patrimoine');

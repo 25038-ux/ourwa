@@ -3,6 +3,13 @@ require_once __DIR__ . '/includes/fonctions.php';
 
 if (utilisateur()) rediriger('index.php');
 
+// Base encore vide (premier lancement) : on passe par l'installation
+try {
+    valeur('SELECT 1 FROM utilisateurs LIMIT 1');
+} catch (PDOException $e) {
+    rediriger('installation.php');
+}
+
 $erreur = '';
 $identifiant = '';
 

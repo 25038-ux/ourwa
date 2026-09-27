@@ -32,34 +32,26 @@ des matériels administratifs (PHP / MySQL / HTML5 / CSS3 / JavaScript).
 2. MISE EN LIGNE SUR INFINITYFREE
 ------------------------------------------------------------------------
 
-  a) Dans le panneau de contrôle (vPanel) > "MySQL Databases",
-     créer une base, par exemple "patrimo". Noter :
-        - MySQL Hostname   (ex. sql312.infinityfree.com)
-        - MySQL Username   (ex. if0_12345678)
-        - MySQL Password   (mot de passe du compte d'hébergement)
-        - nom complet de la base (ex. if0_12345678_patrimo)
+  Les identifiants MySQL sont déjà renseignés dans
+  htdocs/includes/config.php.
 
-  b) Ouvrir phpMyAdmin à côté de la base, la sélectionner à gauche,
-     onglet "Importer", choisir base_de_donnees/patrimo.sql (sql/ dans
-     le code source), jeu de caractères utf-8, puis "Exécuter".
-     (Utiliser schema.sql pour partir d'une base vide ; il faudra
-     alors créer un premier compte admin, voir plus bas.)
+  a) Ouvrir le gestionnaire de fichiers (Online File Manager) du compte,
+     entrer dans le dossier htdocs/ et supprimer le fichier par défaut
+     "index2.html" s'il existe.
 
-  c) Ouvrir includes/config.php et remplacer les 4 valeurs DB_HOST,
-     DB_NAME, DB_USER et DB_PASS par celles notées en a).
+  b) Envoyer l'archive puis clic droit > Extract, ou envoyer par FTP
+     (FileZilla : hôte ftpupload.net, port 21) : le CONTENU du dossier
+     htdocs/ de l'archive doit se retrouver directement dans htdocs/
+     de l'hébergement (index.php à la racine). Le fichier caché
+     .htaccess doit être envoyé aussi.
 
-  d) Envoyer TOUT le contenu du dossier htdocs/ de l'archive dans le
-     dossier htdocs/ de l'hébergement :
-        - soit par le gestionnaire de fichiers (Online File Manager) :
-          envoyer l'archive puis clic droit > Extract ;
-        - soit par FTP (FileZilla) : hôte ftpupload.net, port 21,
-          identifiants FTP du panneau.
-     Supprimer le fichier par défaut "index2.html" s'il existe.
-     Le fichier .htaccess doit bien être envoyé (fichier caché).
+  c) Ouvrir l'adresse du site : la page d'installation s'affiche.
+     Cliquer sur "Installer Patrimo" : les tables et les données de
+     démonstration sont créées. (Alternative : importer
+     sql/patrimo.sql dans phpMyAdmin.) L'installation ne peut pas être
+     relancée une fois la base remplie.
 
-  e) Ouvrir l'adresse du site : la page de connexion s'affiche.
-     Il est conseillé d'activer le certificat SSL gratuit dans le
-     panneau (rubrique "SSL Certificates").
+  d) Se connecter avec un compte de démonstration.
 
 ------------------------------------------------------------------------
 3. COMPTES DE DÉMONSTRATION

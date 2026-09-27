@@ -2,3 +2,4 @@ config/database.local.php
 logs/*.log
 sessions/sess_*
 patrimo/includes/config.local.php
+livrables/patrimo_infinityfree_final.zip
