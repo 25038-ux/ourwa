@@ -39,11 +39,10 @@ des matériels administratifs (PHP / MySQL / HTML5 / CSS3 / JavaScript).
      entrer dans le dossier htdocs/ et supprimer le fichier par défaut
      "index2.html" s'il existe.
 
-  b) Envoyer l'archive puis clic droit > Extract, ou envoyer par FTP
-     (FileZilla : hôte ftpupload.net, port 21) : le CONTENU du dossier
-     htdocs/ de l'archive doit se retrouver directement dans htdocs/
-     de l'hébergement (index.php à la racine). Le fichier caché
-     .htaccess doit être envoyé aussi.
+  b) Envoyer l'archive dans htdocs/ puis clic droit > Extract : les
+     fichiers (index.php, .htaccess, assets/…) sont directement à la
+     racine de l'archive et arrivent donc à la racine de htdocs/.
+     Supprimer ensuite le fichier .zip.
 
   c) Ouvrir l'adresse du site : la page d'installation s'affiche.
      Cliquer sur "Installer Patrimo" : les tables et les données de
