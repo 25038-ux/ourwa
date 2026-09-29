@@ -14,7 +14,8 @@
     "./bulletin-css": "./src/bulletin-css.ts",
     "./brand": "./src/brand.ts",
     "./tenant-slug": "./src/tenant-slug.ts",
-    "./facturation": "./src/facturation.ts"
+    "./facturation": "./src/facturation.ts",
+    "./emploi-du-temps": "./src/emploi-du-temps.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

@@ -10,3 +10,4 @@ export * from './bulletin-css.js';
 export * from './brand.js';
 export * from './tenant-slug.js';
 export * from './facturation.js';
+export * from './emploi-du-temps.js';

@@ -63,3 +63,6 @@ deploy/*/secrets/
 # Relevés de mise en page (e2e/capture-responsive.spec.ts) — régénérables
 apps/web/e2e/.captures/
 apps/web/e2e/.captures-avant/
+
+# Scripts de coup d'œil locaux (captures Playwright ad hoc)
+apps/web/scratch-*.mjs
