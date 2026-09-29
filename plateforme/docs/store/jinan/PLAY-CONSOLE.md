@@ -23,12 +23,13 @@ La clé de téléversement existe déjà : `apps/mobile/android/jinan-upload.jks
 **Copiez-les aussi hors du PC (clé USB + un second support)** : sans eux, plus
 aucune mise à jour ne peut être envoyée sans demander à Google une nouvelle clé.
 
-Une fois le domaine connu, dans `deploy/brands/jinan.env` :
+L'adresse du serveur est déjà dans `deploy/brands/jinan.env` (écrite le
+29/09/2026 par `deploy/jinan/configurer-production.sh`) :
 
-    API_URL=https://api.<domaine>
-    WEB_URL=https://<domaine>
+    API_URL=https://api.ecole-jinan.com
+    WEB_URL=https://ecole-jinan.com
 
-puis, à chaque version :
+À chaque version :
 
     BRAND=jinan bash tools/packager.sh android   # dist/jinan-parent-<version>.aab, vérifié
     BRAND=jinan bash tools/packager.sh apk       # dist/jinan-parent-<version>.apk (essais)
@@ -61,7 +62,7 @@ garde la clé de signature ; vous téléversez avec la vôtre).
 
 | Rubrique | Réponse |
 |---|---|
-| Règles de confidentialité | https://&lt;domaine&gt;/legal/confidentialite |
+| Règles de confidentialité | https://ecole-jinan.com/legal/confidentialite |
 | Accès à l'application | « Tout ou partie de l'app est restreinte » → le compte de démonstration (§ 6) |
 | Annonces | Non, pas de publicité |
 | Classification du contenu | Catégorie « Référence, actualités ou éducation » ; violence, sexe, langage, drogues, jeux d'argent : Non ; échanges entre utilisateurs : **Non** (les parents lisent les messages de l'école, n'en envoient pas) ; partage de position : Non ; achats numériques : Non |
@@ -71,11 +72,11 @@ garde la clé de signature ; vous téléversez avec la vôtre).
 | Fonctionnalités financières | Aucune (l'application n'encaisse rien ; elle n'affiche pas de montants) |
 | Santé | Non — le service « Docteur » est une ligne de facturation ; aucune donnée médicale n'est collectée |
 | Sécurité des données | Voir `docs/legal/declarations-magasins.md` : nom, téléphone, e-mail facultatif (infos personnelles) ; notes, absences, remarques, paiements (données de l'élève et financières) ; jeton de notification (identifiant d'appareil). Chiffrées en transit : Oui. Suppression possible : Oui. Aucune vente, aucune publicité. |
-| Suppression de compte (URL) | https://&lt;domaine&gt;/legal/suppression — le compte est créé par l'école ; la suppression existe aussi dans l'application (Profil → Supprimer mon compte) |
+| Suppression de compte (URL) | https://ecole-jinan.com/legal/suppression — le compte est créé par l'école ; la suppression existe aussi dans l'application (Profil → Supprimer mon compte) |
 
 ## 5. Fiche du Play Store
 
-Catégorie **Éducation** · site https://&lt;domaine&gt; · e-mail de contact
+Catégorie **Éducation** · site https://ecole-jinan.com · e-mail de contact
 **infoheavenly24@gmail.com** · téléphone **+222 46 33 02 42** · adresse 465 E Nord,
 Tevragh Zeina, Nouakchott. Icône : `icone-512.png`. Image de présentation :
 `graphique-1024x500.png`. Captures : au moins 2 (idéalement 4 à 8) captures du
