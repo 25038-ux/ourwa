@@ -685,6 +685,17 @@ async function main() {
            `${THIS_YEAR - int(1, 12)}-09-01`],
         );
         staffIds.push({ id: rows[0]!.id, salary });
+        // Ses horaires (0043, ADR-0074) : sans eux, on ne peut déclarer aucune
+        // absence de l'agent. Fixes, sans tirage : la suite de `rand()` — et
+        // donc tout le reste de la graine — reste la même.
+        const gardien = title === 'Gardien';
+        for (const jour of gardien ? [1, 2, 3, 4, 5, 6] : [1, 2, 3, 4, 5]) {
+          await db.query(
+            `INSERT INTO staff_work_hours (school_id, staff_id, day_of_week, starts_at, ends_at)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [schoolId, rows[0]!.id, jour, gardien ? '07:00' : '08:00', gardien ? '17:00' : '14:00'],
+          );
+        }
       }
 
       // One outstanding loan, so a salary run has a deduction to withhold.

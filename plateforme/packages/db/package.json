@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "dev": "tsx src/dev-server.ts",
     "db:dev": "tsx src/dev-server.ts",
-    "bootstrap-school": "tsx src/bootstrap-school.ts"
+    "bootstrap-school": "tsx src/bootstrap-school.ts",
+    "seed:jinan": "tsx src/seed-jinan.ts"
   },
   "dependencies": {
     "tsx": "^4.19.1",

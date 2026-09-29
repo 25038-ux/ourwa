@@ -50,6 +50,9 @@ const SUPER_ADMIN: MenuItem[] = [
   { titre: 'Ajouter Staff', href: '/comptes/staff', icon: ICONS.ICN_STAFF! },
   { titre: 'Statistiques', href: '/statistiques', icon: ICONS.ICN_LEVELS! },
   { titre: "Gérer l'absence", href: '/scolarite/absence', icon: ICONS.ICN_CHECK! },
+  // Sans équivalent chez El Ourwa (ADR-0074) : les absences des professeurs et
+  // des agents, d'après leur emploi du temps. Juste après celles des élèves.
+  { titre: 'Absences du personnel', href: '/personnel/absences', icon: ICONS.ICN_CAL! },
   { titre: 'Recherche', href: '/search', icon: ICONS.ICN_SEARCH! },
   { titre: 'Mon profil', href: '/profile', icon: ICONS.ICN_PROFILE! },
   { titre: 'Comptes des parents', href: '/comptes/parents', icon: ICONS.ICN_KEY! },
@@ -76,6 +79,7 @@ const MENUS: Record<string, MenuItem[]> = {
   ],
   collecteur_absence: [
     { titre: "Gérer l'absence", href: '/scolarite/absence', icon: ICONS.ICN_CHECK! },
+    { titre: 'Absences du personnel', href: '/personnel/absences', icon: ICONS.ICN_CAL! },
   ],
   secretaire: [
     { titre: 'Inscrire un étudiant', href: '/students/new', icon: ICONS.ICN_STUDENT! },

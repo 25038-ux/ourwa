@@ -42,6 +42,10 @@ export default defineConfig({
     navigationTimeout: 45_000,
     headless,
     trace: 'retain-on-failure',
+    // Un Chromium déjà installé (poste sans téléchargement) : PLAYWRIGHT_CHROMIUM_PATH.
+    ...(process.env.PLAYWRIGHT_CHROMIUM_PATH
+      ? { launchOptions: { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH } }
+      : {}),
   },
   projects: [
     /*
