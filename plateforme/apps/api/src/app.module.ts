@@ -78,6 +78,8 @@ import { PushWorker } from './push/push.worker.js';
 import { ExamAccessController } from './exams/exams.controller.js';
 import { AttachmentsService } from './attachments/attachments.service.js';
 import { AttachmentsController } from './attachments/attachments.controller.js';
+import { PersonnelAbsencesService } from './personnel/personnel-absences.service.js';
+import { PersonnelAbsencesController } from './personnel/personnel-absences.controller.js';
 import { MailService } from './mail/mail.service.js';
 import { MailWorker } from './mail/mail.worker.js';
 
@@ -114,6 +116,7 @@ import { MailWorker } from './mail/mail.worker.js';
     AccountsController,
     ExamAccessController,
     AttachmentsController,
+    PersonnelAbsencesController,
   ],
   providers: [
     DbService,
@@ -155,6 +158,7 @@ import { MailWorker } from './mail/mail.worker.js';
     AccountsService,
     ExamAccessService,
     AttachmentsService,
+    PersonnelAbsencesService,
     MailService,
     MailWorker,
     // Order matters: authenticate, then authorise.
