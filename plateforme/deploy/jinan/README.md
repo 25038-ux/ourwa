@@ -141,4 +141,15 @@ Voir `docs/store/jinan/PLAY-CONSOLE.md`. La clé de signature existe déjà
 `C:\Eduplateforme\jinan_deployement`). Une fois `configurer-production.sh`
 passé (§0 : il écrit `API_URL` et `WEB_URL` dans `deploy/brands/jinan.env`) :
 `BRAND=jinan bash tools/packager.sh android` (le `.aab` du Play Store, vérifié)
-et `BRAND=jinan bash tools/packager.sh apk`.
+et `BRAND=jinan bash tools/packager.sh apk`. Un `.aab` « -non-signe » construit
+ailleurs se signe avec `BRAND=jinan bash tools/signer-aab.sh <fichier>`.
+
+## L'application iPhone (sur un Mac)
+
+`BRAND=jinan bash tools/packager.sh ios-projet` (n'importe quel poste) →
+`dist/jinan-ios-<version>.zip` : le projet Flutter aux couleurs de Jinan
+(identifiant `mr.jinan.parent`, nom « Jinan », icône, adresse du serveur).
+Sur le Mac (Xcode, CocoaPods, Flutter, compte Apple Developer) : décompresser,
+ouvrir `ios/Runner.xcworkspace` une fois pour choisir l'équipe (Signing &
+Capabilities), puis `bash construire-ios.sh` → `build/ios/ipa/*.ipa`, à envoyer
+avec Transporter. Sur un Mac qui a le dépôt : `BRAND=jinan bash tools/packager.sh ios`.

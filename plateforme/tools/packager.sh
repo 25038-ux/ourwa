@@ -6,7 +6,8 @@
 #   tools/packager.sh flutter-web  # application parent, version web → dist/parent-web-<version>.tar.gz
 #   tools/packager.sh android      # → dist/parent-<version>.aab   (SDK Android + key.properties requis)
 #   tools/packager.sh apk          # → dist/parent-<version>.apk   (le même, installable directement — démos, hors Play Store)
-#   tools/packager.sh ios          # imprime la marche à suivre : un projet iOS se construit sur macOS
+#   tools/packager.sh ios-projet   # → dist/ios-<version>.zip : le projet iOS marqué, prêt pour Xcode (tout poste)
+#   tools/packager.sh ios          # → dist/parent-<version>.ipa   (macOS + Xcode seulement)
 #   tools/packager.sh zip          # → dist/<enseigne-><version>.zip : le dépôt tel que commité, prêt à héberger (deploy/elmourad/)
 #   tools/packager.sh all
 #
@@ -211,12 +212,17 @@ preparer_android() {
   # (« Invalid argument ») ; et le JDK ne retombe sur TCP que si c'est le BIND
   # qui échoue, pas la connexion. Un dossier ordinaire règle tout. JAVA_TOOL_OPTIONS
   # vaut pour chaque JVM que Gradle lance — client, démon, compilateurs.
-  mkdir -p /c/Java/tmp 2>/dev/null || true
-  export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:-} -Djdk.net.unixdomain.tmpdir=C:\\Java\\tmp"
+  # (Windows seulement : ailleurs, ce chemin n'existe pas et casserait la JVM.)
+  case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*)
+      mkdir -p /c/Java/tmp 2>/dev/null || true
+      export JAVA_TOOL_OPTIONS="${JAVA_TOOL_OPTIONS:-} -Djdk.net.unixdomain.tmpdir=C:\\Java\\tmp" ;;
+  esac
   # ⚠ Pas de `grep -q` sous `pipefail` : il quitte à la première ligne qui
   # correspond, `flutter doctor` reçoit SIGPIPE, le tube échoue, et le SDK est
   # déclaré absent alors qu'il est là. `grep` doit lire jusqu'au bout.
-  if ! flutter doctor 2>/dev/null | grep '\[√\] Android toolchain' >/dev/null; then
+  # `[√]` sous Windows, `[✓]` sous macOS et Linux.
+  if ! flutter doctor 2>/dev/null | grep -E '\[(√|✓)\] Android toolchain' >/dev/null; then
     rouge "Le SDK Android n’est pas installé (flutter doctor). Lancez tools/android-sdk.sh — ~1,3 Go, sans Android Studio."
     exit 2
   fi
@@ -315,28 +321,86 @@ emballer_apk() {
   vert "$DIST/${PREFIXE}parent-$VERSION.apk  → à copier sur le téléphone et ouvrir (autoriser l'installation depuis cette source)"
 }
 
+# L'ENSEIGNE SUR LE PROJET iOS — dans une COPIE, jamais dans le dépôt : l'identifiant
+# de l'application (APP_ID), le nom sous l'icône (APP_LABEL) et les icônes de
+# ios/brands/<enseigne>/. Sans cela, un .ipa construit pour Jinan sortait
+# « El Ourwa », mr.elourwa.parent, icône par défaut (le projet ne porte que
+# l'enseigne d'origine ; Android, lui, lit APP_ID / APP_LABEL dans Gradle).
+appliquer_marque_ios() {
+  local projet="$1"
+  local id="${APP_ID:-mr.elourwa.parent}" nom="${APP_LABEL:-${BRAND_NAME:-El Ourwa}}"
+  sed -i.bak -e "s/PRODUCT_BUNDLE_IDENTIFIER = mr\.elourwa\.parent/PRODUCT_BUNDLE_IDENTIFIER = $id/" \
+    "$projet/ios/Runner.xcodeproj/project.pbxproj" && rm -f "$projet/ios/Runner.xcodeproj/project.pbxproj.bak"
+  for f in Debug Release; do
+    sed -i.bak -e "s/^APP_DISPLAY_NAME = .*/APP_DISPLAY_NAME = $nom/" "$projet/ios/Flutter/$f.xcconfig" \
+      && rm -f "$projet/ios/Flutter/$f.xcconfig.bak"
+  done
+  if [ -n "${BRAND:-}" ] && [ -d "$projet/ios/brands/$BRAND/AppIcon.appiconset" ]; then
+    rm -rf "$projet/ios/Runner/Assets.xcassets/AppIcon.appiconset"
+    cp -R "$projet/ios/brands/$BRAND/AppIcon.appiconset" "$projet/ios/Runner/Assets.xcassets/AppIcon.appiconset"
+  fi
+  grep -q "PRODUCT_BUNDLE_IDENTIFIER = $id;" "$projet/ios/Runner.xcodeproj/project.pbxproj" \
+    || { rouge "iOS : l'identifiant $id n'a pas pu être posé"; exit 2; }
+}
+
+# LE PROJET iOS PRÊT À CONSTRUIRE — sur N'IMPORTE QUEL poste (même sans Mac) :
+# apps/mobile tel que commité, l'enseigne appliquée, et `construire-ios.sh` qui
+# porte déjà l'adresse du serveur et les noms (dart-defines). Sur le Mac :
+# dézipper, `bash construire-ios.sh`. → dist/<enseigne->ios-<version>.zip
+emballer_ios_projet() {
+  titre "Application parent — iOS (projet prêt pour Xcode)"
+  local nom="${PREFIXE}ios-$VERSION" tmp; tmp="$(mktemp -d)"
+  # Depuis la racine git, le chemin complet : lancé d'un sous-dossier (la
+  # plateforme vit dans plateforme/ du dépôt ourwa), git archive filtre AUSSI
+  # par ce sous-dossier, et l'archive d'un arbre sortait vide.
+  local prefixe; prefixe="$(git rev-parse --show-prefix)"
+  mkdir -p "$tmp/$nom"
+  git -C "$(git rev-parse --show-toplevel)" archive --format=tar "HEAD:${prefixe}apps/mobile" | tar -x -C "$tmp/$nom"
+  [ -f "$tmp/$nom/pubspec.yaml" ] || { rouge "iOS : le projet apps/mobile n'a pas pu être extrait"; exit 2; }
+  appliquer_marque_ios "$tmp/$nom"
+  mapfile -t D < <(dart_defines)
+  {
+    echo '#!/usr/bin/env bash'
+    echo "# ${BRAND_NAME:-El Ourwa} — construire le .ipa (App Store) sur un Mac avec Xcode et Flutter."
+    echo '# Une fois, dans Xcode (open ios/Runner.xcworkspace) → Runner → Signing & Capabilities :'
+    echo "#   l'équipe Apple (Team), identifiant ${APP_ID:-mr.elourwa.parent} ; + Push Notifications."
+    echo 'set -euo pipefail'
+    echo 'cd "$(dirname "$0")"'
+    echo 'flutter pub get'
+    echo '( cd ios && pod install )'
+    printf 'flutter build ipa --release --export-method app-store'
+    # Entre apostrophes, lisibles (le nom arabe reste en clair) ; %q si une
+    # apostrophe s'y trouve.
+    for a in "${D[@]}"; do
+      case "$a" in *"'"*) printf ' \\\n  %q' "$a" ;; *) printf " \\\\\n  '%s'" "$a" ;; esac
+    done
+    echo
+    echo 'echo "✓ build/ios/ipa/*.ipa → Transporter (App Store Connect)"'
+  } > "$tmp/$nom/construire-ios.sh"
+  chmod +x "$tmp/$nom/construire-ios.sh"
+  rm -f "$DIST/$nom.zip"
+  ( cd "$tmp" && if command -v zip >/dev/null 2>&1; then zip -qr "$DIST/$nom.zip" "$nom"; else python3 -m zipfile -c "$DIST/$nom.zip" "$nom"; fi )
+  rm -rf "$tmp"
+  vert "$DIST/$nom.zip — sur un Mac : dézipper, puis bash $nom/construire-ios.sh"
+}
+
 emballer_ios() {
   titre "Application parent — iOS (.ipa pour l’App Store)"
   case "$(uname -s)" in
     Darwin) ;;
-    *) rouge "Un projet iOS ne se construit que sur macOS avec Xcode. Ce poste est $(uname -s)."
-       cat <<'EOF'
-  Sur un Mac, dans apps/mobile :
-    1. Xcode → Runner → Signing & Capabilities : l’équipe Apple, + Push Notifications, + Background Modes (remote notifications).
-    2. flutter build ipa --release --export-method app-store \
-         --dart-define=API_URL=… --dart-define=FIREBASE_API_KEY=… (voir dart_defines)
-    3. build/ios/ipa/*.ipa → Transporter ou `xcrun altool --upload-app`.
-    4. Dans Firebase → Cloud Messaging : téléverser la clé APNs (.p8) de l’équipe.
-EOF
+    *) rouge "Un .ipa ne se construit que sur macOS avec Xcode. Ce poste est $(uname -s)."
+       echo "  Pour préparer le projet ici et le construire sur un Mac : ${BRAND:+BRAND=$BRAND }tools/packager.sh ios-projet"
        exit 2 ;;
   esac
   exiger flutter "https://docs.flutter.dev/get-started/install"
   avertir_firebase
-  ( cd apps/mobile
-    mapfile -t D < <(dart_defines)
-    flutter build ipa --release --export-method app-store "${D[@]}"
-  )
-  vert "apps/mobile/build/ios/ipa/  → Transporter"
+  # Construit dans une copie marquée : le dépôt n'est jamais modifié.
+  emballer_ios_projet
+  local nom="${PREFIXE}ios-$VERSION" tmp; tmp="$(mktemp -d)"
+  ( cd "$tmp" && unzip -q "$DIST/$nom.zip" && bash "$nom/construire-ios.sh" )
+  cp "$tmp/$nom"/build/ios/ipa/*.ipa "$DIST/${PREFIXE}parent-$VERSION.ipa"
+  rm -rf "$tmp"
+  vert "$DIST/${PREFIXE}parent-$VERSION.ipa  → Transporter"
 }
 
 # LE ZIP DU DÉPÔT — ce qui est COMMITÉ (git archive HEAD), rien d'autre : ni
@@ -374,6 +438,7 @@ case "${1:-}" in
   android)     emballer_android ;;
   apk)         emballer_apk ;;
   ios)         emballer_ios ;;
+  ios-projet)  emballer_ios_projet ;;
   all)         emballer_web; emballer_flutter_web; emballer_android || true; emballer_apk || true; emballer_ios || true; emballer_zip ;;
   *) sed -n '2,20p' "$0"; exit 2 ;;
 esac

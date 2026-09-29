@@ -8,6 +8,31 @@ every session, even short or unproductive ones.
 
 
 
+## 0.7.8+18 — JINAN : LES PAQUETS FINAUX — 2026-09-29 (nuit)
+
+**Demande du propriétaire :** « prepare the aab and apk and ios ready
+versions » — « push before giving me the commands, i want final results ».
+
+- **`tools/packager.sh ios-projet`** (nouveau, tout poste) →
+  `dist/jinan-ios-<version>.zip` : `apps/mobile` tel que commité, l'enseigne
+  appliquée dans une copie (identifiant `mr.jinan.parent`, nom « Jinan »,
+  icônes de `ios/brands/jinan/`) et `construire-ios.sh` qui porte l'adresse du
+  serveur. Avant, un `.ipa` construit pour Jinan serait sorti « El Ourwa »,
+  `mr.elourwa.parent` : le projet iOS ne lisait pas l'enseigne (Android, si,
+  par Gradle). `packager.sh ios` (macOS) construit désormais depuis cette copie.
+- **`tools/signer-aab.sh`** (nouveau) : signe un `.aab` « -non-signe » avec la
+  clé de téléversement, sur le PC qui la détient (`jarsigner`), sans
+  reconstruire ; refuse un fichier déjà signé ; affiche l'empreinte SHA-256.
+- `packager.sh` tourne aussi sous Linux : le `[✓]` de `flutter doctor` y est
+  reconnu, et le dossier `C:\Java\tmp` n'est plus imposé hors Windows.
+- Construits dans ce bac à sable (non commités, `dist/`) : `jinan-0.7.8+18.zip`
+  (serveur) et `jinan-ios-0.7.8+18.zip`. Le `.aab` et l'`.apk` se construisent
+  (Flutter 3.47.5, SDK Android 36) — voir la section suivante quand elle existe.
+  La vraie clé de téléversement n'a jamais quitté le PC.
+- iOS : aucun `.ipa` possible ici (macOS + Xcode + compte Apple Developer).
+- Firebase n'est toujours pas configuré (`FIREBASE_*` commentés) :
+  l'application interroge le serveur, sans notifications instantanées.
+
 ## 0.7.8+18 — JINAN : LE NOM DE L'ÉCOLE — 2026-09-29 (nuit)
 
 **Demande du propriétaire :** « change the school label in the website to

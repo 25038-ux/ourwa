@@ -38,6 +38,14 @@ L'adresse du serveur est déjà dans `deploy/brands/jinan.env` (écrite le
 avec une permission photos/vidéos, l'identifiant publicitaire ou le mode
 débogage. Le paquet cible Android 16 (API 36), exigé depuis le 31 août 2026.
 
+**Un .aab construit ailleurs** (sans la clé) arrive sous le nom
+`jinan-parent-<version>-non-signe.aab`. Le signer sur le PC qui détient la clé,
+sans rien reconstruire :
+
+    BRAND=jinan bash tools/signer-aab.sh dist/jinan-parent-<version>-non-signe.aab
+    # → dist/jinan-parent-<version>.aab, vérifié ; l'empreinte SHA-256 affichée
+    #   doit être 8D:76:DF:C8:…:CE:7E:F2:86 (sinon Google le refuse).
+
 Notifications instantanées (facultatif, sinon l'application interroge le
 serveur) : dans le projet Firebase `el-mourad`, ajouter l'application Android
 `mr.jinan.parent`, puis recopier ses quatre valeurs dans `deploy/brands/jinan.env`
