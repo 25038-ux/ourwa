@@ -25,10 +25,26 @@ versions » — « push before giving me the commands, i want final results ».
   reconstruire ; refuse un fichier déjà signé ; affiche l'empreinte SHA-256.
 - `packager.sh` tourne aussi sous Linux : le `[✓]` de `flutter doctor` y est
   reconnu, et le dossier `C:\Java\tmp` n'est plus imposé hors Windows.
-- Construits dans ce bac à sable (non commités, `dist/`) : `jinan-0.7.8+18.zip`
-  (serveur) et `jinan-ios-0.7.8+18.zip`. Le `.aab` et l'`.apk` se construisent
-  (Flutter 3.47.5, SDK Android 36) — voir la section suivante quand elle existe.
-  La vraie clé de téléversement n'a jamais quitté le PC.
+- **Construits dans ce bac à sable** (Flutter 3.47.5, SDK Android 36 ; non
+  commités, `dist/`) et remis au propriétaire :
+  - `jinan-0.7.8+18.zip` — le serveur (sans clé ni `.jks`) ;
+  - `jinan-ios-0.7.8+18.zip` — le projet iOS marqué ;
+  - `jinan-parent-0.7.8+18-non-signe.aab` — `mr.jinan.parent`, versionCode 18,
+    API 36, `https://api.ecole-jinan.com` compilée, aucune permission
+    interdite ; **à signer** sur le PC : `BRAND=jinan bash tools/signer-aab.sh
+    dist/jinan-parent-0.7.8+18-non-signe.aab` ;
+  - `jinan-parent-0.7.8+18-ESSAI.apk` — ⚠ signé d'une clé d'essai jetable
+    (CN « Jinan ESSAI (non publiable) »), pour tester sur un téléphone
+    seulement ; à désinstaller avant la version du Play Store (signatures
+    différentes).
+  La vraie clé de téléversement n'a jamais quitté le PC ; la clé d'essai et son
+  `key-jinan.properties` n'ont jamais été commités (`key*.properties` ignoré),
+  et le `.aab` signé d'essai a été supprimé.
+- `signer-aab.sh` essayé ici de bout en bout (avec la clé d'essai) : non signé →
+  signé et vérifié ; déjà signé → refusé ; fichier illisible → refusé ; sans
+  `BRAND` ou sans clé → refusé. Trouvé en l'essayant : le test « déjà signé »
+  (`unzip -l | grep -q` sous `pipefail`) ne se déclenchait jamais — remplacé
+  par la sortie de `jarsigner -verify`, lue en entier.
 - iOS : aucun `.ipa` possible ici (macOS + Xcode + compte Apple Developer).
 - Firebase n'est toujours pas configuré (`FIREBASE_*` commentés) :
   l'application interroge le serveur, sans notifications instantanées.

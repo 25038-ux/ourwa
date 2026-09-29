@@ -39,9 +39,14 @@ JARSIGNER="$(outil jarsigner)"; KEYTOOL="$(outil keytool)"
 [ -n "$JARSIGNER" ] && [ -n "$KEYTOOL" ] || { rouge "jarsigner/keytool introuvables : installez le JDK (tools/android-sdk.sh)."; exit 2; }
 
 # Un .aab déjà signé porterait deux signatures : refusé par le Play Store.
-if unzip -l "$ENTREE" 2>/dev/null | grep -qE 'META-INF/[^/]+\.(SF|RSA|EC|DSA)$'; then
-  rouge "$ENTREE est déjà signé : partez du fichier « -non-signe »."; exit 2
-fi
+# (Sortie lue en entier, pas de `grep -q` dans un tube sous pipefail : la
+# commande amont reçoit SIGPIPE et le test échoue en silence — voir packager.sh.)
+ETAT="$("$JARSIGNER" -verify "$ENTREE" 2>&1 || true)"
+case "$ETAT" in
+  *"jar is unsigned"*) ;;
+  *"jar verified"*) rouge "$ENTREE est déjà signé : partez du fichier « -non-signe »."; exit 2 ;;
+  *) rouge "$ENTREE n'est pas un .aab lisible :"; printf '%s\n' "$ETAT" >&2; exit 2 ;;
+esac
 
 SORTIE="${ENTREE%-non-signe.aab}.aab"
 [ "$SORTIE" != "$ENTREE" ] || SORTIE="${ENTREE%.aab}-signe.aab"
