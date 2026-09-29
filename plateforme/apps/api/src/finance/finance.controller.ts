@@ -38,8 +38,18 @@ const money = z.string().regex(/^\d+(\.\d{1,2})?$/, 'Amount must be a decimal st
 export class PaymentMethodsController {
   constructor(@Inject(PaymentsService) private readonly payments: PaymentsService) {}
 
+  /**
+   * ⚠ LIRE LA LISTE, C'EST LE DROIT DE QUI ENCAISSE — y compris à l'inscription
+   * et à la réinscription (décision du propriétaire, 2026-09-29 : « secretaries
+   * can read the list »). La fenêtre qui suit une (ré)inscription encaisse avec
+   * `scolarite.inscrire` / `scolarite.reinscrire` (`POST caisse/encaissement`) ;
+   * sans la liste, la secrétaire — et l'administrateur, qui n'a aucun
+   * `finance.*` — lisaient « aucun moyen de paiement configuré ». Ajouter ou
+   * désactiver un moyen reste à la direction (ci-dessous).
+   * `moyens-paiement-lecture.spec.ts`.
+   */
   @Get()
-  @RequirePermission('finance.consulter', 'finance.encaisser')
+  @RequirePermission('finance.consulter', 'finance.encaisser', 'scolarite.inscrire', 'scolarite.reinscrire')
   list(@Query('includeInactive') includeInactive?: string) {
     return this.payments.methods(includeInactive === 'true');
   }

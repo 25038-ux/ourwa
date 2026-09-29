@@ -24,6 +24,7 @@ const ACCOUNTS = [
   // L'école « services » de développement (`pnpm --filter @elourwa/db seed:jinan`).
   { file: 'jinan-admin.json', slug: 'jinan', user: 'admin' },
   { file: 'jinan-absence.json', slug: 'jinan', user: 'absence' },
+  { file: 'jinan-secretaire.json', slug: 'jinan', user: 'secretaire' },
 ];
 
 for (const account of ACCOUNTS) {

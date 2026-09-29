@@ -176,6 +176,39 @@ test.describe('Jinan — la direction', () => {
   });
 });
 
+test.describe('Jinan — la secrétaire', () => {
+  test.use({ storageState: 'e2e/.auth/jinan-secretaire.json' });
+
+  /**
+   * Décision du propriétaire (29/09) : la secrétaire lit la liste des moyens
+   * de paiement. Avant, la fenêtre qui suit son inscription disait « aucun
+   * moyen de paiement configuré » et elle ne pouvait rien encaisser.
+   */
+  test('inscrit et encaisse dans la même fenêtre', async ({ page }) => {
+    await prete(page, `${J}/students/new`);
+    await page.locator('input[name="prenom"]').fill('Secret');
+    await page.locator('input[name="nom"]').fill(`Mint Essai ${TAG}`);
+    await page.locator('input[name="rim"]').fill(`RIM-SEC-${TAG}`);
+    await page.locator('input[name="nni"]').fill(`NNISEC${TAG}`);
+    const groupe = await page.locator('select[name="groupe_id"] option', { hasText: '2 AF — 2 AF B' }).first().getAttribute('value');
+    await page.locator('select[name="groupe_id"]').selectOption(groupe!);
+    await page.getByLabel(/8h – 14h/).check();
+    await page.getByRole('radio', { name: 'Nouveau parent' }).check();
+    await page.locator('input[name="p_nom"]').fill(`Parent Secret ${TAG}`);
+    await page.locator('input[name="p_tel"]').fill(`48${TAG}`);
+    await page.getByRole('button', { name: /Inscrire l.étudiant/ }).click();
+
+    const fenetre = page.locator('.modal-overlay.active');
+    await expect(fenetre.locator('tfoot')).toContainText('1 mois + 1 service', { timeout: 60000 });
+    await expect(page.getByText(/Aucun moyen de paiement configuré/)).toHaveCount(0);
+    // 2 AF en 8h – 14h (3 200) + frais d'inscription (2 000).
+    await expect(fenetre.locator('tfoot')).toContainText('5 200 MRU');
+    await fenetre.getByRole('button', { name: /Encaisser & imprimer/ }).click();
+    await expect(page).toHaveURL(/\/finance\/recu\/groupe\//, { timeout: 60000 });
+    await expect(page.locator('#recu')).toContainText('5 200');
+  });
+});
+
 test.describe('une école « famille » ne voit rien de nouveau', () => {
   test.use({ storageState: 'e2e/.auth/nour-admin.json' });
 
