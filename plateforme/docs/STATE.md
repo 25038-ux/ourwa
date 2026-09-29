@@ -8,6 +8,31 @@ every session, even short or unproductive ones.
 
 
 
+## 0.7.8+17 — JINAN : LE SERVEUR DE PRODUCTION — 2026-09-29 (nuit)
+
+**Donné par le propriétaire :** l'IP du VPS **209.74.66.223** et le domaine
+**ecole-jinan.com**.
+
+- `bash deploy/jinan/configurer-production.sh 209.74.66.223 ecole-jinan.com
+  namecheap-us` → `production.env`, `API_URL=https://api.ecole-jinan.com`,
+  `WEB_URL=https://ecole-jinan.com`, `LEGAL_HOST` = Namecheap, serveur aux
+  États-Unis (adresse enregistrée à Namecheap — RDAP NET-209-74-64-0-1 — et
+  localisée aux États-Unis ; `namecheap-eu` si le VPS est en fait en Europe).
+- Version **0.7.8+17** (pubspec) : ce code porte 0043, l'interface Jinan et les
+  absences ; le paquet `dist/jinan-0.7.8+17.zip` (non commité, `dist/`).
+- **Le DNS ne pointe pas encore vers le serveur** (vérifié le 29/09 par
+  dns.google) : `@` → 192.64.119.103 (parking Namecheap), `www` → CNAME de
+  parking, `api` absent, aucun AAAA. À faire chez Namecheap (Domain List →
+  Manage → Advanced DNS) : supprimer les enregistrements de parking, créer
+  trois **A** `@`, `www`, `api` → 209.74.66.223.
+- Le serveur lui-même n'a pas pu être joint depuis ce bac à sable (sortie par
+  mandataire HTTPS seulement) : rien n'y a été installé.
+
+### Prochaine tâche
+Le propriétaire : DNS (ci-dessus), puis `deploy/jinan/README.md` §1–§2 avec
+`dist/jinan-0.7.8+17.zip` ; ensuite Frais, horaires des agents, application
+Android (`BRAND=jinan bash tools/packager.sh android`).
+
 ## JINAN : L'INTERFACE WEB TERMINÉE, LES ABSENCES DU PERSONNEL, LA PRODUCTION EN UN ENDROIT — 2026-09-29 (soir)
 
 **Demande du propriétaire :** « faire ce qui reste » (document
