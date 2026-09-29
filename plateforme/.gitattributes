@@ -1,0 +1,6 @@
+# Les fichiers qui partent sur un serveur Linux gardent LF quoi que fasse autocrlf sur le poste Windows.
+*.sh text eol=lf
+Dockerfile text eol=lf
+Caddyfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

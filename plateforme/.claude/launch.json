@@ -1,0 +1,61 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "db",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "--yes",
+        "pnpm@9.12.3",
+        "--filter",
+        "@elourwa/db",
+        "db:dev"
+      ],
+      "port": 5432
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "--yes",
+        "pnpm@9.12.3",
+        "--filter",
+        "@elourwa/api",
+        "dev"
+      ],
+      "port": 3001
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "--yes",
+        "pnpm@9.12.3",
+        "--filter",
+        "@elourwa/web",
+        "dev"
+      ],
+      "port": 3000,
+      "url": "http://nour.localhost:3000"
+    },
+    {
+      "name": "api-elmourad",
+      "runtimeExecutable": "C:/Program Files/Git/bin/bash.exe",
+      "runtimeArgs": [
+        "scripts/dev-elmourad.sh",
+        "api"
+      ],
+      "port": 3011
+    },
+    {
+      "name": "web-elmourad",
+      "runtimeExecutable": "C:/Program Files/Git/bin/bash.exe",
+      "runtimeArgs": [
+        "scripts/dev-elmourad.sh",
+        "web"
+      ],
+      "port": 3010,
+      "url": "http://localhost:3010"
+    }
+  ]
+}

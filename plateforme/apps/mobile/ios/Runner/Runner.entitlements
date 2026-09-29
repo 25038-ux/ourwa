@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  ⚠ À RATTACHER DANS XCODE : Runner → Signing & Capabilities → + Push
+  Notifications. Xcode réécrit alors « development » en « production » à
+  l'archive. Sans cette capacité, FirebaseMessaging.getToken() rend nil sur
+  iOS et l'application interroge, comme avant, sans rien casser.
+-->
+<plist version="1.0">
+<dict>
+	<key>aps-environment</key>
+	<string>development</string>
+</dict>
+</plist>

@@ -1,0 +1,13 @@
+{
+  // ⚠ `DOM` here is for two standard globals, not a licence to touch a browser.
+  // `@elourwa/shared` runs in three places — Node (the API), the Edge runtime
+  // (the web app's middleware) and the browser (its client bundle) — and
+  // `session-expiry.ts` needs `atob` and `TextDecoder`, which all three have and
+  // `lib: ES2022` alone does not declare. `Buffer` was the alternative and it is
+  // the wrong one: it exists in only one of the three.
+  //
+  // Nothing in this package may reference `window`, `document` or `localStorage`.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "lib": ["ES2022", "DOM"] },
+  "include": ["src/**/*.ts"]
+}

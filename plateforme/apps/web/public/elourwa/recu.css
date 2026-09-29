@@ -1,0 +1,48 @@
+/*
+ * LE REÇU — copied byte for byte from `recu_styles()` in includes/finance.php.
+ *
+ * ⚠ THIS IS A DOCUMENT A FAMILY KEEPS. It is the only thing they hold proving
+ * they paid, so it is not a screen that happens to print — the print rules are
+ * the point, and they are its rules: the sidebar, the header and every alert
+ * disappear, the page loses its background, and the receipt itself is told not
+ * to break across pages.
+ *
+ * Its gradient head, its Arabic ع monogram, its dashed signature lines. Not
+ * redesigned.
+ */
+.recu-doc { max-width: 640px; margin: 0 auto 1.5rem; background: #fff; border: 1px solid #dcd3c4;
+border-radius: 14px; overflow: hidden; box-shadow: 0 8px 30px rgba(15,23,42,.08);
+font-family: 'Inter', 'Segoe UI', Arial, sans-serif; color: #201e1d; }
+.recu-head { background: linear-gradient(135deg, #1E3A8A 0%, #8c491a 55%, #c67139 100%);
+color: #fff; padding: 1.4rem 1.75rem; display: flex; justify-content: space-between;
+align-items: center; gap: 1rem; flex-wrap: wrap; }
+.recu-brand { display: flex; align-items: center; gap: .8rem; }
+.recu-logo { width: 52px; height: 52px; border-radius: 12px; background: rgba(255,255,255,.15);
+display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800;
+border: 1px solid rgba(255,255,255,.35); }
+.recu-brand h2 { margin: 0; font-size: 1.3rem; letter-spacing: .5px; }
+.recu-brand small { opacity: .85; font-size: .78rem; display: block; }
+.recu-meta { text-align: right; }
+.recu-meta .recu-type { font-weight: 700; font-size: .92rem; text-transform: uppercase;
+letter-spacing: 1px; }
+.recu-meta .recu-num { font-size: .8rem; opacity: .9; margin-top: .2rem; font-family: 'Courier New', monospace; }
+.recu-body { padding: 1.5rem 1.75rem; }
+.recu-table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.recu-table td { padding: .55rem .6rem; border-bottom: 1px solid #F1F5F9; vertical-align: top; }
+.recu-table td:first-child { font-weight: 600; color: #475569; width: 42%; }
+.recu-total { background: linear-gradient(90deg, #fff2eb, #ffe1d0); border-radius: 10px;
+display: flex; justify-content: space-between; align-items: center; padding: .9rem 1.1rem;
+margin-top: 1rem; }
+.recu-total .label { font-weight: 700; color: #3730A3; }
+.recu-total .amount { font-weight: 800; font-size: 1.35rem; color: #1E3A8A; }
+.recu-reduction { color: #B45309; font-weight: 600; }
+.recu-signatures { display: flex; justify-content: space-between; gap: 2rem; margin-top: 2.2rem; }
+.recu-signatures div { flex: 1; text-align: center; font-size: .82rem; color: #64748B; }
+.recu-signatures .ligne { border-top: 1.5px dashed #CBD5E1; margin-top: 2.6rem; padding-top: .4rem; }
+.recu-foot { border-top: 1px solid #dcd3c4; padding: .9rem 1.75rem; display: flex;
+justify-content: space-between; font-size: .75rem; color: #94A3B8; flex-wrap: wrap; gap: .4rem; }
+@media print {
+.no-print, .sidebar, .topbar, .page-header, .alert { display: none !important; }
+body { background: #fff !important; }
+.recu-doc { box-shadow: none; border: 1px solid #999; page-break-inside: avoid; }
+.content, .main-content { margin: 0 !important; padding: 0 !important; }

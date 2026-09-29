@@ -1,0 +1,8 @@
+packages:
+  - 'apps/api'
+  - 'apps/web'
+  - 'packages/*'
+  # Les outils de reprise et de réconciliation : ils lisent les deux bases,
+  # et doivent donc déclarer leurs pilotes plutôt que de compter sur le hasard
+  # du hissage des dépendances à la racine.
+  - 'tools'

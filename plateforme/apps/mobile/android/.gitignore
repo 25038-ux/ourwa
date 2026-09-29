@@ -1,0 +1,26 @@
+gradle-wrapper.jar
+/.gradle
+/captures/
+/gradlew
+/gradlew.bat
+/local.properties
+GeneratedPluginRegistrant.java
+
+# Remember to never publicly share your keystore.
+# See https://flutter.dev/to/reference-keystore
+key.properties
+**/*.keystore
+**/*.jks
+
+# ⚠ SIGNATURE ET SECRETS — jamais dans le dépôt.
+# La clé de signature Play est irremplaçable : la perdre, c'est ne plus jamais
+# pouvoir mettre l'application à jour ; la publier, c'est laisser n'importe qui
+# la signer. `key.properties` porte son mot de passe.
+key.properties
+# Une clé par enseigne : key-<enseigne>.properties (tools/packager.sh cle).
+key*.properties
+*.jks
+*.keystore
+# Le fichier de configuration Firebase contient des identifiants de projet ;
+# l'application les reçoit par --dart-define, jamais depuis le dépôt.
+app/google-services.json

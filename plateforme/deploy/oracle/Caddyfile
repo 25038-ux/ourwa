@@ -1,0 +1,24 @@
+# Un nom par école + `admin` (console) + `api` (l'application des familles).
+# `PUBLIC_DOMAIN` vaut par exemple `141-148-1-2.sslip.io` : sslip.io renvoie
+# n'importe quel `<prefixe>.141-148-1-2.sslip.io` vers 141.148.1.2, sans
+# compte ni domaine. Les certificats viennent de Let's Encrypt, un par nom.
+# Ajouter une branche = ajouter son nom ci-dessous, puis `docker compose restart caddy`.
+{
+	email {$ACME_EMAIL}
+}
+
+api.{$PUBLIC_DOMAIN} {
+	# L'application des familles arrive ici directement : Caddy dit à l'API qui
+	# est devant l'écran (l'API ne lit pas X-Forwarded-For, trop facile à forger,
+	# seulement X-Client-IP d'un mandataire de confiance — TRUSTED_PROXIES).
+	reverse_proxy api:3001 {
+		header_up X-Client-IP {remote_host}
+		header_up X-Client-User-Agent {header.User-Agent}
+	}
+	encode zstd gzip
+}
+
+admin.{$PUBLIC_DOMAIN}, nour.{$PUBLIC_DOMAIN}, rissala.{$PUBLIC_DOMAIN}, salam.{$PUBLIC_DOMAIN}, elourwa.{$PUBLIC_DOMAIN} {
+	reverse_proxy web:3000
+	encode zstd gzip
+}

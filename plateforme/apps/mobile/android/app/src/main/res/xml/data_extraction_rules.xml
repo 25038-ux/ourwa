@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ⚠ RIEN NE PART DANS LES SAUVEGARDES. Le jeton de rafraîchissement vaut
+  quatre-vingt-dix jours et vit dans le Keystore chiffré ; un transfert
+  d'appareil ou une sauvegarde Google qui l'emporterait le ferait sortir de
+  l'appareil qui l'a reçu — exactement ce que l'empreinte de session interdit.
+  La langue choisie se retape en un geste.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="sharedpref" />
+        <exclude domain="database" />
+        <exclude domain="file" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="sharedpref" />
+        <exclude domain="database" />
+        <exclude domain="file" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>

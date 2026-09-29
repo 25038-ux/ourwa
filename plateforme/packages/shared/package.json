@@ -1,0 +1,31 @@
+{
+  "name": "@elourwa/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./session-expiry": "./src/session-expiry.ts",
+    "./password": "./src/password.ts",
+    "./telephone": "./src/telephone.ts",
+    "./money": "./src/money.ts",
+    "./bulletin-html": "./src/bulletin-html.ts",
+    "./bulletin-css": "./src/bulletin-css.ts",
+    "./brand": "./src/brand.ts",
+    "./tenant-slug": "./src/tenant-slug.ts",
+    "./facturation": "./src/facturation.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "decimal.js": "^10.4.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^3.2.7"
+  }
+}

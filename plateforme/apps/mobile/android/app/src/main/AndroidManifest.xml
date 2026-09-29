@@ -1,0 +1,81 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!--
+      ⚠ DEUX PERMISSIONS DEMANDÉES, ET PAS UNE DE PLUS. La fiche « Sécurité des
+      données » du Play Store doit correspondre au manifeste FUSIONNÉ (celui du
+      paquet, bibliothèques comprises), pas seulement à ce fichier : réseau pour
+      parler au serveur, notifications parce que c'est le point 12 de FEATURES.
+      Ni position, ni contacts, ni caméra, ni stockage.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!--
+      ⚠ RETIRÉES DU MANIFESTE FUSIONNÉ — le paquet 0.7.1+10 les portait sans que
+      personne les ait écrites : `open_filex` ajoute READ_EXTERNAL_STORAGE et
+      READ_MEDIA_IMAGES / VIDEO / AUDIO. La règle « Autorisations d'accès aux
+      photos et vidéos » du Play Store refuse une application qui les déclare
+      sans que l'accès à toute la galerie soit sa fonction principale.
+      Rien n'en a besoin ici : une pièce jointe est écrite dans le cache de
+      l'application (`Directory.systemTemp`, ouvrir_fichier_io.dart) et remise
+      au lecteur du téléphone par le FileProvider du greffon, sans permission.
+    -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove" />
+
+    <application
+        android:label="${appLabel}"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <!-- Don't delete the meta-data below.
+             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+        <!-- Le canal que le serveur nomme (`channel_id: 'elourwa'`) : sans lui,
+             Android 8+ range la notification dans « Divers » et peut la taire. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="elourwa_v2" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_accent" />
+    </application>
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Ouvrir les pages légales dans le navigateur (url_launcher). -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
+</manifest>

@@ -1,0 +1,14 @@
+-- ============================================================================
+--  0031_session_fingerprint — l'empreinte d'une session, comme `auth.php`
+--
+--  Son `empreinte_session()` : SHA-256 du User-Agent et des trois premiers
+--  octets de l'adresse. Un jeton de rafraîchissement vaut quatre-vingt-dix
+--  jours ; le présenter depuis un autre appareil ET un autre réseau ressemble à
+--  un vol, et la famille entière est révoquée — la même réponse qu'à une
+--  réutilisation. `user_agent` et `ip` étaient déjà là, en clair, pour la
+--  liste des sessions ; l'empreinte est ce qu'on COMPARE, et elle est hachée.
+--
+--  Nullable : un jeton émis avant cette migration n'en a pas et passe une
+--  fois, comme ses sessions ouvertes avant l'ajout du sceau.
+-- ============================================================================
+ALTER TABLE refresh_tokens ADD COLUMN fingerprint text;

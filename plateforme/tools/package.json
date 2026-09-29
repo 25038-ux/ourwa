@@ -1,0 +1,22 @@
+{
+  "name": "@elourwa/tools",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@elourwa/shared": "workspace:*",
+    "decimal.js": "^10.4.3",
+    "mysql2": "^3.11.3",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "@types/pg": "^8.11.10",
+    "typescript": "^5.6.3",
+    "vitest": "^3.2.7"
+  }
+}

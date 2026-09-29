@@ -1,0 +1,38 @@
+{
+  "name": "@elourwa/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing.ts",
+    "./seed-roles": "./src/seed-roles.ts"
+  },
+  "scripts": {
+    "migrate": "tsx src/migrate.ts",
+    "seed": "tsx src/seed.ts",
+    "reset": "tsx src/migrate.ts --reset",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsx src/dev-server.ts",
+    "db:dev": "tsx src/dev-server.ts",
+    "bootstrap-school": "tsx src/bootstrap-school.ts"
+  },
+  "dependencies": {
+    "tsx": "^4.19.1",
+    "@node-rs/argon2": "^2.0.2",
+    "bcryptjs": "^2.4.3",
+    "drizzle-orm": "^0.45.2",
+    "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.7.5",
+    "@types/pg": "^8.11.10",
+    "drizzle-kit": "^0.28.0",
+    "embedded-postgres": "17.10.0-beta.17",
+    "typescript": "^5.6.3",
+    "vitest": "^3.2.7"
+  }
+}

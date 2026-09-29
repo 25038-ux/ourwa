@@ -1,0 +1,42 @@
+/* Les règles du bulletin (.bulletin-off, .bul-*) vivent dans
+   packages/shared/src/bulletin-css.ts (BULLETIN_CSS) et sont servies par
+   /elourwa/bulletin.css (app/elourwa/bulletin.css/route.ts) — la même feuille
+   que l'API rend à l'application des familles. Ce fichier ne garde que ce qui
+   suivait dans l'ancienne feuille. */
+/* ═════════════════════════════════════════════════════════════════════════════
+   ORGANIC — COUCHE DE FINITION DES ÉCRANS DE DIRECTION
+   ═════════════════════════════════════════════════════════════════════════════
+   Posée après tout le reste : elle rhabille le chrome et les composants sans
+   qu'aucune des 47 pages ne soit modifiée. Le balisage existant est conservé.
+
+   TROIS RÈGLES QUE CETTE COUCHE S'IMPOSE
+     1. Aucune ombre portée large : sur un fond crème, une ombre grise salit.
+        La hiérarchie vient des filets, du fond et de l'espace — pas du flou.
+     2. Les chiffres d'argent sont en chasse fixe tabulaire, alignés à droite :
+        une colonne de montants doit se lire d'un coup d'œil.
+     3. Rien de décoratif ne coûte une requête réseau ni une animation continue.
+
+   NE TOUCHE PAS aux documents imprimés (.bul-*, .recu-*) : leur mise en page
+   est calée au millimètre pour l'A4, et le bloc @media print plus haut, en
+   !important, reste prioritaire.
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Lien d'évitement ───────────────────────────────────────────────────── */
+/* Vingt-quatre entrées de menu avant le contenu : au clavier, sans ce lien il
+   faut les traverser à chaque page. Invisible jusqu'à la prise de focus. */
+.skip-link {
+  position: absolute; left: .6rem; top: -3.5rem; z-index: 200;
+  padding: .5rem .9rem; border-radius: var(--radius-pill);
+  background: var(--o-a-700); color: #fffaf1;
+  font-size: .84rem; font-weight: 600; text-decoration: none;
+  transition: top .16s ease;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .bulletin-off { padding: 1rem; }
+  .bul-header { grid-template-columns: 1fr; text-align: center; }
+  .bul-hcol-ar { text-align: center; }
+  .bul-info-grid { grid-template-columns: 1fr; }
+  .bul-footer-grid { grid-template-columns: 1fr; }
+}

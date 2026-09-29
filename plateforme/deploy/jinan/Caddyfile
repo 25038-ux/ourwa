@@ -1,0 +1,28 @@
+# JINAN — trois noms, un domaine : le site sur l'apex et `www.`, l'API
+# (l'application des familles) sur `api.`. Les certificats viennent de Let's
+# Encrypt, un par nom ; le DNS doit pointer les trois vers ce serveur AVANT
+# le premier démarrage (sinon Caddy réessaie, sans dommage, jusqu'à ce qu'ils
+# y pointent).
+# L'adresse de contact ACME (Let's Encrypt). ⚠ Elle ne doit JAMAIS être vide :
+# « email » sans valeur est une erreur de syntaxe et Caddy ne démarre pas.
+# install.sh refuse donc de continuer sans ACME_EMAIL.
+{
+	email {$ACME_EMAIL}
+}
+
+api.{$PUBLIC_DOMAIN} {
+	# L'application des familles arrive ici directement : Caddy dit à l'API qui
+	# est devant l'écran (l'API ne lit pas X-Forwarded-For, trop facile à forger,
+	# seulement X-Client-IP d'un mandataire de confiance — TRUSTED_PROXIES).
+	reverse_proxy api:3001 {
+		header_up X-Client-IP {remote_host}
+		header_up X-Client-User-Agent {header.User-Agent}
+	}
+	encode zstd gzip
+}
+
+{$PUBLIC_DOMAIN}, www.{$PUBLIC_DOMAIN} {
+	# École unique : quel que soit le nom, c'est cette école (SINGLE_SCHOOL_SLUG).
+	reverse_proxy web:3000
+	encode zstd gzip
+}

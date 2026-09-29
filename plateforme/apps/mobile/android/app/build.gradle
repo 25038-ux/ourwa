@@ -1,0 +1,129 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+/*
+ * ⚠ LA CLÉ DE SIGNATURE NE VIT PAS ICI. `android/key.properties` — ignoré par
+ * git — porte le chemin du keystore et ses mots de passe ; sans lui, la
+ * construction en release échoue TÔT, avec une phrase, plutôt que de signer
+ * avec la clé de débogage et de produire un paquet que le Play Store refuse
+ * sans expliquer pourquoi.
+ *
+ * Le fichier à créer (jamais commité) :
+ *
+ *   storeFile=../elourwa-release.jks
+ *   storePassword=…
+ *   keyAlias=elourwa
+ *   keyPassword=…
+ *
+ * Et le keystore : keytool -genkey -v -keystore elourwa-release.jks -keyalg RSA
+ * -keysize 2048 -validity 10000 -alias elourwa. Perdre ce fichier, c'est ne
+ * plus jamais pouvoir mettre l'application à jour ; il se sauvegarde hors du
+ * poste, chiffré.
+ */
+def keystoreProperties = new Properties()
+// Une clé PAR ENSEIGNE : tools/packager.sh pose KEY_PROPERTIES=key-<enseigne>.properties
+// quand BRAND=… est défini (El Mourad ne signe plus avec la clé d'El Ourwa).
+def keystorePropertiesFile = rootProject.file(System.getenv("KEY_PROPERTIES") ?: 'key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    // ⚠ L'IDENTIFIANT NE CHANGE PLUS après la première publication : le Play
+    // Store le tient pour l'identité de l'application. « mr » est le domaine
+    // de la Mauritanie ; le reste est le nom du produit.
+    namespace = "mr.elourwa.parent"
+    // ⚠ 36 EN DUR, PAS `flutter.compileSdkVersion` : depuis le 31 août 2026 le Play
+    // Store refuse toute application (nouvelle ou mise à jour) qui ne cible pas
+    // Android 16 (API 36), et la valeur par défaut dépend de la version de Flutter
+    // du poste — 0.7.1+10, construit avec Flutter 3.27, ciblait 35.
+    compileSdk = 36
+    // ⚠ PAS DE ndkVersion. Avec Flutter 3.47.5 cette ligne (flutter.ndkVersion =
+    // 28.2) faisait télécharger le NDK r28c — ~700 Mo, bloqué à 204 Mo sur la
+    // ligne du poste le 24/09 — alors qu'aucun greffon de l'application n'a de
+    // code natif (tools/android-sdk.sh le disait déjà : la ligne se retire).
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+        // flutter_local_notifications (notifications depuis la tâche de fond)
+        // exige la désucrage des bibliothèques Java 8.
+        coreLibraryDesugaringEnabled true
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        // ⚠ UNE AUTRE ENSEIGNE, UN AUTRE IDENTIFIANT. `APP_ID` et `APP_LABEL` dans
+        // l'environnement de construction (tools/packager.sh, BRAND=…) : l'application
+        // « El Mourad » est `mr.elmourad.parent`, installable à côté d'El Ourwa, et
+        // porte son propre nom sous l'icône. Sans eux : El Ourwa, comme avant.
+        // L'espace de noms Kotlin (`namespace`) ne change pas — il n'est visible de
+        // personne et une application installée le garde.
+        applicationId = System.getenv("APP_ID") ?: "mr.elourwa.parent"
+        manifestPlaceholders += [appLabel: System.getenv("APP_LABEL") ?: "El Ourwa"]
+        // ⚠ 24 (Android 7.0), EN DUR — et pas moins : c'est le minimum de Flutter
+        // 3.47.5 (flutter.minSdkVersion). Le 24/09, `minSdk = 23` a été RÉÉCRIT par
+        // le migrateur de Flutter à la construction (tout ce qui est sous son
+        // minimum redevient `flutter.minSdkVersion`) : le paquet est sorti en 24
+        // quand même. Le brief demandait 21 ; Flutter refuse 21 et 22 depuis 3.35.
+        minSdk = 24
+        targetSdk = 36
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = keystoreProperties['keyAlias']
+                keyPassword = keystoreProperties['keyPassword']
+                storeFile = file(keystoreProperties['storeFile'])
+                storePassword = keystoreProperties['storePassword']
+            }
+        }
+    }
+
+    // ⚠ L'ICÔNE SUIT L'ENSEIGNE. Les mipmaps de src/main sont communes à toutes les
+    // enseignes (et c'était le logo de Flutter) ; celles de
+    // src/brands/<BRAND_SLUG>/res les REMPLACENT, parce qu'un jeu de sources de
+    // type de construction (debug/profile/release) passe devant `main` — sans
+    // conflit de ressources en double, contrairement à deux dossiers de `main`.
+    def marque = System.getenv("BRAND_SLUG") ?: System.getenv("BRAND")
+    if (marque && file("src/brands/${marque}/res").exists()) {
+        ["debug", "profile", "release"].each { t ->
+            sourceSets.maybeCreate(t).res.srcDirs += ["src/brands/${marque}/res"]
+        }
+    }
+
+    buildTypes {
+        release {
+            if (!keystorePropertiesFile.exists()) {
+                throw new GradleException(
+                    "android/key.properties est absent : une version release doit être signée " +
+                    "avec la clé de l'école, jamais avec la clé de débogage. Voir build.gradle."
+                )
+            }
+            signingConfig = signingConfigs.release
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+// androidx.core : NotificationCompat / NotificationManagerCompat (MainActivity.kt).
+dependencies {
+    implementation "androidx.core:core-ktx:1.13.1"
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.4"
+}

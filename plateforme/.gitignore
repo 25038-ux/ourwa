@@ -1,0 +1,65 @@
+node_modules/
+dist/
+.next/
+.turbo/
+*.log
+.env
+.env.local
+coverage/
+apps/mobile/build/
+apps/mobile/.dart_tool/
+reference/elourwa/
+# v23 is the CURRENT reference (docs/parity/AUDIT-v23.md); v16 came before it
+# (ADR-0015); v13 is what reference/elourwa/ holds. All are El Ourwa's own
+# source, kept locally and never committed here.
+reference/v16/
+reference/v23/
+reference/*.sql
+reference/*.zip
+_work/
+*.tar
+*.zip
+
+# ── Real El Ourwa data — NEVER commit ────────────────────────────────────────
+# These hold live financial and personal records for ~1,372 families. Version
+# control is forever and is copied to every clone; personal data does not belong
+# in it. El Ourwa is read-only reference material (ADR-0010) and its dumps stay
+# out of the repository entirely.
+db_ecoles*.sql
+*.sql.gz
+INSTALLATION_TOTALE*.sql
+MIGRATION_UNIFIEE*.sql
+reference/snapshots/
+
+# Embedded Postgres cluster created by `pnpm db:dev`. This is a live database
+# directory, not source — it holds the seeded data and its own WAL.
+packages/db/.devdata/
+
+# TypeScript incremental build metadata — a build artifact, not source.
+*.tsbuildinfo
+
+# Playwright session state — real cookies for the seeded demo accounts.
+apps/web/e2e/.auth/
+apps/web/test-results/
+apps/web/playwright-report/
+
+# Uploaded homework attachments. Real files from a real school; never committed,
+# and deliberately outside anything the web server serves (ADR-0016).
+.uploads/
+
+# Empreintes structurelles produites par `dump-structure.spec.ts` — un outil de
+# comparaison, pas un artefact du produit.
+apps/web/e2e/.structure/
+
+# ⚠ LES EXTRAITS DE RÉCONCILIATION SONT DES DONNÉES RÉELLES.
+# `tools/reconcile/extraire.php` sort les notes de 2 153 enfants, nommément.
+# Le code de la réconciliation se versionne ; ce qu'il lit, jamais.
+tools/reconcile/data/
+.next-elmourad/
+
+# Les clés de service (Firebase) : jamais dans le dépôt ni dans le zip.
+deploy/*/secrets/
+
+# Relevés de mise en page (e2e/capture-responsive.spec.ts) — régénérables
+apps/web/e2e/.captures/
+apps/web/e2e/.captures-avant/

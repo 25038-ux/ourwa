@@ -1,0 +1,99 @@
+# La démonstration complète sur une VM « Always Free » d'Oracle Cloud :
+# Postgres 17, l'API, le site, et Caddy qui obtient les certificats HTTPS
+# tout seul (Let's Encrypt) pour des noms `*.<ip>.sslip.io` — aucun domaine à
+# acheter. Voir README.md ; `install.sh` écrit `.env` et lance tout.
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: elourwa
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d elourwa"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: ../..
+      dockerfile: deploy/oracle/Dockerfile
+    image: elourwa:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      API_PORT: "3001"
+      # ⚠ app_user, jamais postgres : le propriétaire ignore la RLS (RUNNING.md § 2).
+      DATABASE_URL: postgres://app_user:${APP_USER_PASSWORD}@db:5432/elourwa
+      DATABASE_ADMIN_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/elourwa
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      ALLOWED_ORIGIN_SUFFIX: ${PUBLIC_DOMAIN}
+      # Les deux mandataires de confiance (adresses fixes ci-dessous) : le site,
+      # qui transmet X-Client-IP / X-Client-User-Agent de la personne, et Caddy,
+      # qui les pose pour l'application des familles. Sans cela l'API verrait
+      # UNE adresse pour tout le monde, et quinze mots de passe faux — de qui que
+      # ce soit — fermeraient la porte à tous (limite par adresse).
+      TRUSTED_PROXIES: 172.28.0.20,172.28.0.10
+      UPLOAD_DIR: /data/uploads
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      FCM_SERVICE_ACCOUNT: ${FCM_SERVICE_ACCOUNT:-}
+    volumes:
+      - uploads:/data/uploads
+
+  web:
+    image: elourwa:latest
+    restart: unless-stopped
+    depends_on:
+      - api
+    networks:
+      default:
+        ipv4_address: 172.28.0.20
+    command: ["pnpm", "--filter", "@elourwa/web", "start"]
+    environment:
+      NODE_ENV: production
+      # Le site parle à l'API à l'intérieur du réseau Docker, côté serveur.
+      NEXT_PUBLIC_API_URL: http://api:3001
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    networks:
+      default:
+        ipv4_address: 172.28.0.10
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+
+volumes:
+  pgdata:
+  uploads:
+  caddy_data:
+  caddy_config:

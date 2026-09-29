@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Le mur du logo El Mourad (tools/logo_elmourad.py). -->
+<resources>
+    <color name="ic_launcher_background">#0F4C5C</color>
+</resources>

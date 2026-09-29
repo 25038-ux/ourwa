@@ -1,0 +1,340 @@
+/* ============================================================================
+   compat.css — the pages not yet rewritten, wearing El Ourwa's clothes
+   ============================================================================
+
+   ⚠ THIS FILE EXISTS TO BE DELETED.
+
+   The UI replica converts pages one at a time: markup rewritten to El Ourwa's
+   own structure — `form-card`, `table-container`, `kpi-card`, `badge`, `alert`
+   — with its own words on it. That is the real work and there is no shortcut
+   to it, because the structure carries meaning the styling cannot.
+
+   But a half-converted product is not "half right": it is two products, and the
+   pages still wearing my own design system look like a different application to
+   the person using it. So every class name I invented is defined here in
+   El Ourwa's tokens and shapes, and an unconverted page looks like El Ourwa
+   immediately even though its markup is still mine.
+
+   Loaded AFTER style.css and globals.css, so it wins.
+
+   Two rules for anything added here:
+
+     1. Never introduce a value. Everything below reads a `--` variable that
+        style.css already defines. A colour typed in here would be a third
+        design system, which is the problem this file is answering.
+
+     2. A rule may only be added for a class that ALREADY EXISTS in a page not
+        yet converted. This is a bridge, not a vocabulary — new work uses
+        El Ourwa's class names directly.
+
+   Delete a block when the last page using its class is converted. When the file
+   is empty, delete the file and the <link> in layout.tsx.
+   ========================================================================= */
+
+/* ── Surfaces: .panel → its .table-container / .form-card ─────────────────── */
+.panel {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  overflow-x: auto;
+  overflow-y: visible;
+  margin-bottom: 2rem;
+}
+.panel-body { padding: 1.5rem; }
+
+/* A page-level header row, before the hub chrome replaced it. */
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.page-head h2 { font-size: 1.3rem; margin: 0; }
+
+/* ── Metrics: .metrics/.metric → .kpi-grid/.kpi-card ──────────────────────── */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+.msg-warn { background: rgba(245, 158, 11, .08); border-color: rgba(245, 158, 11, .25); color: #b45309; }
+
+/* ── Forms: .field/.row/.stack → .form-group/.form-row ────────────────────── */
+.field { margin-bottom: 1.25rem; }
+.field > label,
+.form-group > label {
+  display: block;
+  margin-bottom: .4rem;
+  font-weight: 600;
+  font-size: .85rem;
+  color: var(--text);
+}
+.stack { display: block; }
+.check { display: flex; align-items: center; gap: .5rem; margin-bottom: 1rem; font-size: .9rem; }
+.check input { width: auto; }
+
+/* ── Text roles ──────────────────────────────────────────────────────────── */
+.note { color: var(--text-light); font-size: .85rem; max-width: 68ch; }
+.micro { color: var(--text-muted); font-size: .78rem; }
+.quote {
+  border-inline-start: 3px solid var(--border);
+  padding-inline-start: .75rem;
+  color: var(--text-light);
+  font-size: .85rem;
+}
+.strong { font-weight: 700; }
+.name { font-weight: 600; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.spacer { flex: 1; }
+.sticky-col { position: sticky; inset-inline-start: 0; background: var(--bg-card); }
+
+/* ── Lists of pending things ─────────────────────────────────────────────── */
+.queue { list-style: none; margin: 0; padding: 0; }
+.queue-item {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  border-inline-start: 3px solid transparent;
+}
+.queue-item:last-child { border-bottom: none; }
+.queue-item.is-approved { border-inline-start-color: var(--success); }
+.queue-item.is-refused { border-inline-start-color: var(--error); }
+.queue-head { display: flex; align-items: center; gap: .5rem; margin-bottom: .35rem; }
+
+/* ── Layout helpers ──────────────────────────────────────────────────────── */
+.two-up {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* ── The empty state ─────────────────────────────────────────────────────── */
+.empty { padding: 2.5rem 1.5rem; text-align: center; color: var(--text-light); }
+.empty-mark { font-size: 1.75rem; display: block; margin-bottom: .5rem; opacity: .7; }
+.empty h3 { font-size: 1rem; margin-bottom: .35rem; color: var(--text); }
+
+/* ── Buttons written without El Ourwa's modifier ──────────────────────────── */
+/* `.btn` alone was my primary. Its `.btn` alone is unstyled, so give the bare
+   class the primary look rather than leaving those pages with naked buttons. */
+.btn:not([class*='btn-']) {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+}
+.btn:not([class*='btn-']):hover { background: var(--primary-dark, var(--primary)); }
+
+/* ── Screen-reader only ──────────────────────────────────────────────────── */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.text-danger { color: var(--error); }
+
+/* ── Cours du soir : la grille des créneaux ───────────────────────────────── */
+/* Ses valeurs, portées en style inline sur `cours_du_soir.php` : la colonne
+   des heures sur le fond de page, l'en-tête des jours sur la couleur primaire,
+   une case posée en dégradé orangé avec sa barre à gauche, une case vide en
+   pointillés qui s'allume au survol. */
+.grille-cs { min-width: 100%; }
+.grille-cs th.grille-heures,
+.grille-cs td.grille-heures {
+  background: var(--bg);
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  width: 120px;
+}
+.grille-cs th.grille-jour {
+  background: var(--primary);
+  color: #fff;
+  text-align: center;
+  font-weight: 700;
+}
+.grille-cs td.grille-case {
+  vertical-align: top;
+  padding: .4rem;
+  min-width: 150px;
+}
+.grille-cours {
+  background: linear-gradient(135deg, #fff2eb, #ffe1d0);
+  padding: .6rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--primary);
+  position: relative;
+}
+.grille-cours > strong {
+  display: block;
+  color: var(--primary);
+  font-size: .85rem;
+  margin-bottom: .2rem;
+}
+.grille-cours > small {
+  color: var(--text-light, var(--text-muted));
+  display: block;
+  font-size: .75rem;
+}
+.grille-vide {
+  width: 100%;
+  height: 55px;
+  background: #fafafa;
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: .75rem;
+  transition: .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.grille-vide:hover {
+  background: #fff2eb;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* La modale « Assigner un cours ».
+   ⚠ `.modal-overlay` EXISTE DÉJÀ et vaut `display:none` tant qu'il ne porte pas
+   `.shown` : la redéfinir ici en `flex` rendrait visibles, sur toutes les
+   autres pages, les modales que leur script garde fermées. On ne pose donc que
+   la largeur de la carte, et l'élément porte `shown`. */
+.modal-card {
+  max-width: 480px;
+  width: 100%;
+  padding: 1.5rem;
+}
+.modal-tete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.modal-tete h3 { margin: 0; }
+
+/* Le tarif d'un niveau, à côté de son nom dans « Gestion de Groupes » :
+   `font-weight:400;font-size:.85rem;color:var(--text-muted)`. */
+.niveau-tarif {
+  font-weight: 400;
+  font-size: .85rem;
+  color: var(--text-muted);
+}
+
+/* Années scolaires : la ligne de l'année en cours, et son bouton Clôturer. */
+.annee-active > td { background: rgba(198, 113, 57, .06); }
+.btn-cloturer { background: #B45309; color: #fff; }
+.btn-cloturer:hover { background: #92400e; color: #fff; }
+
+/* Historique des connexions : ses deux onglets posés sur la ligne du tableau. */
+/* Son badge de rôle : `background:#fff2eb; color:#8c491a`. */
+.badge-role {
+  background: #fff2eb;
+  color: #8c491a;
+  font-size: .8rem;
+  font-weight: 600;
+}
+
+/* Créer un utilisateur : ses cases de rôles cumulés, en grille de cartes. */
+.cumul-roles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: .5rem;
+}
+.cumul-roles .st-check {
+  display: flex;
+  gap: .55rem;
+  align-items: flex-start;
+  padding: .55rem .7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: .85rem;
+}
+.cumul-roles .st-check input { width: auto; margin-top: .15rem; }
+
+/* Administrateurs : les petits champs de la colonne « Gestion ». */
+.gestion-champ {
+  width: 110px;
+  padding: .35rem .5rem;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  font-size: .85rem;
+}
+.badge-limite { background: #FEE2E2; color: #991B1B; }
+
+/* Réinscription : le bandeau de dette de sa modale `#m-<id>`.
+   Ses valeurs exactes — #fef2f2 sur filet #fecaca, texte #7f1d1d. */
+.reinscr-dette {
+  padding: 1rem 1.5rem;
+  margin: -1rem -1.5rem 1rem;
+  background: #fef2f2;
+  border-bottom: 1px solid #fecaca;
+}
+.reinscr-dette-tete {
+  display: flex; align-items: center; gap: .5rem; margin-bottom: .75rem;
+}
+.reinscr-dette-tete strong { color: #DC2626; }
+.reinscr-dette p { font-size: .85rem; color: #7f1d1d; margin: 0 0 .75rem; }
+.reinscr-dette details { margin-bottom: .5rem; }
+.reinscr-dette summary {
+  cursor: pointer; font-weight: 600; font-size: .85rem; color: #991b1b;
+}
+.reinscr-dette-table { width: 100%; font-size: .82rem; border-collapse: collapse; }
+.reinscr-dette-table thead tr { background: #fee2e2; }
+.reinscr-dette-table th, .reinscr-dette-table td { padding: .3rem .5rem; text-align: left; }
+.reinscr-dette-table tbody tr { border-bottom: 1px solid #fecaca; }
+.reinscr-dette-table td:last-child { color: #DC2626; }
+
+/* Revenue Live : ses deux ventilations du jour, une ligne par moyen ou par
+   origine — libellé à gauche, montant à droite, filet dessous.
+   (Le bandeau de bilan, lui, a ses propres classes dans `pages.css` :
+   `.synthese-annuelle` et `.syn-tile`, avec ses règles d'impression.) */
+.revenue-ligne {
+  display: flex;
+  justify-content: space-between;
+  padding: .4rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.revenue-ligne:last-child { border-bottom: none; }
+
+
+/* Paiement du personnel : l'avertissement rouge de la modale de retrait.
+   Ses valeurs exactes : #FEE2E2 sur bordure 2px #a8341f, texte #991B1B. */
+.retrait-depasse {
+  background: #FEE2E2;
+  border: 2px solid #a8341f;
+  color: #991B1B;
+  font-weight: 700;
+  padding: .7rem .9rem;
+  border-radius: 10px;
+  margin-bottom: .7rem;
+}
+
+/* Administrateurs : les pastilles de « Repartition par administrateur ».
+   Ses valeurs exactes : bordure 1.5px, rayon 10px, fond blanc. */
+.repartition-chip {
+  padding: .55rem .9rem;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+}
+@media print { .no-print { display: none !important; } }
+
+/* Messagerie : son séparateur « — OU — » entre les deux façons de cibler. */
+.messagerie-ou {
+  text-align: center;
+  margin: 1rem 0;
+  color: var(--text-muted);
+  font-weight: 600;
+}

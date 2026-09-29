@@ -1,0 +1,3 @@
+#include "Generated.xcconfig"
+// Le nom sous l'icône. Une autre enseigne le remplace ici (tools/packager.sh, BRAND=…).
+APP_DISPLAY_NAME = El Ourwa

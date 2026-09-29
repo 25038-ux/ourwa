@@ -1,0 +1,59 @@
+name: elourwa_parent
+description: El Ourwa — espace parents / فضاء الأولياء
+publish_to: none
+version: 0.7.7+16
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  http: ^1.2.2
+  # Flutter ≥ 3.29 épingle intl 0.20.x (flutter_localizations) ; 3.27 épinglait
+  # 0.19.x. La fourchette laisse `pub get` réussir avant ET après la mise à jour.
+  intl: ">=0.19.0 <0.21.0"
+  shared_preferences: ^2.3.2
+  flutter_secure_storage: ^9.2.2
+  # ⚠ Les notifications poussées. L'application INTERROGEAIT le serveur ; une
+  # mère apprenait l'absence de son fils à l'ouverture, pas à la saisie. Firebase
+  # est initialisé PAR CODE depuis des --dart-define, sans google-services.json
+  # ni GoogleService-Info.plist dans le dépôt : sans ces valeurs l'application
+  # se construit et tourne, simplement sans pousser. Voir `lib/src/push.dart`.
+  firebase_core: ^3.8.0
+  firebase_messaging: ^15.1.5
+  # Ouvrir les pages légales dans le navigateur : les magasins exigent qu'elles
+  # soient lisibles sans compte, donc elles vivent sur le site, pas dans l'app.
+  url_launcher: ^6.3.1
+  # ⚠ Pour remettre une pièce jointe DÉJÀ TÉLÉCHARGÉE au navigateur.
+  # `/attachments/:id` exige le jeton : on ne peut pas ouvrir son URL dans un
+  # onglet, il faut envelopper les octets dans un blob local. Voir
+  # `lib/src/ouvrir_fichier.dart`.
+  web: ^1.1.0
+  open_filex: ^4.7.0
+  printing: ^5.14.3
+  pdf: ^3.11.3
+  workmanager: ^0.7.0
+  flutter_local_notifications: ^19.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  # ⚠ L'ARABE NE DÉPEND PAS D'UN TÉLÉCHARGEMENT. Sur le web, CanvasKit n'embarque
+  # que Roboto et va chercher les glyphes arabes chez Google à la demande ; en
+  # émulation téléphone, rien n'est parti et chaque mot arabe s'affichait en
+  # carrés. Un parent à Nouakchott sur une ligne comptée aurait vu la même chose.
+  # Noto Sans Arabic (OFL, assets/fonts/OFL.txt) voyage avec l'application, sur
+  # les trois plateformes, et le thème le nomme en repli.
+  fonts:
+    - family: Noto Sans Arabic
+      fonts:
+        - asset: assets/fonts/NotoSansArabic.ttf

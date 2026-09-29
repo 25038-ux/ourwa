@@ -1,0 +1,154 @@
+# JINAN — une école, un site, sur un serveur (VPS) : Postgres 16, l'API,
+# le site, et Caddy qui obtient les certificats HTTPS tout seul (Let's Encrypt)
+# pour <domaine>, www.<domaine> et api.<domaine>. Voir README.md ;
+# `install.sh` écrit `.env`, installe l'école sur une base NEUVE et lance tout.
+#
+# Après une modification de `.env` : `docker compose up -d` (seuls les services
+# concernés redémarrent). Jamais `docker compose down -v` : `-v` efface la base.
+
+# ⚠ LES JOURNAUX SONT PLAFONNÉS. Sans limite, le pilote json-file de Docker
+# garde tout, et le disque de 50 Go se remplit en quelques mois de requêtes.
+x-journal: &journal
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+services:
+  db:
+    <<: *journal
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: jinan
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d jinan"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    <<: *journal
+    build:
+      context: ../..
+      dockerfile: deploy/jinan/Dockerfile
+    image: jinan:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      API_PORT: "3001"
+      # ⚠ app_user, jamais postgres : le propriétaire ignore la RLS (docs/RUNNING.md § 2).
+      DATABASE_URL: postgres://app_user:${APP_USER_PASSWORD}@db:5432/jinan
+      DATABASE_ADMIN_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/jinan
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      ALLOWED_ORIGIN_SUFFIX: ${PUBLIC_DOMAIN}
+      # Les deux mandataires de confiance (adresses fixes ci-dessous) : le site,
+      # qui transmet X-Client-IP / X-Client-User-Agent de la personne, et Caddy,
+      # qui les pose pour l'application des familles.
+      TRUSTED_PROXIES: 172.28.0.20,172.28.0.10
+      # Échecs de connexion tolérés par adresse IP en 15 minutes (voir install.sh :
+      # les opérateurs mobiles mettent des milliers de téléphones derrière une adresse).
+      LOGIN_IP_MAX_ATTEMPTS: ${LOGIN_IP_MAX_ATTEMPTS:-60}
+      UPLOAD_DIR: /data/uploads
+      # L'enseigne et le mode école unique (deploy/brands/jinan.env).
+      BRAND_NAME: ${BRAND_NAME}
+      BRAND_NAME_AR: ${BRAND_NAME_AR}
+      BRAND_SLUG: ${BRAND_SLUG}
+      BRAND_TAGLINE: ${BRAND_TAGLINE}
+      BRAND_MAIL_FROM: ${BRAND_MAIL_FROM}
+      FEE_PHOTOCOPY_LABEL: ${FEE_PHOTOCOPY_LABEL:-}
+      SINGLE_SCHOOL_SLUG: ${SINGLE_SCHOOL_SLUG}
+      PLATFORM_CONSOLE: ${PLATFORM_CONSOLE}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      # Le CHEMIN de la clé Firebase dans le conteneur (install.sh le pose quand
+      # secrets/fcm-service-account.json existe). Un fichier monté survit à
+      # toutes les mises à jour ; une variable d'environnement de shell, non.
+      FCM_SERVICE_ACCOUNT: ${FCM_SERVICE_ACCOUNT:-}
+    volumes:
+      - uploads:/data/uploads
+      - ./secrets:/run/secrets/jinan:ro
+
+  web:
+    <<: *journal
+    image: jinan:latest
+    restart: unless-stopped
+    depends_on:
+      - api
+    networks:
+      default:
+        ipv4_address: 172.28.0.20
+    command: ["pnpm", "--filter", "@elourwa/web", "start"]
+    environment:
+      NODE_ENV: production
+      # Le site parle à l'API à l'intérieur du réseau Docker, côté serveur.
+      NEXT_PUBLIC_API_URL: http://api:3001
+      BRAND_NAME: ${BRAND_NAME}
+      BRAND_NAME_AR: ${BRAND_NAME_AR}
+      BRAND_SLUG: ${BRAND_SLUG}
+      BRAND_TAGLINE: ${BRAND_TAGLINE}
+      FEE_PHOTOCOPY_LABEL: ${FEE_PHOTOCOPY_LABEL:-}
+      SINGLE_SCHOOL_SLUG: ${SINGLE_SCHOOL_SLUG}
+      PLATFORM_CONSOLE: ${PLATFORM_CONSOLE}
+      # Les mentions des pages publiques /legal/… (lues à chaque affichage).
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN}
+      LEGAL_ENTITY: ${LEGAL_ENTITY:-}
+      LEGAL_ENTITY_AR: ${LEGAL_ENTITY_AR:-}
+      LEGAL_ADDRESS: ${LEGAL_ADDRESS:-}
+      LEGAL_ADDRESS_AR: ${LEGAL_ADDRESS_AR:-}
+      LEGAL_EMAIL: ${LEGAL_EMAIL:-}
+      LEGAL_PHONE: ${LEGAL_PHONE:-}
+      LEGAL_HOST: ${LEGAL_HOST:-}
+      LEGAL_HOST_AR: ${LEGAL_HOST_AR:-}
+      LEGAL_UPDATED: ${LEGAL_UPDATED:-}
+
+  caddy:
+    <<: *journal
+    image: caddy:2-alpine
+    restart: unless-stopped
+    networks:
+      default:
+        ipv4_address: 172.28.0.10
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL manque dans .env (voir install.sh)}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+          # Les adresses tirées au sort (db, api, conteneurs de `run`) viennent de
+          # la moitié haute ; les deux adresses FIXES (.10 Caddy, .20 le site) de
+          # la moitié basse. Sans cela, un conteneur éphémère pouvait prendre
+          # .10 ou .20 pendant un redémarrage, et le site ne repartait plus.
+          ip_range: 172.28.0.128/25
+
+volumes:
+  pgdata:
+  uploads:
+  caddy_data:
+  caddy_config:

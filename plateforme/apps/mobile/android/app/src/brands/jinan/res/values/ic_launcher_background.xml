@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Le fond émeraude du logo Jinan (tools/logo_jinan.py). -->
+<resources>
+    <color name="ic_launcher_background">#0E5A48</color>
+</resources>

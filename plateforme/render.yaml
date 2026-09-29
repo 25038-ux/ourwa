@@ -1,0 +1,29 @@
+# Blueprint Render — « New → Blueprint » sur ce dépôt crée le service de
+# démonstration (un conteneur : API + site + mandataire ; la base est sur Neon).
+# Voir deploy/render/README.md.
+services:
+  - type: web
+    name: elourwa-demo
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./deploy/render/Dockerfile
+    dockerContext: .
+    healthCheckPath: /_sante
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_ADMIN_URL
+        sync: false
+      - key: APP_USER_PASSWORD
+        generateValue: true
+      # La clé de /_journal (lecture des journaux du conteneur) — distincte du
+      # mot de passe de la base, qui servait de clé et finissait dans les journaux d'accès.
+      - key: JOURNAL_KEY
+        generateValue: true
+      - key: JWT_PRIVATE_KEY
+        sync: false
+      - key: JWT_PUBLIC_KEY
+        sync: false
+      - key: PUBLIC_DOMAIN
+        sync: false

@@ -1,0 +1,175 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   compta.css — pages de consultation comptable (grand livre + archives)
+   Tout est préfixé .cpt- : aucune collision possible avec le CSS existant.
+   Propriétés logiques partout (margin-inline, text-align:start) → RTL correct.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.cpt {
+  --papier:      #FBFBF9;
+  --papier-alt:  #F3F4F1;
+  --encre:       #16202B;
+  --encre-pale:  #64707C;
+  --filet:       #DCE0E4;
+  --filet-fort:  #A9B2BA;
+  --solde:       #1D4E6F;
+  --alerte:      #9A5B12;
+  --alerte-fond: #FDF6E9;
+  --rayon:       3px;
+
+  color: var(--encre);
+  background: var(--papier);
+  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: 1.5rem 1.25rem 4rem;
+  max-width: 1240px;
+  margin-inline: auto;
+}
+.cpt *,
+.cpt *::before,
+.cpt *::after { box-sizing: border-box; }
+
+/* ── En-tête ────────────────────────────────────────────────────────────── */
+.cpt-tete {
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: .5rem 1rem; padding-block-end: .85rem;
+  border-block-end: 2px solid var(--encre);
+}
+.cpt-tete h1 { margin: 0; font-size: 1.45rem; font-weight: 650; letter-spacing: -.015em; }
+.cpt-tete .cpt-sur { color: var(--encre-pale); font-size: .82rem; text-transform: uppercase; letter-spacing: .09em; }
+.cpt-tete nav { margin-inline-start: auto; display: flex; gap: .75rem; font-size: .88rem; }
+.cpt-tete nav a { color: var(--solde); text-decoration: none; border-block-end: 1px solid transparent; }
+.cpt-tete nav a:hover,
+.cpt-tete nav a:focus-visible { border-block-end-color: currentColor; }
+.cpt-tete nav a[aria-current="page"] { color: var(--encre); font-weight: 600; }
+
+/* ── Bandeau de contrôle ────────────────────────────────────────────────── */
+.cpt-controle {
+  margin-block: 1.1rem; padding: .85rem 1rem;
+  background: var(--alerte-fond); border: 1px solid #EBD9BC;
+  border-inline-start: 3px solid var(--alerte); border-radius: var(--rayon);
+}
+.cpt-controle h2 {
+  margin: 0 0 .5rem; font-size: .78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .09em; color: var(--alerte);
+}
+.cpt-chiffres { display: flex; flex-wrap: wrap; gap: .35rem 2rem; margin-block-end: .5rem; }
+.cpt-chiffres div { min-width: 8rem; }
+.cpt-chiffres dt { font-size: .76rem; color: var(--encre-pale); }
+.cpt-chiffres dd {
+  margin: 0; font-size: 1rem; font-weight: 600;
+  font-variant-numeric: tabular-nums; font-feature-settings: "tnum";
+}
+.cpt-controle p { margin: 0; font-size: .84rem; color: #6B5326; max-width: 78ch; }
+
+/* ── Filtres ────────────────────────────────────────────────────────────── */
+.cpt-filtres {
+  display: flex; flex-wrap: wrap; align-items: end; gap: .7rem;
+  margin-block: 1.15rem; padding: .9rem 1rem;
+  background: var(--papier-alt); border: 1px solid var(--filet); border-radius: var(--rayon);
+}
+.cpt-champ { display: flex; flex-direction: column; gap: .22rem; }
+.cpt-champ label {
+  font-size: .74rem; font-weight: 600; color: var(--encre-pale);
+  text-transform: uppercase; letter-spacing: .06em;
+}
+.cpt-champ select,
+.cpt-champ input {
+  font: inherit; font-size: .9rem; padding: .38rem .5rem;
+  border: 1px solid var(--filet-fort); border-radius: var(--rayon);
+  background: #fff; color: inherit; min-width: 9rem;
+}
+.cpt-champ select:focus-visible,
+.cpt-champ input:focus-visible,
+.cpt button:focus-visible,
+.cpt a:focus-visible { outline: 2px solid var(--solde); outline-offset: 2px; }
+.cpt-btn {
+  font: inherit; font-size: .9rem; font-weight: 600; cursor: pointer;
+  padding: .42rem .95rem; border-radius: var(--rayon);
+  border: 1px solid var(--encre); background: var(--encre); color: #fff;
+}
+.cpt-btn:hover { background: #24313F; }
+.cpt-btn-2 { background: #fff; color: var(--encre); }
+.cpt-btn-2:hover { background: var(--papier-alt); }
+.cpt-lien-doux { font-size: .85rem; color: var(--encre-pale); text-decoration: underline; }
+
+/* ── Tableaux ───────────────────────────────────────────────────────────── */
+.cpt-cadre { overflow-x: auto; border: 1px solid var(--filet); border-radius: var(--rayon); background: #fff; }
+.cpt-tbl { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.cpt-tbl caption {
+  text-align: start; padding: .7rem .85rem; font-weight: 650;
+  border-block-end: 1px solid var(--filet); background: var(--papier-alt);
+}
+.cpt-tbl th, .cpt-tbl td { padding: .42rem .7rem; border-block-end: 1px solid var(--filet); }
+.cpt-tbl thead th {
+  position: sticky; top: 0; z-index: 1; background: var(--papier-alt);
+  text-align: start; font-size: .72rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .07em; color: var(--encre-pale);
+  border-block-end: 1px solid var(--filet-fort); white-space: nowrap;
+}
+.cpt-tbl tbody tr:hover { background: #F7F9FA; }
+.cpt-num {
+  text-align: end; white-space: nowrap;
+  font-variant-numeric: tabular-nums; font-feature-settings: "tnum";
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: .86rem;
+}
+.cpt-tbl td.cpt-libelle { max-width: 22rem; }
+.cpt-tbl td.cpt-tiers   { max-width: 16rem; }
+.cpt-tronque { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Colonne solde : le repère du livre papier, seul élément coloré du tableau */
+.cpt-tbl .cpt-solde {
+  border-inline-start: 1px solid var(--filet-fort);
+  color: var(--solde); font-weight: 600;
+}
+.cpt-sens {
+  display: inline-block; inline-size: 1.1em; margin-inline-start: .35em;
+  font-size: .72em; font-weight: 700; color: var(--encre-pale);
+}
+
+.cpt-report td {
+  background: #EFF3F6; font-weight: 600;
+  border-block-end: 1px solid var(--filet-fort);
+}
+.cpt-tbl tfoot td {
+  background: var(--papier-alt); font-weight: 700;
+  border-block: 1px solid var(--filet-fort);
+}
+.cpt-tbl tfoot tr:last-child td { border-block-end: none; }
+
+.cpt-etiq {
+  display: inline-block; padding: .07rem .42rem; border-radius: 2px;
+  font-size: .72rem; font-weight: 600; letter-spacing: .02em;
+  background: var(--papier-alt); border: 1px solid var(--filet-fort); color: var(--encre-pale);
+}
+.cpt-etiq-alerte { background: var(--alerte-fond); border-color: #E4CDA4; color: var(--alerte); }
+.cpt-tbl a { color: var(--solde); text-decoration: none; }
+.cpt-tbl a:hover { text-decoration: underline; }
+
+/* ── Pagination, vide ───────────────────────────────────────────────────── */
+.cpt-pied {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .8rem;
+  margin-block-start: .9rem; font-size: .87rem; color: var(--encre-pale);
+}
+.cpt-pied nav { margin-inline-start: auto; display: flex; gap: .4rem; }
+.cpt-pied nav a, .cpt-pied nav span {
+  padding: .3rem .7rem; border: 1px solid var(--filet-fort);
+  border-radius: var(--rayon); text-decoration: none; color: var(--encre);
+}
+.cpt-pied nav span { opacity: .4; }
+.cpt-vide { padding: 3rem 1rem; text-align: center; color: var(--encre-pale); }
+.cpt-vide strong { display: block; color: var(--encre); font-size: 1.02rem; margin-block-end: .3rem; }
+
+@media (max-width: 720px) {
+  .cpt { padding-inline: .8rem; }
+  .cpt-champ select, .cpt-champ input { min-width: 7rem; }
+  .cpt-tbl { font-size: .82rem; }
+}
+@media print {
+  .cpt-filtres, .cpt-tete nav, .cpt-pied nav { display: none; }
+  .cpt { max-width: none; padding: 0; }
+  .cpt-cadre { border: none; overflow: visible; }
+  .cpt-tbl thead th { position: static; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cpt * { animation: none !important; transition: none !important; }
+}

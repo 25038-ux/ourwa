@@ -1,0 +1,203 @@
+/* ============================================================================
+   LES FEUILLES DE STYLE DE PAGE D'EL OURWA
+   ============================================================================
+
+   ⚠ NEUF DE SES PAGES PORTENT LEUR PROPRE `<style>`, et aucune n'était dans
+   `style.css`. Notre copie de `style.css` est identique au caractère près, ce
+   qui m'avait convaincu que la question des styles était réglée — elle l'était
+   pour vingt-six pages sur trente-cinq.
+
+   C'est l'explication de « le CSS de la page n'est pas le même » : il ne
+   l'était pas, parce qu'il n'avait jamais été copié. Chaque bloc ci-dessous est
+   repris tel quel, ses commentaires compris, sous le nom de sa page.
+   ============================================================================ */
+
+
+/* ── Comptes du personnel — ses cartes `.st-*` — `super_admin/comptes_staffs.php` ─────────────────── */
+/* ── Comptes des staffs ─────────────────────────────────────────────────────
+   Cette page définissait sa PROPRE palette et ses propres rayons : ses boutons
+   et ses champs restaient carrés et gris pendant que le reste de l'application
+   passait au système Organic. Elle hérite désormais des jetons globaux, et ne
+   garde ici que ce qui lui est réellement spécifique (la disposition des cartes).
+   ------------------------------------------------------------------------- */
+.st-wrap{
+  --st-line: var(--o-n-300);
+  --st-ink:  var(--o-ink);
+  --st-mut:  var(--o-n-700);
+  --st-bg:   var(--bg-card);
+}
+.st-stats{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.st-stat{border:1px solid var(--st-line);border-radius:var(--radius);background:var(--bg-card);padding:.55rem .9rem;min-width:7rem}
+.st-stat b{display:block;font-size:1.35rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.st-stat span{font-size:.75rem;color:var(--st-mut);text-transform:uppercase;letter-spacing:.04em}
+
+.st-card{border:1px solid var(--st-line);border-radius:var(--radius-lg);margin-bottom:.75rem;background:var(--st-bg)}
+.st-card.off{opacity:.62}
+.st-head{display:flex;gap:1rem;align-items:flex-start;justify-content:space-between;
+         padding:.85rem 1rem;flex-wrap:wrap}
+.st-id{min-width:0;flex:1 1 16rem}
+.st-name{font-weight:650;font-size:1.02rem;color:var(--st-ink);margin:0 0 .15rem}
+.st-meta{font-size:.82rem;color:var(--st-mut);line-height:1.5}
+.st-meta code{background:rgba(120,113,108,.12);padding:.05rem .35rem;border-radius:3px;font-size:.95em}
+.st-roles{display:flex;gap:.3rem;flex-wrap:wrap;margin:.4rem 0 0}
+.st-role{font-size:.74rem;font-weight:600;padding:.15rem .55rem;border-radius:var(--radius-pill);background:var(--o-a-100);color:var(--o-a-800);border:1px solid var(--o-a-200)}
+
+.st-flag{font-size:.74rem;font-weight:600;padding:.15rem .5rem;border-radius:3px;border:1px solid}
+.st-on{background:var(--o-g-100);color:var(--o-g-800);border-color:var(--o-g-200)}
+.st-offb{background:#fbe6e1;color:#7e2716;border-color:#f3cdc4}
+.st-acts{display:flex;gap:.35rem;flex-wrap:wrap;align-items:flex-start}
+.st-btn{font:inherit;font-size:.8rem;font-weight:550;padding:.32rem .6rem;border-radius:var(--radius-pill);border:1px solid var(--o-n-400);background:transparent;color:var(--st-ink);cursor:pointer;
+        text-decoration:none;line-height:1.4}
+.st-btn:hover{border-color:var(--st-mut)}
+.st-btn.warn{color:#8c491a;border-color:var(--o-a-300)}
+.st-btn.go{color:var(--o-g-700);border-color:var(--o-g-300)}
+
+.st-panel{border-top:1px solid var(--st-line);padding:.85rem 1rem;display:none}
+.st-panel.open{display:block}
+.st-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.7rem}
+.st-f label{display:block;font-size:.76rem;font-weight:600;color:var(--st-mut);
+            text-transform:uppercase;letter-spacing:.03em;margin-bottom:.2rem}
+.st-f input,.st-f select{width:100%;background:var(--st-bg);color:var(--st-ink);font:inherit;font-size:.9rem}
+.st-f input:focus,.st-f select:focus{outline:2px solid #c67139;outline-offset:-1px;border-color:#c67139}
+.st-check{display:flex;gap:.55rem;align-items:flex-start;padding:.55rem .7rem;border:1px solid var(--st-line);border-radius:var(--radius);cursor:pointer;background:var(--o-n-100)}
+.st-check:hover{border-color:var(--o-a-300);background:var(--o-a-100)}
+.st-check:has(input:checked){border-color:var(--o-accent);background:var(--o-a-100)}
+.st-check input{margin:.15rem 0 0;width:auto}
+.st-check b{display:block;font-size:.88rem;font-weight:600}
+.st-check span{font-size:.76rem;color:var(--st-mut);line-height:1.4}
+.st-mdp{border:1px solid var(--o-a-300);background:var(--o-a-100);border-radius:6px;padding:.9rem 1rem;margin-bottom:1.25rem}
+
+.st-mdp code{font-size:1.15rem;font-weight:700;letter-spacing:.04em;
+             background:rgba(0,0,0,.07);padding:.15rem .45rem;border-radius:4px}
+.st-empty{border:1px dashed var(--st-line);border-radius:8px;padding:2.5rem 1rem;text-align:center;color:var(--st-mut)}
+@media (max-width:640px){
+  .st-head{flex-direction:column;gap:.6rem}
+  .st-acts{width:100%}
+  .st-btn{flex:1 1 auto;text-align:center}
+}
+
+
+/* ── Revenue Live — `super_admin/revenue_live.php` ──────────────────────────────────────────────── */
+.section-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+.btn-export-group {
+    display: flex;
+    gap: .5rem;
+}
+@media print {
+    .no-print, .sidebar, .topbar, form, .btn-export-group, .page-header {
+        display: none !important;
+    }
+    .form-card, .table-container {
+        border: none !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    body {
+        background: #fff !important;
+        color: #000 !important;
+    }
+}
+/* ⚠ RETIRÉ (24/09/2026) : ici se trouvait le <style> de la FENÊTRE D'IMPRESSION
+   de revenue_live.php (imprimerRapport — body { padding: 2rem; font-family:
+   'Segoe UI' }, h1, h2, table, th/td bordés), recopié par erreur dans la feuille
+   commune : il s'appliquait à TOUTES les pages — 32 px de marge autour de
+   l'application (64 px perdus sur un téléphone de 375), des filets sur chaque
+   case de chaque tableau. Les deux fenêtres d'impression (finance/revenue/
+   boutons.tsx, components/table-export.tsx) portent déjà leur propre copie. */
+@media print {
+    .synthese-annuelle { background:#fff !important; color:#000 !important; border:2px solid #000 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .synthese-annuelle h3 { color:#000 !important; }
+    .synthese-annuelle .syn-tile { background:#fff !important; border:1.5px solid #000 !important; color:#000 !important; }
+    .synthese-annuelle .syn-tile div { color:#000 !important; opacity:1 !important; }
+}
+
+
+/* ── Gestion des groupes — `super_admin/gestion_groupes.php` ───────────────────────────────────────── */
+@media print {
+    body { background:#fff !important; color:#000 !important; font-family: 'Inter', sans-serif !important; }
+    .sidebar, .topbar, .page-header, .no-print, .alert { display:none !important; }
+    .main-content { margin:0 !important; padding:0 !important; }
+    .print-header { display:block !important; margin-bottom: 2rem; }
+    .table-container { border: none !important; box-shadow: none !important; }
+    table { width:100% !important; border-collapse:collapse !important; margin-top: 1rem; }
+    th, td { border:1px solid #ddd !important; padding:8px 12px !important; font-size:.85rem !important; text-align: left; }
+    th { background-color: #f3f4f6 !important; font-weight: bold !important; color: #201e1d !important; }
+    tr:nth-child(even) { background-color: #f9fafb !important; }
+    .badge { background:transparent !important; color:#000 !important; border:1px solid #ccc !important; padding:2px 6px !important; border-radius: 4px; }
+}
+
+
+/* ── Bulletins de classe — `super_admin/bulletins_classe.php` ───────────────────────────────────────── */
+/* Chaque bulletin sur sa propre page A4 */
+@page { size: A4 portrait; margin: 8mm; }
+.bulletin-lot { page-break-after: always; break-after: page; }
+.bulletin-lot:last-child { page-break-after: auto; break-after: auto; }
+@media print {
+    .no-print, .sidebar, .app-sidebar, .topbar, .app-topbar { display: none !important; }
+    body, .main-content, .page-content { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+    .bulletin-lot { transform: scale(.92); transform-origin: top center; }
+}
+@media screen {
+    .bulletin-lot { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 3px dashed var(--border); }
+}
+
+
+/* ── Notes des étudiants — `super_admin/notes_etudiants.php` ───────────────────────────────────────── */
+@page { size: A4 portrait; margin: 8mm; }
+@media print {
+    html, body { background: #fff !important; }
+    .bulletin-doc, .bul-page { transform: scale(.92); transform-origin: top center; page-break-inside: avoid; }
+    .bulletin-doc table { font-size: 8.5pt !important; }
+    .bulletin-doc th, .bulletin-doc td { padding: 2px 4px !important; }
+    .bul-sig-area, .bul-obs-area { min-height: 42px !important; }
+    .bul-footer-grid { page-break-inside: avoid; }
+}
+
+@media print { .no-print { display:none !important; } .classement-table th, .classement-table td { border:1px solid #000 !important; } }
+
+
+/* ── Rapport financier — `super_admin/rapport_financier.php` ─────────────────────────────────────────── */
+@media print {
+    .synthese-annuelle { background:#fff !important; color:#000 !important; border:2px solid #000 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .synthese-annuelle h3 { color:#000 !important; }
+    .synthese-annuelle .syn-tile { background:#fff !important; border:1.5px solid #000 !important; color:#000 !important; }
+    .synthese-annuelle .syn-tile div { color:#000 !important; opacity:1 !important; }
+}
+
+
+/* ── Impayés — `super_admin/impayes.php` ───────────────────────────────────────────────────── */
+@media print {
+    .no-print, .sidebar, .sidebar-toggle, .page-header-right { display:none !important; }
+    .impayes-table th, .impayes-table td { border:1px solid #000 !important; color:#000 !important; }
+    .impayes-print { box-shadow:none !important; }
+    .impayes-head { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
+
+
+/* ── Espace parent — bulletin — `parent/bulletin.php` ──────────────────────────────────── */
+@page { size: A4 portrait; margin: 8mm; }
+@media print {
+    html, body { background: #fff !important; }
+    .bulletin-doc, .bul-page { transform: scale(.92); transform-origin: top center; page-break-inside: avoid; }
+    .bulletin-doc table { font-size: 8.5pt !important; }
+    .bulletin-doc th, .bulletin-doc td { padding: 2px 4px !important; }
+    .bul-sig-area, .bul-obs-area { min-height: 42px !important; }
+    .bul-footer-grid { page-break-inside: avoid; }
+    .no-print { display: none !important; }
+}
+
+
+/* ── Espace parent — fiche enfant — `parent/enfant.php` ──────────────────────────────── */
+.tab-btn { padding:.55rem 1rem;border:2px solid var(--ocean-200,#a5f3fc);background:#fff;border-radius:24px;font-weight:600;color:var(--ocean-700);cursor:pointer;transition:.2s;}
+.tab-btn.active { background:var(--ocean-700,#0e7490);color:#fff;border-color:var(--ocean-700,#0e7490);}
+.tab-pane { display:none; }
+.tab-pane.active { display:block; animation: fadeInPane .25s; }
+@keyframes fadeInPane { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
