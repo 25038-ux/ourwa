@@ -3622,3 +3622,105 @@ un service commencé en cours de mois suit la règle du 25 ; les dettes de servi
 bloquent la réinscription et les examens comme toute dette ; les remises
 (réductions) ne s'appliquent qu'à la scolarité ; le préfixe des reçus de Jinan
 est `JIN`.
+
+### ADR-0073 — addendum (2026-09-29, soir) : l'interface web terminée ; les valeurs par défaut consignées
+
+**L'interface.** Les étapes 2 à 4 du document « reste à faire » sont faites sur
+le site, et vérifiées dans un navigateur sur une école « services » de
+développement (`seed-jinan.ts`, jamais en production) :
+inscription (`<ChoixFacturation>` : mode obligatoire, mensualité pré-remplie par
+niveau ET mode, frais d'inscription du niveau, cantine / piscine / docteur /
+photocopie avec leur prix), réinscription (modale, recherche, en lot — le mode
+seul), fenêtre d'encaissement (échéances de service à cocher, total en décimal),
+fiche du correspondant (mode et « Changer de mode », bloc « Services »,
+sous-lignes de service dans chaque carte de mois avec Reçu et ✕), reçu groupé
+(une ligne par enfant et par service), note des impayés. `studyMode` et
+`services` ne partent QUE vers une école « services » (`lireChoixFacturation`) ;
+une école « famille » garde ses écrans mot pour mot — épinglé par
+`e2e/jinan-facturation.spec.ts` (contre-épreuve Nour).
+
+Deux choix d'écran : le « règlement global / avance » — qui ne répartit que sur
+la scolarité — se pré-remplit, dans une école « services », de la seule
+scolarité due (les services s'encaissent en les cochant) ; arrêter un service
+ANNUEL l'arrête à son propre mois (le défaut « mois suivant » n'aurait rien
+retiré).
+
+**Les décisions « D », en place par défaut et À CONFIRMER avec l'école** (rien
+ne les a encore validées ; chacune se change dans le code du service, test
+d'abord) :
+
+| # | Valeur par défaut | Où |
+|---|---|---|
+| D1 | Un service commencé en cours de mois suit la **règle du 25** (le mois courant jusqu'au 25, sinon le suivant). | `moisDeDepartParDefaut` |
+| D2 | Les dettes de services **bloquent** réinscription et examens comme toute dette. | `DebtService`, `examAccess.afterCollection` |
+| D3 | Les **remises** (réductions d'un mois) ne s'appliquent qu'à la scolarité. | `ConcessionsService` |
+| D4 | Niveau sans frais d’inscription définis → inscription **refusée** (0 = gratuit). | `TarifsService` (`fraisNonDefinis`), à l’inscription |
+| D5 | Arrêter un service supprime aussi un mois payé **puis entièrement annulé** (payé net = 0). | `StudentServicesService.stop` |
+| D6 | Les services restent dus pour un élève à **scolarité gratuite**. | `DebtService`, fiche : la grille s'affiche |
+
+## ADR-0074 — Les absences du personnel, d'après l'emploi du temps
+
+**2026-09-29 · accepté (demande du propriétaire : « add absence for staff and
+professors based on their emplois du temps »).**
+
+**Contexte.** El Ourwa ne suit que les absences des élèves. Un professeur a un
+emploi du temps (les cases de `timetable_slots` dont l'enseignement est le
+sien) ; un agent (`staff` : surveillance, gardiennage, cuisine, direction…) n'en
+avait aucun.
+
+**Décision.**
+1. `staff_work_hours` (0043) : l'emploi du temps d'un agent, période par période
+   (jour ISO, début, fin ; plusieurs périodes par jour ; aucun chevauchement,
+   vérifié par le service). Fixé par qui embauche (`comptes.staff`).
+2. `personnel_absences` (0043) : une ligne par **séance manquée** (professeur :
+   date, créneau, classe, enseignement) ou par **période manquée** (agent :
+   entière ou en partie). Le libellé, les heures et la durée sont **recopiés** :
+   l'absence du 12 octobre reste lisible quand la grille, la classe ou les
+   horaires changent (clés `ON DELETE SET NULL (col)`, comme 0022).
+3. On ne déclare une absence **que contre l'emploi du temps** : une séance que
+   la grille donne au professeur ce jour-là (la règle d'ADR-0071 : une case
+   d'une année passée revient au professeur de la matière cette année ; une
+   matière qui n'est plus enseignée ne donne aucune séance), une période des
+   horaires de l'agent ce jour-là. Idempotent pour une séance ; deux absences
+   d'un agent ne se chevauchent pas ; au plus 60 jours à l'avance.
+4. L'année d'une date : sa période attribuée (ADR-0071), en préférant l'année
+   ouverte à une année seulement créée, dont la période commence en juillet —
+   sinon octobre lisait la grille, vide, de l'année à venir (trouvé dans le
+   navigateur, épinglé par test).
+5. Durées : les trois créneaux d'El Ourwa (8h-9h45, 10h-11h45, 12h-14h : 105,
+   105, 120 minutes), désormais dans `@elourwa/shared/emploi-du-temps` ; un
+   créneau au-delà n'a pas de durée connue et compte comme une séance, jamais
+   comme zéro heure. Un professeur que la grille met dans deux classes au même
+   créneau manque deux séances, ses heures ne comptent qu'une fois.
+6. **Aucun argent.** Rien ne retient sur un salaire : la synthèse du mois
+   (heures manquées, justifiées ou non) est une information pour la direction
+   et la paie. Une retenue automatique serait une décision de l'école — à
+   demander, pas à supposer (règle 21).
+7. Droits, sans permission nouvelle : déclarer et lire = `absences.saisir`
+   (direction, collecteur d'absence) ; lire aussi `finance.salaires` ;
+   justifier = `absences.saisir` + rôle direction ; retirer une absence
+   justifiée = direction ; horaires = `comptes.staff`. Un professeur
+   (`absences.consulter`) ne lit pas les absences de ses collègues.
+
+**Conséquences.** Migration 0043 (deux tables neuves, RLS forcée, rien de
+modifié ailleurs). Page `/personnel/absences` (Journée, Synthèse du mois,
+Horaires des agents), menu direction et collecteur d'absence, pour toutes les
+écoles. La graine de démonstration donne des horaires aux agents sans changer
+la suite de `rand()`. Tests : base 9, API 21, navigateur 4.
+
+## ADR-0075 — L'IP et le domaine de production de Jinan en un seul endroit
+
+**2026-09-29 · accepté.**
+
+**Contexte.** Le propriétaire donnera l'IP du VPS et le domaine après l'achat.
+Ils servaient à quatre endroits (les deux scripts de mise à jour, install.sh,
+l'adresse compilée dans l'application) et les scripts exigeaient qu'on les
+retape — sans défaut, pour que Jinan ne parte jamais sur le serveur d'El Mourad.
+
+**Décision.** `deploy/jinan/configurer-production.sh <ip> <domaine>
+[hébergeur]` vérifie l'IPv4 (publique) et le domaine, refuse ceux d'El Mourad,
+écrit `deploy/jinan/production.env` (lu par mettre-a-jour.sh / .ps1 et
+install.sh quand on ne leur donne rien — vide, ils refusent comme avant),
+`API_URL`/`WEB_URL` dans `deploy/brands/jinan.env`, et l'hébergeur des pages
+légales. `install.sh` lit désormais `LEGAL_HOST` du fichier de marque : il
+nommait Hostinger dans la politique de confidentialité même sur un autre VPS.

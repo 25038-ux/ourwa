@@ -339,3 +339,51 @@ même écran chez lui, et l'écran dit laquelle est laquelle.
   sont comptés (`login_attempts.bucket`) ; un numéro supplémentaire compte dans
   celui du numéro principal du compte. ADR-0072.
 
+
+## Ajouts du 29/09 — la facturation « services » (Jinan), les absences du personnel
+
+- **Modèle de facturation** — `schools.billing_model` / `School.billingModel` :
+  `famille` (El Ourwa : un tarif mensuel par niveau, frais annuels PAR FAMILLE)
+  ou `services` (Jinan). Posé à la création de l'école, jamais changé. ADR-0073.
+- **Mode d'étude** — `enrollments.study_mode` / `studyMode` : `8h-14h` ou
+  `8h-17h` (libellés « 8h – 14h », « 8h – 17h »). Obligatoire à la
+  (ré)inscription dans une école « services » ; le tarif mensuel du niveau
+  dépend de lui (`levels.monthly_rate_8h14`, `monthly_rate_8h17`).
+- **Frais d'inscription (élève)** — `levels.student_enrolment_fee` : dus une
+  fois PAR ÉLÈVE et par année dans une école « services », sous la forme d'un
+  abonnement `inscription` créé d'office. ⚠ À ne pas confondre avec les frais
+  d'inscription PAR FAMILLE d'El Ourwa (`family_fee_payments`) ni avec
+  `enrollments.enrolment_fee`, que l'import remplit et que rien ne lit.
+- **Service (optionnel)** — cantine (trois formules exclusives : petit
+  déjeuner, déjeuner, les deux), piscine, docteur (mensuels), photocopie
+  (annuelle). Prix par école et par année : `service_prices`.
+- **Abonnement de service** — `student_services` / `studentService` : un élève,
+  une année, un service, au montant **figé** à la souscription ; son
+  **échéancier** : `student_service_months`. Exempté (`exempt`) : ses mois
+  pèsent 0. **Arrêté** (`ended_at`, geste `stop`) : les mois non payés à
+  partir du mois d'arrêt sont retirés ; l'inscription ne s'arrête jamais.
+- **Grand livre des services** — `service_payments` : l'argent des services,
+  append-only, jamais dans `payments`. Encaissé par le reçu groupé.
+- **Page « Frais »** — `/frais` : les tarifs 8h – 14h / 8h – 17h et les frais
+  d'inscription de chaque niveau, les six prix de l'année. Direction, écoles
+  « services » seulement.
+- **Catalogue (formulaire)** — `CatalogueFacturation` (site) : ce qu'un
+  formulaire d'inscription lit de `GET /finance/tarifs` pour l'année visée.
+  `<ChoixFacturation>` le rend (mode, frais d'inscription, services).
+- **Horaires de travail (agent)** — `staff_work_hours` / `workHours` :
+  l'emploi du temps d'un agent (`staff`), période par période (jour ISO, début,
+  fin). ADR-0074.
+- **Absence du personnel** — `personnel_absences` : une **séance manquée**
+  (professeur : date, créneau, classe, enseignement, d'après la grille) ou une
+  **période manquée** (agent : entière ou en partie, d'après ses horaires).
+  **Justifiée** (`justified`) : décision de la direction, avec un motif. Aucune
+  retenue sur la paie. ADR-0074.
+- **Journée (absences)** — la feuille d'une date : ce que l'emploi du temps
+  donnait à chacun, et ce qui est déclaré. **Synthèse du mois** : par
+  personne, absences et heures manquées, justifiées ou non.
+- **Créneau** — `timetable_slots.slot` : 1 = 8h-9h45 (105 min), 2 = 10h-11h45
+  (105 min), 3 = 12h-14h (120 min) ; au-delà, sans heure ni durée connues.
+  `@elourwa/shared/emploi-du-temps`.
+- **production.env (Jinan)** — `deploy/jinan/production.env` : l'IP du VPS et
+  le domaine de production, écrits par `configurer-production.sh`, lus par les
+  scripts de mise à jour et `install.sh`. ADR-0075.

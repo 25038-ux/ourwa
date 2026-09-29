@@ -8,6 +8,83 @@ every session, even short or unproductive ones.
 
 
 
+## JINAN : L'INTERFACE WEB TERMINÉE, LES ABSENCES DU PERSONNEL, LA PRODUCTION EN UN ENDROIT — 2026-09-29 (soir)
+
+**Demande du propriétaire :** « faire ce qui reste » (document
+`JINAN-RESTE-A-FAIRE.md`, livré en zip avec les sources de la branche
+`jinan/web-en-cours`), pendant qu'il fournit l'IP et le domaine de
+production ; **et ajouter les absences des agents et des professeurs, d'après
+leur emploi du temps.**
+
+**Où.** Le dépôt GitHub `ourwa` porte, à sa racine, le site PHP El Ourwa ; la
+plateforme a été importée telle quelle dans `plateforme/` (commit
+`b55e949`), sans toucher au site PHP. Branche `claude/jinan-web-completion-6wv8c0`.
+
+### Fait
+1. **Facturation « services », interface web** (ADR-0073 + addendum) : étape 1
+   vérifiée dans le navigateur (Frais, Niveaux) ; inscription (`<ChoixFacturation>`),
+   réinscription (modale, recherche, lot), fenêtre d'encaissement (services,
+   total en décimal), fiche du correspondant (bloc Services, sous-lignes de
+   mois, Reçu, ✕, exempter, arrêter, ajouter, changer de mode), reçu groupé,
+   note des impayés. `studyMode` / `services` ne partent que vers une école
+   « services ».
+2. **Absences du personnel** (ADR-0074, migration **0043**) : `staff_work_hours`
+   (horaires des agents), `personnel_absences` ; API `/personnel/…` ; page
+   `/personnel/absences` (Journée, Synthèse du mois, Horaires des agents),
+   menu direction et collecteur d'absence. Aucune retenue sur la paie.
+3. **L'IP et le domaine de production** (ADR-0075) :
+   `deploy/jinan/configurer-production.sh <ip> <domaine> [hébergeur]` →
+   `production.env`, `API_URL`/`WEB_URL`, `LEGAL_HOST` ; les scripts de mise à
+   jour et `install.sh` les lisent. `install.sh` nommait Hostinger en dur dans
+   la politique de confidentialité : corrigé.
+4. **`seed-jinan.ts`** (`pnpm --filter @elourwa/db seed:jinan`) : une école
+   « services » inventée, relançable, jamais en production ; `e2e-run.sh` la
+   remet à neuf à chaque passage. La graine principale donne des horaires aux
+   agents (sans changer la suite de `rand()`).
+5. Docs : DECISIONS (ADR-0073 addendum, 0074, 0075), GLOSSARY, FEATURES
+   (12g, 12h, 12i), `docs/JINAN-RESTE-A-FAIRE.md` à jour.
+
+### Trouvé en chemin (et corrigé)
+- La journée des absences du 5 octobre lisait la grille de l'année **à venir**
+  (sa période commence en juillet) : l'année ouverte est désormais préférée.
+- Le formulaire de déclaration des absences entourait le tableau : les
+  formulaires ✕ / Justifier y étaient **imbriqués** (HTML invalide) et ✕
+  soumettait la déclaration.
+
+### Vérifié
+- Base **79/79**, partagé **121/121**, API **1008/1008** (987 d'avant + 21
+  nouveaux ; un premier passage complet avait vu `famille.spec.ts` échouer au
+  chargement, une fois — vert seul et au passage suivant), types propres (API,
+  site, base, partagé).
+- Navigateur (Chromium, Jinan de dév. + Nour) : `jinan-facturation.spec.ts`
+  8/8, `absences-personnel.spec.ts` 4/4 ; `dossier-famille`,
+  `mot-de-passe-genere`, `toutes-les-pages` (absences comprises) : 85 passés,
+  1 instable repassé à la reprise, 0 échec. Captures 375 et 820 px des pages
+  Jinan (Frais, inscription, fiche, absences) : rien hors écran.
+- Suite entière : 141 passés, 5 instables (repassés), 11 échecs — tous dans
+  `exercice.spec.ts` (2) et `mobile.spec.ts` (9, débordements à 375 px sur des
+  pages non touchées). **Le code d'avant ces travaux (b55e949), lancé sur la
+  même machine, échoue de la même façon** (exercice 2/2, mobile 7 — un ensemble
+  différent à chaque passage) : propre à ce bac à sable, pas une régression.
+
+### Connu, non corrigé
+- Une secrétaire (sans `finance.*`) ne lit pas `GET /payment-methods` : la
+  fenêtre qui suit son inscription dit « aucun moyen de paiement » — dans
+  toutes les écoles, antérieur à ces travaux. Décision au propriétaire.
+- Un avertissement d'hydratation (`data-cartes`, `tableaux-cartes.tsx`) sur les
+  pages à tableaux, antérieur (Nour aussi).
+- `e2e/exercice.spec.ts` : l'envoi d'une pièce jointe répond « Fichier vide »
+  dans ce bac à sable, avant comme après ces travaux ; `mobile.spec.ts`
+  instable à 375 px, idem. À relancer sur le poste habituel.
+
+### Prochaine tâche
+- **Le propriétaire** : acheter le VPS et le domaine, puis
+  `bash deploy/jinan/configurer-production.sh <ip> <domaine> namecheap-eu`,
+  commiter, installer (`deploy/jinan/README.md`).
+- Confirmer avec l'école les décisions D1–D6 (ADR-0073 addendum) et la
+  question « retenue sur salaire pour absence non justifiée ? » (ADR-0074).
+- Facultatif : relecture adverse de l'API de facturation.
+
 ## 0.7.7+16 — « FRAIS GRAYTNA » ET LE MOT DE PASSE PARENT GÉNÉRÉ — 2026-09-28
 
 **Demande (El Mourad) :** « frais de photocopie » devient « frais graytna » ; le
