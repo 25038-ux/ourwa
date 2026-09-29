@@ -111,6 +111,15 @@ Chaque nuit à 02:30 : `/root/sauvegardes-jinan/jinan-AAAAMMJJ-HHMMSS.tar`
 le PC, ou `RCLONE_DEST=` dans `.env` avec rclone). La restauration est décrite en
 tête de `sauvegarde.sh`.
 
+## Changer le nom de l'école
+
+Le nom affiché par le site (barre latérale, page de connexion, reçus,
+bulletins) : `SCHOOL_NAME` (et `SCHOOL_NAME_AR`) dans
+`deploy/brands/jinan.env` — aujourd'hui « Heavenly Private Educational
+Institution ». Commitez, puis mettez à jour le serveur : `install.sh` le remet
+dans `.env` et l'applique à l'école en base (`bootstrap-school --sync-name`).
+Sur le serveur, sans nouvelle version : `SCHOOL_NAME='…' bash install.sh`.
+
 ## Changer les mentions des pages légales
 
 Nom officiel, téléphone, adresse, courriel : clés `LEGAL_*` de `.env` (valeurs

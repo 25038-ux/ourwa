@@ -5,6 +5,10 @@
  *     --slug elmourad --name "El Mourad" --name-ar "المراد" --prefix ELM \
  *     --admin-email direction@elmourad.mr --admin-name "Direction El Mourad"
  *
+ *   --sync-name   (facultatif) : le nom et le nom arabe d'une école DÉJÀ
+ *     installée prennent ceux donnés — sans cela, une école existante garde
+ *     les siens. Ni le modèle de facturation ni le préfixe ne changent.
+ *
  *   --billing-model famille|services   (facultatif, « famille » par défaut)
  *     Le modèle de facturation de l'école (0042, ADR-0073) : « famille » =
  *     El Ourwa tel quel (El Mourad) ; « services » = Jinan (modes d'étude,
@@ -54,6 +58,12 @@ export interface Options {
   password: string | null;
   /** `null` : non précisé — une école neuve est « famille », une école existante garde le sien. */
   billingModel: ModeleFacturation | null;
+  /**
+   * `--sync-name` : le nom (et le nom arabe) d'une école DÉJÀ installée prend
+   * celui donné. Sans lui, une école existante garde le sien. Jamais le modèle
+   * de facturation ni le préfixe des reçus.
+   */
+  syncName: boolean;
 }
 
 function lireModele(argv: string[]): ModeleFacturation | null {
@@ -95,6 +105,7 @@ export function lireOptions(argv: string[]): Options {
     hostname: (v('--hostname') ?? '').trim().toLowerCase() || null,
     password: process.env.ADMIN_PASSWORD?.trim() || null,
     billingModel: lireModele(argv),
+    syncName: argv.includes('--sync-name'),
   };
 }
 
@@ -161,6 +172,16 @@ export async function bootstrapSchool(databaseUrl: string, o: Options): Promise<
         );
       }
       console.log(`  école « ${o.slug} » : déjà présente, reprise telle quelle (facturation « ${ecole[0].billing_model} »)`);
+      // Le nom est une donnée d'affichage, pas un réglage : `--sync-name` le
+      // fait suivre (l'installation de Jinan le lit dans son fichier de marque).
+      if (o.syncName) {
+        const { rowCount } = await db.query(
+          `UPDATE schools SET name = $2, name_ar = $3
+            WHERE id = $1 AND (name IS DISTINCT FROM $2 OR name_ar IS DISTINCT FROM $3)`,
+          [schoolId, o.name, o.nameAr],
+        );
+        if (rowCount) console.log(`  nom de l'école : « ${o.name} »${o.nameAr ? ` / « ${o.nameAr} »` : ''}`);
+      }
     } else {
       const modele: ModeleFacturation = o.billingModel ?? 'famille';
       const { rows } = await db.query<{ id: string }>(

@@ -90,3 +90,54 @@ describe('bootstrapSchool et le modèle de facturation', () => {
     expect(await modele('bt-famille')).toBe('famille');
   });
 });
+
+/**
+ * LE NOM DE L'ÉCOLE SUIT LE FICHIER DE MARQUE — demande du propriétaire
+ * (29/09) : « change the school label in the website to Heavenly Private
+ * Educational Institution ». L'installation de Jinan passe `--sync-name` : le
+ * nom (et le nom arabe) de l'école déjà installée prend celui donné. Rien
+ * d'autre ne change — ni le modèle de facturation, ni le préfixe des reçus.
+ * Sans `--sync-name`, une école existante garde son nom (El Mourad inchangé).
+ */
+describe('bootstrapSchool et le nom de l’école', () => {
+  async function ecole(slug: string) {
+    const { rows } = await owner.query<{ name: string; name_ar: string | null; receipt_prefix: string; billing_model: string }>(
+      'SELECT name, name_ar, receipt_prefix, billing_model FROM schools WHERE slug = $1',
+      [slug],
+    );
+    return rows[0];
+  }
+  const avecNom = (slug: string, nom: string, extra: string[] = []) =>
+    lireOptions([
+      '--slug', slug, '--name', nom, '--name-ar', 'جنان', '--prefix', 'BTN',
+      '--admin-email', `direction.${slug}@ecole.test`, '--billing-model', 'services', ...extra,
+    ]);
+
+  it('sans --sync-name, relancer garde le nom en base', async () => {
+    await bootstrapSchool(url(), avecNom('bt-nom-a', 'Jinan'));
+    await bootstrapSchool(url(), avecNom('bt-nom-a', 'Autre nom'));
+    expect((await ecole('bt-nom-a'))?.name).toBe('Jinan');
+  });
+
+  it('avec --sync-name, le nom (et le nom arabe) suivent ; rien d’autre ne change', async () => {
+    await bootstrapSchool(url(), avecNom('bt-nom-b', 'Jinan'));
+    await bootstrapSchool(
+      url(),
+      lireOptions([
+        '--slug', 'bt-nom-b', '--name', 'Heavenly Private Educational Institution', '--name-ar', 'جنان الخاصة',
+        '--prefix', 'ZZZ', '--admin-email', 'direction.bt-nom-b@ecole.test', '--sync-name',
+      ]),
+    );
+    expect(await ecole('bt-nom-b')).toEqual({
+      name: 'Heavenly Private Educational Institution',
+      name_ar: 'جنان الخاصة',
+      receipt_prefix: 'BTN',
+      billing_model: 'services',
+    });
+  });
+
+  it('lireOptions : --sync-name est un drapeau, absent par défaut', () => {
+    expect(avecNom('bt-nom-c', 'X').syncName).toBe(false);
+    expect(avecNom('bt-nom-c', 'X', ['--sync-name']).syncName).toBe(true);
+  });
+});

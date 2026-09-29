@@ -130,7 +130,7 @@ export async function seedJinan(url: string): Promise<void> {
 
     const { rows: sr } = await db.query<{ id: string }>(
       `INSERT INTO schools (slug, name, name_ar, receipt_prefix, theme_color, logo_emoji, billing_model)
-       VALUES ($1, 'Jinan (dév.)', 'جنان', 'JIN', '#047857', '🌿', 'services') RETURNING id`,
+       VALUES ($1, 'Heavenly Private Educational Institution', 'جنان', 'JIN', '#047857', '🌿', 'services') RETURNING id`,
       [SLUG],
     );
     const schoolId = sr[0]!.id;
@@ -382,7 +382,7 @@ export async function seedJinan(url: string): Promise<void> {
     }
 
     await db.query('COMMIT');
-    console.log(`Jinan (dév.) — jinan.localhost:3000 · facturation « services »`);
+    console.log(`Heavenly Private Educational Institution (Jinan, dév.) — jinan.localhost:3000 · facturation « services »`);
     console.log(`  4 niveaux · 8 classes · 6 professeurs · ${cellules} créneaux · 4 agents · ${n} élèves`);
     console.log(`  comptes : admin@jinan.test, comptable@jinan.test, secretaire@jinan.test, absence@jinan.test — ${PASSWORD}`);
   } catch (e) {

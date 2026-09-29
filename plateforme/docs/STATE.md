@@ -8,6 +8,26 @@ every session, even short or unproductive ones.
 
 
 
+## 0.7.8+18 — JINAN : LE NOM DE L'ÉCOLE — 2026-09-29 (nuit)
+
+**Demande du propriétaire :** « change the school label in the website to
+Heavenly private educational institution ».
+
+- Le nom affiché (barre latérale, connexion, titre des onglets, reçus,
+  bulletins) est `schools.name`. Il vient désormais du fichier de marque :
+  `SCHOOL_NAME="Heavenly Private Educational Institution"` (capitales de la
+  raison sociale, comme `LEGAL_ENTITY`) ; `SCHOOL_NAME_AR` reste « جنان ».
+- `install.sh` remet ce nom dans `.env` à chaque installation ou mise à jour
+  et passe `--sync-name` à `bootstrap-school`, qui l'applique à une école
+  déjà installée (sans lui, une école existante garde son nom : El Mourad
+  inchangé). Ni le modèle de facturation ni le préfixe des reçus ne bougent.
+  Tests : `bootstrap-school.test.ts` (+3).
+- Barre latérale : un nom sur plusieurs lignes est resserré
+  (`responsive.css`, `.sidebar-logo span`).
+- Restent « Jinan » : l'enseigne (`BRAND_NAME`) — la fin du titre des
+  onglets (« … — Jinan »), le « © Jinan » de la page de connexion, le nom de
+  l'application Android.
+
 ## 0.7.8+17 — JINAN : LE SERVEUR DE PRODUCTION — 2026-09-29 (nuit)
 
 **Donné par le propriétaire :** l'IP du VPS **209.74.66.223** et le domaine

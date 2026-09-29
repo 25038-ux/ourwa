@@ -194,8 +194,10 @@ if [ ! -f .env ]; then
     echo "# Lu par docker compose, jamais exécuté par bash. Après une modification : docker compose up -d"
     echo "PUBLIC_DOMAIN=$PUBLIC_DOMAIN"
     echo "ACME_EMAIL=$ACME_EMAIL"
-    echo "SCHOOL_NAME=$(citer "${SCHOOL_NAME:-Jinan}")"
-    echo "SCHOOL_NAME_AR=$(citer "${SCHOOL_NAME_AR:-جنان}")"
+    NOM="${SCHOOL_NAME:-$(lire_marque SCHOOL_NAME)}"
+    NOM_AR="${SCHOOL_NAME_AR:-$(lire_marque SCHOOL_NAME_AR)}"
+    echo "SCHOOL_NAME=$(citer "${NOM:-Jinan}")"
+    echo "SCHOOL_NAME_AR=$(citer "${NOM_AR:-جنان}")"
     echo "SCHOOL_RECEIPT_PREFIX=${SCHOOL_RECEIPT_PREFIX:-JIN}"
     echo "ADMIN_EMAIL=$ADMIN_EMAIL"
     echo "ADMIN_NAME=$(citer "${ADMIN_NAME:-Direction}")"
@@ -271,6 +273,15 @@ retenir LEGAL_UPDATED    "$(date +%Y-%m-%d)"
 # du serveur. Sans valeur dans le fichier de marque : « Frais de photocopie ».
 FRAIS_PHOTOCOPIE_MARQUE="$(lire_marque FEE_PHOTOCOPY_LABEL)"
 if [ -n "$FRAIS_PHOTOCOPIE_MARQUE" ]; then poser FEE_PHOTOCOPY_LABEL "$(citer "$FRAIS_PHOTOCOPIE_MARQUE")"; fi
+# Le nom de l'école, tel que le site l'affiche (barre latérale, connexion,
+# reçus, bulletins) : celui du fichier de marque — ou SCHOOL_NAME=… donné à ce
+# lancement —, remis à chaque mise à jour, puis appliqué à l'école en base
+# (`bootstrap-school --sync-name`, plus bas). Un fait de l'école, comme le nom
+# du frais de photocopie.
+NOM_ECOLE="${SCHOOL_NAME:-$(lire_marque SCHOOL_NAME)}"
+NOM_ECOLE_AR="${SCHOOL_NAME_AR:-$(lire_marque SCHOOL_NAME_AR)}"
+if [ -n "$NOM_ECOLE" ]; then poser SCHOOL_NAME "$(citer "$NOM_ECOLE")"; fi
+if [ -n "$NOM_ECOLE_AR" ]; then poser SCHOOL_NAME_AR "$(citer "$NOM_ECOLE_AR")"; fi
 # Les échecs de connexion tolérés par adresse IP en 15 minutes. Les opérateurs
 # mobiles mauritaniens mettent des milliers de téléphones derrière une même
 # adresse : 15 (la valeur du code) bloquerait tout un réseau le jour où les
@@ -366,7 +377,9 @@ MDP=()
   docker compose run --rm -T "${MDP[@]}" api pnpm --filter @elourwa/db bootstrap-school -- \
     --slug "$SINGLE_SCHOOL_SLUG" --name "$SCHOOL_NAME" --name-ar "$SCHOOL_NAME_AR" \
     --prefix "$SCHOOL_RECEIPT_PREFIX" --admin-email "$ADMIN_EMAIL" --admin-name "$ADMIN_NAME" \
-    --hostname "$PUBLIC_DOMAIN" --billing-model services | tee "$JOURNAL" )
+    --hostname "$PUBLIC_DOMAIN" --billing-model services --sync-name | tee "$JOURNAL" )
+# `--sync-name` : une école déjà installée prend le nom de .env (ci-dessus) ;
+# rien d'autre de l'école ni du compte de direction n'est retouché.
 # ⚠ `--billing-model services` : la facturation de Jinan (modes d'étude 8h – 14h /
 # 8h – 17h, frais d'inscription par élève, services optionnels — ADR-0073). Posé à
 # la création de l'école, jamais changé ensuite ; bootstrap-school est idempotent.

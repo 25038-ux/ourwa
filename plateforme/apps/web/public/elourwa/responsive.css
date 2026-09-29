@@ -291,3 +291,9 @@ img, video { height: auto; }
   .page-content [style*="white-space:nowrap"],
   .page-content [style*="white-space: nowrap"] { white-space: normal !important; }
 }
+
+/* ── Le nom de l'école dans la barre latérale ────────────────────────────────
+   Un nom long (« Heavenly Private Educational Institution », Jinan, 29/09)
+   passe sur plusieurs lignes : l'interligne hérité les espaçait d'une ligne
+   vide. Serré ici ; un nom d'une ligne (El Mourad) ne change pas. */
+.sidebar-logo span { line-height: 1.2; }
