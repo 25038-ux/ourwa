@@ -19,14 +19,17 @@ import { payableMonths, firstOwedMonthOrder } from './academic-year.js';
  *   - l'école `jinan` (facturation « services », reçus JIN-…) ;
  *   - la direction, un comptable, une secrétaire, un collecteur d'absence
  *     (`admin@jinan.test`, … — mot de passe `dev12345`) ;
- *   - 2025-2026 active (ses mois sont échus : il y a de la dette), 2026-2027 à venir ;
+ *   - 2024-2025 close, 2025-2026 active (ses mois sont échus : il y a de la
+ *     dette), 2026-2027 à venir ;
  *   - quatre niveaux, leurs tarifs 8h – 14h / 8h – 17h et leurs frais
  *     d'inscription, deux classes chacun, des matières ;
  *   - les six prix des services, pour les deux années ;
  *   - six professeurs (`prof0@jinan.test` …), leurs enseignements et un
  *     emploi du temps ; quatre agents et leurs horaires de travail ;
  *   - trois familles inscrites (modes différents, cantine, piscine…) — sans
- *     aucun paiement : les tests du navigateur encaissent eux-mêmes.
+ *     aucun paiement : les tests du navigateur encaissent eux-mêmes ; une
+ *     quatrième, inscrite l'an dernier seulement (gratuite, sans dette), à
+ *     réinscrire.
  *
  * Relançable : l'école `jinan` et tout ce qui lui appartient sont d'abord
  * supprimés (ses paiements de service compris), puis recréés à l'identique.
@@ -157,11 +160,11 @@ export async function seedJinan(url: string): Promise<void> {
 
     // ── Années ─────────────────────────────────────────────────────────────
     const years = new Map<number, string>();
-    for (const [startYear, status] of [[2025, 'active'], [2026, 'future']] as const) {
+    for (const [startYear, status] of [[2024, 'closed'], [2025, 'active'], [2026, 'future']] as const) {
       const { rows } = await db.query<{ id: string }>(
-        `INSERT INTO academic_years (school_id, label, start_year, status)
-         VALUES ($1, $2, $3, $4) RETURNING id`,
-        [schoolId, `${startYear}-${startYear + 1}`, startYear, status],
+        `INSERT INTO academic_years (school_id, label, start_year, status, closed_at)
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [schoolId, `${startYear}-${startYear + 1}`, startYear, status, status === 'closed' ? `${startYear + 1}-07-01` : null],
       );
       years.set(startYear, rows[0]!.id);
     }
@@ -170,6 +173,7 @@ export async function seedJinan(url: string): Promise<void> {
     const months = payableMonths(shape);
 
     for (const [startYear, id] of years) {
+      if (startYear < 2025) continue;
       for (const [service, amount] of Object.entries(PRIX)) {
         await db.query(
           `INSERT INTO service_prices (school_id, academic_year_id, service, amount, updated_by)
@@ -339,6 +343,41 @@ export async function seedJinan(url: string): Promise<void> {
             );
           }
         }
+      }
+    }
+
+    // ── Une famille à réinscrire ───────────────────────────────────────────
+    // Inscrite en 2024-2025 (close), pas encore en 2025-2026 : ce que la
+    // réinscription (unitaire et en lot) propose. Scolarité gratuite l'an
+    // dernier, donc aucune dette : rien ne bloque.
+    const ancienne = years.get(2024)!;
+    const moisAncienne = payableMonths({ startYear: 2024, startMonth: 10, endMonth: 6 });
+    const { rows: pr } = await db.query<{ id: string }>(
+      `INSERT INTO users (email, phone, password_hash, full_name) VALUES ('parent9.jinan@test', '46000009', $1, 'Salem Ould Reinscrit') RETURNING id`,
+      [pwd],
+    );
+    await db.query('INSERT INTO user_school_roles (user_id, school_id, role_id) VALUES ($1, $2, $3)', [pr[0]!.id, schoolId, role.get('parent')]);
+    for (const [i, [prenom, niveau]] of ([['Vatimetou', '1 AF'], ['Mahfoudh', '2 AF']] as const).entries()) {
+      n++;
+      const lv = levels.get(niveau)!;
+      const { rows: st } = await db.query<{ id: string }>(
+        `INSERT INTO students (school_id, guardian_id, rim, national_id, first_name, last_name, sex, matricule)
+         VALUES ($1, $2, $3, $4, $5, 'Ould Reinscrit', $6, $7) RETURNING id`,
+        [schoolId, pr[0]!.id, `RIM-JIN-${1000 + n}`, `JIN${30000000 + n}`, prenom, i === 0 ? 'F' : 'M', `ET24${String(90000 + n)}`],
+      );
+      const { rows: en } = await db.query<{ id: string }>(
+        `INSERT INTO enrollments (school_id, student_id, academic_year_id, group_id, level_id, status,
+                                  monthly_fee, full_rate, is_free, entry_date, study_mode, outcome)
+         VALUES ($1, $2, $3, $4, $5, 'enrolled', 0, $6, true, '2024-10-01', '8h-14h', 'passed') RETURNING id`,
+        [schoolId, st[0]!.id, ancienne, lv.groups[1], lv.id, String(lv.t14)],
+      );
+      for (const m of moisAncienne) {
+        await db.query(
+          `INSERT INTO enrollment_months (school_id, enrollment_id, month_order, month_label, calendar_month,
+                                          calendar_year, status, amount_due)
+           VALUES ($1, $2, $3, $4, $5, $6, 'free', 0)`,
+          [schoolId, en[0]!.id, m.order, m.label, m.month, m.year],
+        );
       }
     }
 

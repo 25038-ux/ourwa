@@ -7,6 +7,8 @@ import { MoyensPaiement, type LigneMoyen, type Moyen } from '@/components/moyens
 import { FenetreEncaissement, type FenetreData } from '@/components/fenetre-encaissement';
 import { arreterDetteAction, payerDetteMoisAction, reEnrolAction } from '@/app/actions';
 import { MOIS_NOMS } from '@/lib/mois';
+import { ChoixFacturation, type CatalogueFacturation } from '@/components/choix-facturation';
+import type { ModeEtude } from '@elourwa/shared/facturation';
 
 /** Une ligne de `dettes_scolarite` d'`obtenir_dette_parent_detaillee()`. */
 export interface LigneScolarite {
@@ -52,12 +54,13 @@ export function ReinscrireModale({
   estAdmin,
   estRoleLimite,
   moyens,
+  facturation = null,
 }: {
   studentId: string;
   studentName: string;
   classe: string;
   guardianName: string;
-  groupes: { id: string; name: string; level_name: string | null }[];
+  groupes: { id: string; name: string; level_id?: string | null; level_name: string | null }[];
   aDette: boolean;
   dette: number;
   tuition: LigneScolarite[];
@@ -65,8 +68,13 @@ export function ReinscrireModale({
   estAdmin: boolean;
   estRoleLimite: boolean;
   moyens: Moyen[];
+  /** École « services » (Jinan, §8) : mode obligatoire et services ; `null` ailleurs. */
+  facturation?: CatalogueFacturation | null;
 }) {
   const [state, action, pending] = useActionMessage(reEnrolAction);
+  const [groupeId, setGroupeId] = useState('');
+  const [mode, setMode] = useState<ModeEtude | null>(null);
+  const levelId = groupes.find((g) => g.id === groupeId)?.level_id ?? null;
 
   const [ouvert, setOuvert] = useState(false);
   const [bypass, setBypass] = useState(false);
@@ -183,7 +191,7 @@ export function ReinscrireModale({
 
           <div className="form-group">
             <label>Nouveau groupe *</label>
-            <select name="nouveau_groupe_id" required defaultValue="">
+            <select name="nouveau_groupe_id" required value={groupeId} onChange={(e) => setGroupeId(e.target.value)}>
               <option value="">— Choisir —</option>
               {groupes.map((tg) => (
                 <option key={tg.id} value={tg.id}>{(tg.level_name ?? 'Sans niveau') + ' — ' + tg.name}</option>
@@ -193,7 +201,13 @@ export function ReinscrireModale({
 
           <div className="form-group">
             <label>Frais mensuel personnalisé (MRU) — optionnel</label>
-            <input type="number" name="frais_personnalise" min={0} step={1} placeholder="Laisser vide = tarif du niveau" />
+            <input
+              type="number"
+              name="frais_personnalise"
+              min={0}
+              step={1}
+              placeholder={facturation ? 'Laisser vide = tarif du niveau pour le mode choisi' : 'Laisser vide = tarif du niveau'}
+            />
             <small className="text-muted">
               {estRoleLimite ? (
                 <>Tout frais différent du tarif du niveau devra être <strong>validé par l&apos;administrateur</strong> avant d&apos;être appliqué.</>
@@ -202,6 +216,10 @@ export function ReinscrireModale({
               )}
             </small>
           </div>
+
+          {facturation && (
+            <ChoixFacturation catalogue={facturation} levelId={levelId} mode={mode} onMode={setMode} />
+          )}
 
           {aDette && estAdmin && (
             <div style={{ margin: '.75rem 0', padding: '.75rem', background: '#fefce8', border: '1px solid #fde68a', borderRadius: 8 }}>

@@ -2,6 +2,7 @@ import { apiFetch, requireSession, can, peutAdministrerLaDette } from '@/lib/ses
 import { PageHeader } from '@/components/page-header';
 import { MessagePage } from '@/components/message-page';
 import type { Moyen } from '@/components/moyens-paiement';
+import { catalogueFacturation } from '@/lib/facturation';
 import { CreanceActions, AjouterCreance, CreanceBureau } from './bulk/bulk-forms';
 import { ReinscrireModale, ArreterDette, type LigneScolarite, type LigneDiverse } from './forms';
 
@@ -25,6 +26,12 @@ interface Family {
   tuition: LigneScolarite[];
   misc: LigneDiverse[];
   annualFees: { label: string; outstanding: string }[];
+  /**
+   * École « services » (Jinan, §6) : chaque échéance de service due — un mois
+   * de cantine, l'inscription de l'année… Comprise dans `debt` ; `[]` (ou
+   * absente) dans une école « famille ».
+   */
+  services?: { studentName: string; label: string; monthLabel: string | null; outstanding: string }[];
   children: Child[];
 }
 
@@ -108,13 +115,16 @@ export default async function ReEnrolPage({
   const familles = resultat?.families ?? [];
   const nbEleves = familles.reduce((n, f) => n + f.children.length, 0);
 
-  const [groupes, moyens, creances] = await Promise.all([
+  const [groupes, moyens, creances, facturation] = await Promise.all([
     // « Tous les groupes », par cycle, ordre du niveau puis nom.
-    apiFetch<{ id: string; name: string; level_name: string | null }[]>('/groups').catch(() => []),
+    apiFetch<{ id: string; name: string; level_id: string | null; level_name: string | null }[]>('/groups').catch(() => []),
     apiFetch<Moyen[]>('/payment-methods').catch(() => []),
     estAdmin && familles.length > 0
       ? apiFetch<Creance[]>('/finance/misc-debts?includeSettled=true').catch(() => [] as Creance[])
       : Promise.resolve([] as Creance[]),
+    // École « services » : le catalogue de l'année de réinscription (celle que
+    // la recherche annonce, `enrolmentTarget`) ; `null` pour une école « famille ».
+    familles.length > 0 ? catalogueFacturation(resultat?.year.id) : Promise.resolve(null),
   ]);
 
   return (
@@ -231,6 +241,13 @@ export default async function ReEnrolPage({
                                 <td style={{ textAlign: 'right' }}><strong>{mru(l.outstanding)}</strong></td>
                               </tr>
                             ))}
+                            {(fam.services ?? []).map((l, i) => (
+                              <tr key={`v-${i}`}>
+                                <td>{l.studentName}</td>
+                                <td>{l.label}{l.monthLabel ? ` — ${l.monthLabel}` : ''}</td>
+                                <td style={{ textAlign: 'right' }}><strong>{mru(l.outstanding)}</strong></td>
+                              </tr>
+                            ))}
                             <tr style={{ borderTop: '2px solid var(--border)' }}>
                               <td colSpan={2}><strong>Total dû</strong></td>
                               <td style={{ textAlign: 'right' }}><strong style={{ color: '#B45309' }}>{mru(fdette)} MRU</strong></td>
@@ -327,7 +344,16 @@ export default async function ReEnrolPage({
                                   aDette={fdette > 0.01}
                                   dette={fdette}
                                   tuition={fam.tuition}
-                                  misc={[...fam.misc, ...fam.annualFees.map((f) => ({ who: 'Famille', label: f.label, outstanding: f.outstanding }))]}
+                                  misc={[
+                                    ...fam.misc,
+                                    ...fam.annualFees.map((f) => ({ who: 'Famille', label: f.label, outstanding: f.outstanding })),
+                                    ...(fam.services ?? []).map((l) => ({
+                                      who: l.studentName,
+                                      label: `${l.label}${l.monthLabel ? ` — ${l.monthLabel}` : ''}`,
+                                      outstanding: l.outstanding,
+                                    })),
+                                  ]}
+                                  facturation={facturation}
                                   estAdmin={estAdmin}
                                   estRoleLimite={estRoleLimite}
                                   moyens={moyens}

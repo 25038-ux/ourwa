@@ -2857,6 +2857,9 @@ export async function reEnrolAction(_prev: unknown, form: FormData) {
     brutFrais !== '' && Number.isFinite(Number(brutFrais)) && Number(brutFrais) >= 0
       ? Number(brutFrais).toFixed(2)
       : undefined;
+  // École « services » (Jinan, §8) : mode obligatoire, services cochés.
+  const facturation = await lireChoixFacturation(form);
+  if ('error' in facturation) return { error: facturation.error };
 
   try {
     const result = await apiFetch<{ id: string; monthlyFee: string; feeRequested?: string }>(
@@ -2868,6 +2871,7 @@ export async function reEnrolAction(_prev: unknown, form: FormData) {
           groupId,
           monthlyFee: fraisPerso,
           bypassDebt: form.get('bypass_dette') === '1',
+          ...facturation.champs,
         },
       },
     );
@@ -2982,6 +2986,9 @@ export async function bulkReEnrolAction(_prev: unknown, form: FormData) {
   const studentIds = form.getAll('eleves[]').map(String).filter(Boolean);
   if (studentIds.length === 0) return { error: 'Aucun élève sélectionné.' };
   const cible = { label: String(form.get('cible_libelle') ?? ''), startYear: String(form.get('cible_annee') ?? '') };
+  // École « services » (Jinan, §2) : un mode pour tout le lot, obligatoire.
+  const facturation = await lireChoixFacturation(form, { avecServices: false });
+  if ('error' in facturation) return { error: facturation.error };
 
   let r: {
     enrolled: number;
@@ -2993,7 +3000,7 @@ export async function bulkReEnrolAction(_prev: unknown, form: FormData) {
   try {
     r = await apiFetch('/enrollments/re-enrol/bulk', {
       method: 'POST',
-      json: { studentIds, groupId },
+      json: { studentIds, groupId, ...facturation.champs },
     });
   } catch (error) {
     return { error: error instanceof ApiError ? error.message : "La réinscription a échoué, rien n'a été enregistré." };

@@ -1,4 +1,5 @@
 import { apiFetch, requireSession, peutAdministrerLaDette } from '@/lib/session';
+import { estEcoleServices } from '@/lib/tenant';
 import { PageHeader } from '@/components/page-header';
 import { MessagePage } from '@/components/message-page';
 import { AutoSubmitSelect } from '@/components/auto-submit-select';
@@ -206,7 +207,7 @@ export default async function BulkReEnrolPage({
           <div className="alert alert-warning">Aucun élève inscrit sur cette année d&apos;origine.</div>
         ) : (
           <>
-            <BulkSelection groups={groups} cible={data.target}>
+            <BulkSelection groups={groups} cible={data.target} modesEtude={await estEcoleServices()}>
               <div className="table-container"><div className="overflow-x">
                 <table>
                   <thead>

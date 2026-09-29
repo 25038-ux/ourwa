@@ -7,6 +7,7 @@ import {
   creanceAction,
   writeOffAction,
 } from '@/app/actions';
+import { MODES_ETUDE, libelleMode } from '@elourwa/shared/facturation';
 import { useActionMessage } from '@/components/message-page';
 
 /**
@@ -47,10 +48,16 @@ function envoyerCreance(op: string, champs: Record<string, string>) {
 export function BulkSelection({
   groups,
   cible,
+  modesEtude = false,
   children,
 }: {
   groups: { id: string; name: string; level_name: string | null }[];
   cible: { label: string; startYear: number };
+  /**
+   * École « services » (Jinan, §2) : un mode d'étude pour tout le lot,
+   * obligatoire. Les services se souscrivent ensuite élève par élève (caisse).
+   */
+  modesEtude?: boolean;
   children: ReactNode;
 }) {
   const form = useRef<HTMLFormElement>(null);
@@ -77,6 +84,17 @@ export function BulkSelection({
             ))}
           </select>
         </div>
+        {modesEtude && (
+          <div>
+            <label htmlFor="study_mode">Mode d&apos;étude (tout le lot) *</label>
+            <select id="study_mode" name="study_mode" required defaultValue="">
+              <option value="">— Choisir —</option>
+              {MODES_ETUDE.map((m) => (
+                <option key={m} value={m}>{libelleMode(m)}</option>
+              ))}
+            </select>
+          </div>
+        )}
         <button type="submit" className="btn btn-primary" disabled={pending}>Réinscrire la sélection</button>
         <button type="button" className="btn btn-secondary" onClick={() => cocher(true)}>Tout cocher</button>
         <button type="button" className="btn btn-secondary" onClick={() => cocher(false)}>Tout décocher</button>
