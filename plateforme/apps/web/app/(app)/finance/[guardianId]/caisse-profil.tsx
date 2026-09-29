@@ -22,6 +22,7 @@ import {
 import { MessagePage, useActionMessage } from '@/components/message-page';
 import { MoyensPaiement, type LigneMoyen, type Moyen, fr } from '@/components/moyens-paiement';
 import { MOIS_NOMS } from '@/lib/mois';
+import { money, sum, toStorage } from '@elourwa/shared/money';
 import { FenetreEncaissement, type FenetreData } from '@/components/fenetre-encaissement';
 import type { CatalogueFacturation } from '@/components/choix-facturation';
 import {
@@ -758,9 +759,13 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
                   {fenetres[enf.studentId] && (() => {
                     const coches = [...(selection[enf.studentId] ?? [])];
                     const encaissables = enf.months.filter((m) => m.state === 'due' || m.state === 'partial');
-                    const total = enf.months
+                    // En décimal (règle 6), arrondi une fois, à l'affichage.
+                    const restesMois = enf.months
                       .filter((m) => coches.includes(`${m.year}-${m.month}`))
-                      .reduce((a, m) => a + Math.max(0, Number(m.due) - Number(m.paid)), 0);
+                      .map((m) => {
+                        const r = money(m.due).minus(money(m.paid));
+                        return r.isNegative() ? '0' : r;
+                      });
                     // École « services » : les échéances cochées (cartes de mois et lignes annuelles).
                     const echeances = [
                       ...enf.months.flatMap((m) => (m.services ?? []).map((l) => ({ cle: cleEcheance(l.studentServiceId, m.month, m.year), l }))),
@@ -770,7 +775,7 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
                       })),
                     ];
                     const servicesCoches = echeances.filter((e) => selectionServices[enf.studentId]?.has(e.cle));
-                    const totalServices = servicesCoches.reduce((a, e) => a + Number(e.l.outstanding), 0);
+                    const totalSelection = toStorage(sum([...restesMois, ...servicesCoches.map((e) => e.l.outstanding)]));
                     const servicesEncaissables = echeances.some((e) => e.l.state === 'due' || e.l.state === 'partial');
                     const nbLignes = coches.length + servicesCoches.length;
                     return (
@@ -789,7 +794,7 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
                         >
                           Encaisser la sélection
                           {nbLignes > 0
-                            ? ` — ${coches.length > 0 ? `${coches.length} mois` : ''}${coches.length > 0 && servicesCoches.length > 0 ? ' + ' : ''}${servicesCoches.length > 0 ? `${servicesCoches.length} service${servicesCoches.length > 1 ? 's' : ''}` : ''}, ${mru(total + totalServices)} MRU`
+                            ? ` — ${coches.length > 0 ? `${coches.length} mois` : ''}${coches.length > 0 && servicesCoches.length > 0 ? ' + ' : ''}${servicesCoches.length > 0 ? `${servicesCoches.length} service${servicesCoches.length > 1 ? 's' : ''}` : ''}, ${mru(totalSelection)} MRU`
                             : ''}
                         </button>
                         {encaissables.length > 1 && (

@@ -34,15 +34,17 @@ test.describe('Jinan — la direction', () => {
     await prete(page, `${J}/frais`);
     await expect(page.getByRole('heading', { name: 'Tarifs des niveaux' })).toBeVisible();
     await expect(page.locator('.sidebar-nav a[href="/frais"]')).toBeVisible();
-    // Le prix du docteur : 500 → 550, puis retour à 500.
-    const ligne = page.locator('tr', { hasText: 'Docteur' });
-    const champ = ligne.locator('input[type="number"]');
-    await champ.fill('550');
-    await champ.press('Enter');
-    await expect(page.getByText(/550 MRU/).first()).toBeVisible({ timeout: 30000 });
-    await page.locator('tr', { hasText: 'Docteur' }).locator('input[type="number"]').fill('500');
-    await page.locator('tr', { hasText: 'Docteur' }).locator('input[type="number"]').press('Enter');
-    await expect(page.getByText(/500 MRU/).first()).toBeVisible({ timeout: 30000 });
+    // Le prix du docteur : 500 → 550, puis retour à 500 — le message de la page
+    // le dit (« Docteur (2025-2026) : 550 MRU. »), et le champ le garde.
+    const champ = () => page.locator('tr', { hasText: 'Docteur' }).locator('input[type="number"]');
+    await champ().fill('550');
+    await champ().press('Enter');
+    await expect(page.locator('.alert-success', { hasText: /Docteur.*550 MRU/ })).toBeVisible({ timeout: 30000 });
+    await expect(champ()).toHaveValue('550');
+    await champ().fill('500');
+    await champ().press('Enter');
+    await expect(page.locator('.alert-success', { hasText: /Docteur.*500 MRU/ })).toBeVisible({ timeout: 30000 });
+    await expect(champ()).toHaveValue('500');
   });
 
   test('inscrire avec un mode et des services : un seul reçu pour la scolarité et les services', async ({ page }) => {

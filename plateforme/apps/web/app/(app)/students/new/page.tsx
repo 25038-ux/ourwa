@@ -3,6 +3,7 @@ import type { Annee } from '@/lib/annee';
 import { PageHeader } from '@/components/page-header';
 import { MessagePage } from '@/components/message-page';
 import { catalogueFacturation } from '@/lib/facturation';
+import { estEcoleServices } from '@/lib/tenant';
 import { AdmitForm } from './admit-form';
 
 export const dynamic = 'force-dynamic';
@@ -40,11 +41,17 @@ export default async function NewStudentPage() {
     cible ? catalogueFacturation(cible.id) : Promise.resolve(null),
   ]);
   groups.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+  // École « services » dont les tarifs sont illisibles : sans eux, pas de mode
+  // d'étude à choisir, et l'API refuserait chaque inscription — on le dit ici.
+  const tarifsIllisibles =
+    cible && !facturation && (await estEcoleServices())
+      ? "Les tarifs de l'année (modes d'étude, frais d'inscription, services) sont illisibles : vérifiez la page « Frais », puis rechargez."
+      : null;
 
   return (
     <>
       <PageHeader titre="Inscrire un étudiant" sousTitre="Nouvel étudiant + rattachement à un correspondant" />
-      <MessagePage initial={refus ? { type: 'error', texte: refus } : null}>
+      <MessagePage initial={refus ?? tarifsIllisibles ? { type: 'error', texte: (refus ?? tarifsIllisibles)! } : null}>
         <AdmitForm groups={groups} academicYearId={cible?.id ?? ''} moyens={moyens} facturation={facturation} />
       </MessagePage>
     </>

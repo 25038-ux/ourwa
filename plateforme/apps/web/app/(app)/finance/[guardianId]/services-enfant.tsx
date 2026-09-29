@@ -213,7 +213,10 @@ export function BlocServices({
   );
   // Le mois suivant par défaut, parmi ceux de l'année.
   const maintenant = new Date();
-  const suivant = moisPeriode.find((m) => m.annee * 12 + m.mois > maintenant.getFullYear() * 12 + maintenant.getMonth() + 1);
+  // Une année déjà finie n'a pas de « mois suivant » : son dernier mois.
+  const suivant =
+    moisPeriode.find((m) => m.annee * 12 + m.mois > maintenant.getFullYear() * 12 + maintenant.getMonth() + 1) ??
+    moisPeriode.at(-1);
 
   return (
     <div className="services-enfant" style={{ margin: '.5rem 0 .75rem', padding: '.6rem .75rem', border: '1px solid var(--border)', borderRadius: 8, background: '#fcfbf8' }}>

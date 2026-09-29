@@ -3,6 +3,7 @@ import { PageHeader } from '@/components/page-header';
 import { MessagePage } from '@/components/message-page';
 import type { Moyen } from '@/components/moyens-paiement';
 import { catalogueFacturation } from '@/lib/facturation';
+import { estEcoleServices } from '@/lib/tenant';
 import { CreanceActions, AjouterCreance, CreanceBureau } from './bulk/bulk-forms';
 import { ReinscrireModale, ArreterDette, type LigneScolarite, type LigneDiverse } from './forms';
 
@@ -127,10 +128,18 @@ export default async function ReEnrolPage({
     familles.length > 0 ? catalogueFacturation(resultat?.year.id) : Promise.resolve(null),
   ]);
 
+  // École « services » dont les tarifs sont illisibles : la modale n'aurait pas
+  // de mode d'étude, et l'API refuserait la réinscription — on le dit ici.
+  const tarifsIllisibles =
+    familles.length > 0 && !facturation && (await estEcoleServices())
+      ? "Les tarifs de l'année de réinscription sont illisibles : vérifiez la page « Frais », puis rechargez."
+      : null;
+  const erreurPage = erreurRecherche ?? tarifsIllisibles;
+
   return (
     <>
       <PageHeader titre="Réinscrire un étudiant" sousTitre="Recherche par nom de l'étudiant ou téléphone du correspondant" />
-      <MessagePage initial={erreurRecherche ? { type: 'error', texte: erreurRecherche } : null}>
+      <MessagePage initial={erreurPage ? { type: 'error', texte: erreurPage } : null}>
         <div className="form-card" style={{ marginBottom: '1.5rem' }}>
           <h3>Rechercher un étudiant</h3>
           <form method="GET" style={{ display: 'flex', gap: '.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
