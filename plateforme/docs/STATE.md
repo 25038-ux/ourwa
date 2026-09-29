@@ -67,10 +67,17 @@ plateforme a été importée telle quelle dans `plateforme/` (commit
   même machine, échoue de la même façon** (exercice 2/2, mobile 7 — un ensemble
   différent à chaque passage) : propre à ce bac à sable, pas une régression.
 
+### Décisions du propriétaire (29/09, après la livraison)
+- Les décisions D1–D6 de la facturation : **gardées telles quelles** (ADR-0073
+  addendum).
+- Les absences **ne réduisent pas** le salaire (ADR-0074).
+- **La secrétaire lit la liste des moyens de paiement** : fait (ADR-0076) —
+  `GET /payment-methods` s'ouvre à `scolarite.inscrire` / `reinscrire`
+  (l'administrateur aussi, même raison) ; gérer les moyens reste à la
+  direction. Test du garde + test du navigateur (la secrétaire inscrit et
+  encaisse, reçu de 5 200 MRU).
+
 ### Connu, non corrigé
-- Une secrétaire (sans `finance.*`) ne lit pas `GET /payment-methods` : la
-  fenêtre qui suit son inscription dit « aucun moyen de paiement » — dans
-  toutes les écoles, antérieur à ces travaux. Décision au propriétaire.
 - Un avertissement d'hydratation (`data-cartes`, `tableaux-cartes.tsx`) sur les
   pages à tableaux, antérieur (Nour aussi).
 - `e2e/exercice.spec.ts` : l'envoi d'une pièce jointe répond « Fichier vide »
@@ -81,8 +88,6 @@ plateforme a été importée telle quelle dans `plateforme/` (commit
 - **Le propriétaire** : acheter le VPS et le domaine, puis
   `bash deploy/jinan/configurer-production.sh <ip> <domaine> namecheap-eu`,
   commiter, installer (`deploy/jinan/README.md`).
-- Confirmer avec l'école les décisions D1–D6 (ADR-0073 addendum) et la
-  question « retenue sur salaire pour absence non justifiée ? » (ADR-0074).
 - Facultatif : relecture adverse de l'API de facturation.
 
 ## 0.7.7+16 — « FRAIS GRAYTNA » ET LE MOT DE PASSE PARENT GÉNÉRÉ — 2026-09-28

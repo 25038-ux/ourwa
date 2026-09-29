@@ -60,20 +60,13 @@ VPS ; **aucun AAAA**.
 Play Console : `docs/store/jinan/PLAY-CONSOLE.md`. Notifications (facultatif) :
 lignes `FIREBASE_*` de `deploy/brands/jinan.env`.
 
-### E. À confirmer avec l'école (valeurs par défaut en place — ADR-0073 addendum)
-D1 règle du 25 pour un service commencé en cours de mois · D2 les dettes de
-services bloquent réinscription et examens · D3 les remises ne portent que sur
-la scolarité · D4 niveau sans frais d'inscription définis → inscription refusée
-· D5 arrêter un service supprime un mois payé puis entièrement annulé · D6 les
-services restent dus pour un élève à scolarité gratuite. Et pour les absences :
-faut-il **retenir** les heures non justifiées sur le salaire ? (aujourd'hui :
-non, information seulement).
+### E. Décisions — tranchées par le propriétaire le 29/09
+D1–D6 (règle du 25, dettes de services bloquantes, remises sur la scolarité
+seule, niveau sans frais d'inscription refusé, arrêt après annulation, services
+dus malgré la gratuité) : **gardées**. Les absences du personnel **ne réduisent
+pas** le salaire. La secrétaire **lit** la liste des moyens de paiement (fait,
+ADR-0076).
 
 ### F. Facultatif
 - Relecture adverse de l'API de facturation (argent, isolation, parité El
   Mourad, cohérence de la dette).
-- Une secrétaire (sans `finance.*`) ne lit pas `GET /payment-methods` : la
-  fenêtre d'encaissement qui suit son inscription dit « aucun moyen de
-  paiement » — dans toutes les écoles, avant ces travaux. À décider : lui
-  ouvrir la lecture des moyens (`scolarite.inscrire`), ou laisser la caisse
-  encaisser.

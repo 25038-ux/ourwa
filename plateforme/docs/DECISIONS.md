@@ -3645,9 +3645,10 @@ scolarité due (les services s'encaissent en les cochant) ; arrêter un service
 ANNUEL l'arrête à son propre mois (le défaut « mois suivant » n'aurait rien
 retiré).
 
-**Les décisions « D », en place par défaut et À CONFIRMER avec l'école** (rien
-ne les a encore validées ; chacune se change dans le code du service, test
-d'abord) :
+**Les décisions « D » — CONFIRMÉES par le propriétaire le 2026-09-29 (« the
+billing defaults, leave them »)** ; ce sont désormais les règles de Jinan, pas
+des valeurs d'attente. Chacune se change dans le code du service, test
+d'abord :
 
 | # | Valeur par défaut | Où |
 |---|---|---|
@@ -3694,8 +3695,8 @@ avait aucun.
    créneau manque deux séances, ses heures ne comptent qu'une fois.
 6. **Aucun argent.** Rien ne retient sur un salaire : la synthèse du mois
    (heures manquées, justifiées ou non) est une information pour la direction
-   et la paie. Une retenue automatique serait une décision de l'école — à
-   demander, pas à supposer (règle 21).
+   et la paie. **Confirmé par le propriétaire le 2026-09-29** : une absence,
+   même non justifiée, ne réduit pas le salaire.
 7. Droits, sans permission nouvelle : déclarer et lire = `absences.saisir`
    (direction, collecteur d'absence) ; lire aussi `finance.salaires` ;
    justifier = `absences.saisir` + rôle direction ; retirer une absence
@@ -3724,3 +3725,26 @@ install.sh quand on ne leur donne rien — vide, ils refusent comme avant),
 `API_URL`/`WEB_URL` dans `deploy/brands/jinan.env`, et l'hébergeur des pages
 légales. `install.sh` lit désormais `LEGAL_HOST` du fichier de marque : il
 nommait Hostinger dans la politique de confidentialité même sur un autre VPS.
+
+## ADR-0076 — La liste des moyens de paiement se lit par qui encaisse à l'inscription
+
+**2026-09-29 · accepté (décision du propriétaire : « secretaries can read the
+list »).**
+
+**Contexte.** La fenêtre d'encaissement qui suit une inscription ou une
+réinscription encaisse avec `scolarite.inscrire` / `scolarite.reinscrire`
+(`POST /finance/caisse/encaissement`), mais `GET /payment-methods` exigeait
+`finance.consulter` ou `finance.encaisser`. La secrétaire — et l'administrateur,
+qui n'a aucun `finance.*` — voyaient « aucun moyen de paiement configuré » et ne
+pouvaient rien encaisser, dans toutes les écoles.
+
+**Décision.** `GET /payment-methods` : `finance.consulter`, `finance.encaisser`,
+`scolarite.inscrire` ou `scolarite.reinscrire` — la même porte que
+l'encaissement de la fenêtre. Lire seulement : ajouter ou désactiver un moyen
+reste à la direction (`finance.dette` + rôle). Le professeur, le collecteur
+d'absence et le parent ne la lisent pas.
+
+**Conséquences.** Aucune permission nouvelle. `moyens-paiement-lecture.spec.ts`
+(le vrai garde, les vraies permissions de chaque rôle) ;
+`e2e/jinan-facturation.spec.ts` : la secrétaire inscrit et encaisse dans la même
+fenêtre.
