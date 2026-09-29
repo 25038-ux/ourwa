@@ -58,7 +58,7 @@ export interface FenetreService {
 const mru = (v: string | number) => fr(Math.round(Number(v)));
 const cle = (m: { mois: number; annee: number }) => `${m.annee}-${m.mois}`;
 /** La clé d'une échéance de service : l'abonnement, et son mois pour un mensuel. */
-const cleService = (l: FenetreService) => `${l.studentServiceId}:${l.mois ?? 'an'}:${l.annee ?? ''}`;
+export const cleService = (l: FenetreService) => `${l.studentServiceId}:${l.mois ?? 'an'}:${l.annee ?? ''}`;
 const encaissableService = (l: FenetreService) => (l.etat === 'du' || l.etat === 'partiel') && money(l.reste).greaterThan('0.005');
 
 /**
@@ -81,6 +81,7 @@ export function FenetreEncaissement({
   lienTerminer,
   libelleTerminer,
   preselection,
+  preselectionServices,
   onFermer,
 }: {
   data: FenetreData;
@@ -92,6 +93,12 @@ export function FenetreEncaissement({
   libelleTerminer: string;
   /** Les mois déjà cochés à l'ouverture (la caisse) ; à défaut, le premier mois dû. */
   preselection?: { mois: number; annee: number }[];
+  /**
+   * École « services » : les échéances de service cochées à l'ouverture (la
+   * caisse, clés `studentServiceId:mois:annee`) ; à défaut, les annuelles et
+   * les mensuelles des mois pré-cochés.
+   */
+  preselectionServices?: string[];
   /** La caisse ferme la fenêtre sans quitter la page ; l'inscription a son lien. */
   onFermer?: () => void;
 }) {
@@ -100,7 +107,8 @@ export function FenetreEncaissement({
 
   const encaissables = useMemo(() => data.mois.filter((m) => m.etat === 'du' || m.etat === 'partiel'), [data.mois]);
   const [moisCoches, setMoisCoches] = useState<Set<string>>(() => {
-    if (preselection && preselection.length > 0) return new Set(preselection.map(cle));
+    // Des services seuls cochés à la caisse : aucun mois de scolarité d'office.
+    if (preselection && (preselection.length > 0 || (preselectionServices?.length ?? 0) > 0)) return new Set(preselection.map(cle));
     return new Set(encaissables.length > 0 ? [cle(encaissables[0]!)] : []);
   });
   const fraisDus = useMemo(
@@ -114,6 +122,7 @@ export function FenetreEncaissement({
   // les mensuels des mois pré-cochés ; tout se décoche, rien n'est obligatoire.
   const servicesDus = useMemo(() => (data.services ?? []).filter(encaissableService), [data.services]);
   const [servicesCoches, setServicesCoches] = useState<Set<string>>(() => {
+    if (preselectionServices) return new Set(preselectionServices);
     const moisInitiaux = new Set(
       preselection && preselection.length > 0 ? preselection.map(cle) : encaissables.length > 0 ? [cle(encaissables[0]!)] : [],
     );

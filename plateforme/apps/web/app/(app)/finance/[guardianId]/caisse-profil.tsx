@@ -23,6 +23,15 @@ import { MessagePage, useActionMessage } from '@/components/message-page';
 import { MoyensPaiement, type LigneMoyen, type Moyen, fr } from '@/components/moyens-paiement';
 import { MOIS_NOMS } from '@/lib/mois';
 import { FenetreEncaissement, type FenetreData } from '@/components/fenetre-encaissement';
+import type { CatalogueFacturation } from '@/components/choix-facturation';
+import {
+  BlocServices,
+  LigneEcheance,
+  cleEcheance,
+  type AbonnementFiche,
+  type LigneServiceEnfant,
+  type LigneServiceMois,
+} from './services-enfant';
 
 const mru = (v: string | number) => fr(Number(v));
 const loc = (v: string | number) => Number(v).toLocaleString('fr-FR');
@@ -50,6 +59,8 @@ export interface Mois {
   receiptNumber: string | null;
   autoExempt: boolean;
   autoLifted?: boolean;
+  /** École « services » (§7) : les échéances de service de ce mois ; absent ou [] sinon. */
+  services?: LigneServiceMois[];
 }
 
 export interface Enfant {
@@ -65,6 +76,10 @@ export interface Enfant {
   entryDate: string | null;
   firstBillable: string | null;
   months: Mois[];
+  /** École « services » (§7) : le mode d'étude, les abonnements, les échéances annuelles. */
+  studyMode?: string | null;
+  services?: AbonnementFiche[];
+  annualServices?: LigneServiceEnfant[];
   /** Les identifiants des exemptions, pour « Retirer ». */
   exemptFullId: string | null;
   exemptMonthIds: Record<string, string>;
@@ -152,7 +167,7 @@ export function CaisseProfil(props: {
   enfAn: { id: string; nom: string; frais: string; gratuit: boolean; classe: string | null }[];
   mensAn: string;
   nbGratuits: number;
-  dette: { total: string; scolarite: string; divers: string };
+  dette: { total: string; scolarite: string; divers: string; services?: string };
   remises: Remise[];
   frais: Frais[];
   paiementsAnnuels: PaiementAnnuel[];
@@ -167,6 +182,16 @@ export function CaisseProfil(props: {
   flash?: string | null;
   /** Le nom du frais « photocopie » de l'école (El Mourad : « Frais Graytna ») — lu côté serveur. */
   libellePhotocopie?: string;
+  /**
+   * École « services » (Jinan, spécification §7) : pas de frais annuels par
+   * famille ; par enfant, le mode, le bloc « Services », les échéances de
+   * service dans les cartes de mois. Faux : la fiche d'El Ourwa, inchangée.
+   */
+  facturationServices?: boolean;
+  /** Les prix de l'année, pour « Ajouter un service ». */
+  catalogue?: CatalogueFacturation | null;
+  /** Qui tient la caisse (`finance.encaisser`) : cocher, encaisser, ajouter un service. */
+  peutEncaisser?: boolean;
 }) {
   const {
     guardianId, peutAdministrer, comptable, parent, anneeCourante, academicYearId, anneesPar,
@@ -193,7 +218,17 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
   // « Encaisser la sélection » qui ouvre la fenêtre avec ces mois cochés — un
   // seul reçu pour le tout, frais annuels compris si on les coche là.
   const [selection, setSelection] = useState<Record<string, Set<string>>>({});
-  const [fenetreOuverte, setFenetreOuverte] = useState<{ studentId: string; mois: { mois: number; annee: number }[] } | null>(null);
+  const [fenetreOuverte, setFenetreOuverte] = useState<{ studentId: string; mois: { mois: number; annee: number }[]; services?: string[] } | null>(null);
+  // École « services » : les échéances de service cochées, par enfant.
+  const [selectionServices, setSelectionServices] = useState<Record<string, Set<string>>>({});
+  const basculerService = (studentId: string, cle: string) =>
+    setSelectionServices((s) => {
+      const n = new Set(s[studentId] ?? []);
+      if (n.has(cle)) n.delete(cle); else n.add(cle);
+      return { ...s, [studentId]: n };
+    });
+  const facturationServices = props.facturationServices === true;
+  const peutEncaisser = props.peutEncaisser ?? true;
   const basculer = (studentId: string, cle: string) =>
     setSelection((s) => {
       const n = new Set(s[studentId] ?? []);
@@ -270,7 +305,7 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
     <>
       {fenetre && fenetreOuverte && (
         <FenetreEncaissement
-          key={`${fenetreOuverte.studentId}-${fenetreOuverte.mois.map((m) => `${m.annee}-${m.mois}`).join(',')}`}
+          key={`${fenetreOuverte.studentId}-${fenetreOuverte.mois.map((m) => `${m.annee}-${m.mois}`).join(',')}-${(fenetreOuverte.services ?? []).join(',')}`}
           data={fenetre}
           moyens={moyens}
           titre="Encaisser — un seul reçu"
@@ -278,6 +313,7 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
           lienTerminer={`/finance/${guardianId}`}
           libelleTerminer="Annuler"
           preselection={fenetreOuverte.mois}
+          {...(fenetreOuverte.services ? { preselectionServices: fenetreOuverte.services } : {})}
           onFermer={() => setFenetreOuverte(null)}
         />
       )}
@@ -358,12 +394,16 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
           {totalDette > 0.01 && (
             <small className="text-muted" style={{ display: 'block', marginTop: '.25rem' }}>
               Scolarité : {mru(dette.scolarite)} MRU · Divers : {mru(dette.divers)} MRU
+              {facturationServices && dette.services !== undefined && <> · Services : {mru(dette.services)} MRU</>}
             </small>
           )}
         </div>
         <div>
-          <button type="button" className="btn btn-primary" onClick={() => ouvrirPaiementGlobal(dette.total)}>
-            Encaisser un règlement / avance
+          {/* Le règlement global ne répartit que sur les mois de scolarité : dans
+              une école « services », il se pré-remplit de la seule scolarité due
+              — les services s'encaissent en les cochant. */}
+          <button type="button" className="btn btn-primary" onClick={() => ouvrirPaiementGlobal(facturationServices ? dette.scolarite : dette.total)}>
+            {facturationServices ? 'Encaisser un règlement / avance (scolarité)' : 'Encaisser un règlement / avance'}
           </button>
           {Number(mensAn) > 0.005 && (
             <button
@@ -469,7 +509,10 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
         </div>
       )}
 
-      {/* ===== FRAIS ANNUELS ===== */}
+      {/* ===== FRAIS ANNUELS ===== — une école « services » n'en a pas par
+          famille : ses frais d'inscription (par élève) et sa photocopie sont
+          des services de chaque enfant, plus bas. */}
+      {!facturationServices && (
       <div className="form-card" style={{ marginBottom: '1.5rem' }}>
         <h4 style={{ marginTop: 0 }}>Frais annuels</h4>
         {peutAdministrer && (
@@ -583,6 +626,7 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
           </details>
         )}
       </div>
+      )}
 
       {enfants.length === 0 ? (
         <div className="alert alert-info">Ce correspondant n&apos;a aucun enfant inscrit.</div>
@@ -614,6 +658,21 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
                     <span className="badge" style={{ background: '#fef3c7', color: '#92400e' }}>Exempté (total)</span>
                   )}
                 </h4>
+                {facturationServices && (
+                  <BlocServices
+                    studentId={enf.studentId}
+                    studyMode={enf.studyMode ?? null}
+                    abonnements={enf.services ?? []}
+                    annuelles={enf.annualServices ?? []}
+                    catalogue={props.catalogue ?? null}
+                    academicYearId={academicYearId}
+                    moisPeriode={moisPeriode}
+                    peutAdministrer={peutAdministrer}
+                    peutEncaisser={peutEncaisser && Boolean(fenetres[enf.studentId])}
+                    selection={selectionServices[enf.studentId] ?? new Set()}
+                    onCocher={(cle) => basculerService(enf.studentId, cle)}
+                  />
+                )}
                 <p className="text-muted" style={{ margin: '.15rem 0 .6rem', fontSize: '.82rem' }}>
                   Inscrit le <strong>{enf.entryDate ?? '—'}</strong>
                   {enf.firstBillable && (
@@ -685,32 +744,53 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
                   </div>
                 )}
 
-                {exemptTotale ? (
+                {exemptTotale && !(facturationServices && (enf.services ?? []).length > 0) ? (
                   <div className="alert alert-info" style={{ margin: '.5rem 0' }}>
                     Profil exempté — aucun paiement mensuel requis.
                   </div>
                 ) : (
                   <>
+                  {exemptTotale && (
+                    <div className="alert alert-info" style={{ margin: '.5rem 0' }}>
+                      Scolarité exemptée — les services restent dus.
+                    </div>
+                  )}
                   {fenetres[enf.studentId] && (() => {
                     const coches = [...(selection[enf.studentId] ?? [])];
                     const encaissables = enf.months.filter((m) => m.state === 'due' || m.state === 'partial');
                     const total = enf.months
                       .filter((m) => coches.includes(`${m.year}-${m.month}`))
                       .reduce((a, m) => a + Math.max(0, Number(m.due) - Number(m.paid)), 0);
+                    // École « services » : les échéances cochées (cartes de mois et lignes annuelles).
+                    const echeances = [
+                      ...enf.months.flatMap((m) => (m.services ?? []).map((l) => ({ cle: cleEcheance(l.studentServiceId, m.month, m.year), l }))),
+                      ...(enf.annualServices ?? []).map((l) => ({
+                        cle: cleEcheance(l.studentServiceId, l.periodicite === 'annuel' ? null : l.month, l.periodicite === 'annuel' ? null : l.year),
+                        l,
+                      })),
+                    ];
+                    const servicesCoches = echeances.filter((e) => selectionServices[enf.studentId]?.has(e.cle));
+                    const totalServices = servicesCoches.reduce((a, e) => a + Number(e.l.outstanding), 0);
+                    const servicesEncaissables = echeances.some((e) => e.l.state === 'due' || e.l.state === 'partial');
+                    const nbLignes = coches.length + servicesCoches.length;
                     return (
                       <div className="no-print" style={{ display: 'flex', gap: '.6rem', alignItems: 'center', flexWrap: 'wrap', margin: '.5rem 0 .6rem' }}>
                         <button
                           type="button"
                           className="btn btn-sm btn-primary"
-                          disabled={encaissables.length === 0}
+                          disabled={encaissables.length === 0 && !servicesEncaissables}
                           onClick={() =>
                             setFenetreOuverte({
                               studentId: enf.studentId,
                               mois: enf.months.filter((m) => coches.includes(`${m.year}-${m.month}`)).map((m) => ({ mois: m.month, annee: m.year })),
+                              ...(facturationServices && servicesCoches.length > 0 ? { services: servicesCoches.map((e) => e.cle) } : {}),
                             })
                           }
                         >
-                          Encaisser la sélection{coches.length > 0 ? ` — ${coches.length} mois, ${mru(total)} MRU` : ''}
+                          Encaisser la sélection
+                          {nbLignes > 0
+                            ? ` — ${coches.length > 0 ? `${coches.length} mois` : ''}${coches.length > 0 && servicesCoches.length > 0 ? ' + ' : ''}${servicesCoches.length > 0 ? `${servicesCoches.length} service${servicesCoches.length > 1 ? 's' : ''}` : ''}, ${mru(total + totalServices)} MRU`
+                            : ''}
                         </button>
                         {encaissables.length > 1 && (
                           <button
@@ -721,7 +801,11 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
                             {coches.length < encaissables.length ? 'Tout cocher' : 'Tout décocher'}
                           </button>
                         )}
-                        <span className="text-muted" style={{ fontSize: '.8rem' }}>Cochez les mois à régler : un seul reçu, frais annuels compris si vous les cochez dans la fenêtre.</span>
+                        <span className="text-muted" style={{ fontSize: '.8rem' }}>
+                          {facturationServices
+                            ? 'Cochez les mois et les services à régler : un seul reçu.'
+                            : 'Cochez les mois à régler : un seul reçu, frais annuels compris si vous les cochez dans la fenêtre.'}
+                        </span>
                       </div>
                     );
                   })()}
@@ -876,6 +960,26 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
                                 </form>
                               )}
                             </>
+                          )}
+                          {facturationServices && (m.services ?? []).length > 0 && (
+                            <div className="mois-services" style={{ marginTop: '.3rem' }}>
+                              {(m.services ?? []).map((l) => {
+                                const k = cleEcheance(l.studentServiceId, m.month, m.year);
+                                return (
+                                  <LigneEcheance
+                                    key={k}
+                                    ligne={l}
+                                    libelleMois={`${MOIS_NOMS[m.month]} ${m.year}`}
+                                    cle={k}
+                                    cochee={selectionServices[enf.studentId]?.has(k) ?? false}
+                                    onCocher={(c) => basculerService(enf.studentId, c)}
+                                    peutAdministrer={peutAdministrer}
+                                    peutEncaisser={peutEncaisser && Boolean(fenetres[enf.studentId])}
+                                    compacte
+                                  />
+                                );
+                              })}
+                            </div>
                           )}
                         </div>
                       );

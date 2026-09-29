@@ -1,4 +1,5 @@
 import { apiFetch, requireSession } from '@/lib/session';
+import { estEcoleServices } from '@/lib/tenant';
 import { anneeAffichee, type Annee } from '@/lib/annee';
 import { PageHeader } from '@/components/page-header';
 import { HubNav, mru, mruOrDash } from '@/components/hub';
@@ -137,6 +138,15 @@ export default async function ImpayesPage({
               <span className="badge badge-primary">
                 {lignes.length} correspondant{lignes.length > 1 ? 's' : ''}
               </span>
+              {/* École « services » (Jinan, §6) : la dette des services (cantine,
+                  piscine, docteur, photocopie, inscription par élève) est
+                  comptée avec la scolarité ; « Mois impayés » reste la scolarité. */}
+              {(await estEcoleServices()) && (
+                <p className="text-muted" style={{ flexBasis: '100%', margin: 0, fontSize: '.82rem' }} data-testid="note-services">
+                  « Scolarité due » comprend les services échus (cantine, piscine, docteur, photocopie, frais
+                  d&apos;inscription) ; « Mois impayés » ne compte que la scolarité.
+                </p>
+              )}
             </div>
             <div className="overflow-x">
               <table className="impayes-table">

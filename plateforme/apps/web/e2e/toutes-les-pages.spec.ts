@@ -22,7 +22,10 @@ const STATIQUES = [
   '/frais',
   '/finance', '/finance/administrateurs', '/finance/depenses', '/finance/dettes',
   '/finance/impayes', '/finance/rapport', '/finance/revenue', '/finance/staff', '/homework',
-  '/journal', '/messages', '/notes', '/platform', '/prof', '/prof/classes',
+  '/journal', '/messages', '/notes',
+  // Les absences du personnel (ADR-0074) : ses trois onglets.
+  '/personnel/absences', '/personnel/absences?vue=mois', '/personnel/absences?vue=horaires',
+  '/platform', '/prof', '/prof/classes',
   '/prof/emploi', '/prof/exercice', '/prof/notes', '/prof/remarques', '/profile', '/re-enrol', '/re-enrol/bulk',
   '/requests', '/scolarite', '/scolarite/absence', '/scolarite/emploi',
   '/scolarite/exclusions', '/scolarite/groupes', '/scolarite/niveaux', '/scolarite/notes',

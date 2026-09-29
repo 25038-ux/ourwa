@@ -6,6 +6,8 @@ import type { FenetreData } from '@/components/fenetre-encaissement';
 import { DossierFamille, type FicheEleve } from './dossier-famille';
 import { HubNav } from '@/components/hub';
 import { LIBELLE_FRAIS_PHOTOCOPIE } from '@/lib/brand';
+import { estEcoleServices } from '@/lib/tenant';
+import { catalogueFacturation } from '@/lib/facturation';
 import { financeTabsFor } from '../tabs';
 import {
   CaisseProfil,
@@ -30,6 +32,8 @@ interface DebtAll {
   tuition: { outstanding: string }[];
   misc: { outstanding: string }[];
   annualFees: { outstanding: string }[];
+  /** École « services » (§6) : les échéances de service dues ; [] ou absent sinon. */
+  services?: { outstanding: string }[];
   total: string;
 }
 
@@ -72,7 +76,10 @@ export default async function ProfilCorrespondantPage({
   const anneeObj = annees.find((a) => a.start_year === anneeCourante) ?? vue ?? null;
   const q = anneeObj ? `?academicYearId=${anneeObj.id}` : '';
 
-  const [family, ledger, debt, remises, fees, paiementsAnnuels, moyens] = await Promise.all([
+  // École « services » (Jinan, §7) : la fiche montre modes et services ; le
+  // catalogue de l'année sert à « Ajouter un service ». Rien pour « famille ».
+  const facturationServices = await estEcoleServices();
+  const [family, ledger, debt, remises, fees, paiementsAnnuels, moyens, catalogue] = await Promise.all([
     apiFetch<Family>(`/finance/family/${guardianId}${q}`),
     apiFetch<{ children: LedgerChild[] }>(`/finance/ledger/${guardianId}${q}`).catch(() => null),
     // ⚠ Une dette illisible n'est PAS une dette nulle : « 0,00 » ici faisait
@@ -84,6 +91,7 @@ export default async function ProfilCorrespondantPage({
       .then((r) => r.payments)
       .catch(() => [] as PaiementAnnuel[]),
     apiFetch<{ id: string; name: string }[]>('/payment-methods').catch(() => []),
+    facturationServices && anneeObj ? catalogueFacturation(anneeObj.id) : Promise.resolve(null),
   ]);
 
   // Le dossier de la famille se corrige sur place : la fiche de chaque enfant —
@@ -186,6 +194,8 @@ export default async function ProfilCorrespondantPage({
   const scolarite = sum(debt.tuition.map((l) => l.outstanding));
   // Ses « Divers » : les créances des familles et les frais annuels non réglés.
   const divers = sum([...debt.misc, ...debt.annualFees].map((l) => l.outstanding));
+  // École « services » : les services dus, comptés à part (compris dans le total).
+  const services = sum((debt.services ?? []).map((l) => l.outstanding));
 
   return (
     <>
@@ -207,7 +217,15 @@ export default async function ProfilCorrespondantPage({
             enfAn={family.children.map((c) => ({ id: c.studentId, nom: c.name, frais: c.fee, gratuit: c.free, classe: c.className }))}
             mensAn={family.monthlyTotal}
             nbGratuits={family.freeCount}
-            dette={{ total: debt.total, scolarite: toStorage(scolarite), divers: toStorage(divers) }}
+            dette={{
+              total: debt.total,
+              scolarite: toStorage(scolarite),
+              divers: toStorage(divers),
+              ...(facturationServices ? { services: toStorage(services) } : {}),
+            }}
+            facturationServices={facturationServices}
+            catalogue={catalogue}
+            peutEncaisser={can(user, 'finance.encaisser')}
             remises={remises}
             frais={fees}
             paiementsAnnuels={paiementsAnnuels}
