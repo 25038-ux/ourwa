@@ -8,6 +8,44 @@ every session, even short or unproductive ones.
 
 
 
+## 0.7.8+18 — JINAN : L'INSTALLATION ET LA SIGNATURE SANS « NO SUCH FILE » — 2026-09-29 (nuit)
+
+**Retour du propriétaire :** « the commands didn't work, one said no such file
+or directory ».
+
+- **Constaté le 29/09 à 21:30 :** le DNS est bon (`@`, `www`, `api` → A
+  209.74.66.223, aucun AAAA) ; rien ne répond sur 80/443 — **l'installation n'a
+  pas eu lieu.** Cause la plus probable : `scp jinan-0.7.8+18.zip …` lancé hors
+  du dossier du zip (« No such file or directory »), donc rien sur le serveur et
+  toutes les commandes suivantes en échec ; et `bash tools/signer-aab.sh`
+  n'existe pas sur un poste dont la copie du dépôt n'a pas cette branche.
+- **`deploy/jinan/installer-jinan.ps1`** (nouveau) : la PREMIÈRE installation en
+  une commande PowerShell, sans Git Bash ni dossier courant : trouve le zip
+  (à côté, Téléchargements, Bureau ; noms changés par le navigateur compris ;
+  ignore le zip iOS), lit IP et domaine DANS le zip, vérifie le DNS, un `scp`
+  vers un nom fixe (`/root/jinan-install.zip`), un `ssh` qui dézippe dans
+  `/opt/jinan` (un reste d'essai sans `.env` est mis de côté, jamais effacé),
+  lance `install.sh`, affiche le mot de passe provisoire, puis teste
+  `/health` depuis le PC. Refuse un serveur déjà installé et celui d'El Mourad.
+- **`tools/signer-aab.ps1`** (nouveau) : la signature en PowerShell, sans
+  dépôt : recolle les morceaux `.001/.002` (et ceux de l'APK d'essai), lit
+  chaque entrée (téléchargement tronqué → refus), refuse un `.aab` déjà signé,
+  trouve `key-jinan.properties` + `.jks` (`C:\Eduplateforme\jinan_deployement`,
+  le dépôt, Téléchargements) et le JDK, **refuse une clé dont l'empreinte n'est
+  pas 8D:76:…:F2:86** (calculée sur le certificat exporté, pas sur le texte
+  traduit de keytool), signe, vérifie. Mots de passe passés au JDK par
+  variables d'environnement.
+- **Essayés ici** (PowerShell 7.4 sous Linux ; scripts en ASCII et sans
+  syntaxe postérieure à Windows PowerShell 5.1) : signature — morceaux recollés
+  à l'octet (SHA-256 identiques), clé d'essai refusée par défaut, signature et
+  vérification `jarsigner` indépendante, déjà signé / tronqué / `.002` absent
+  refusés, noms « `0.7.8 18` » et « `(1)` » ; installation — `-DryRun` (zip
+  renommé choisi, zip iOS plus récent écarté, DNS vu), script serveur exécuté
+  avec un `install.sh` factice (reste d'essai mis de côté, variables passées,
+  mot de passe affiché, second passage refusé), flux complet avec `scp`/`ssh`
+  factices (arguments vérifiés). **Pas essayé :** le vrai serveur (injoignable
+  d'ici) ni un vrai Windows.
+
 ## 0.7.8+18 — JINAN : LES PAQUETS FINAUX — 2026-09-29 (nuit)
 
 **Demande du propriétaire :** « prepare the aab and apk and ios ready

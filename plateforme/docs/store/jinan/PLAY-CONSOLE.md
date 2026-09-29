@@ -39,12 +39,18 @@ avec une permission photos/vidéos, l'identifiant publicitaire ou le mode
 débogage. Le paquet cible Android 16 (API 36), exigé depuis le 31 août 2026.
 
 **Un .aab construit ailleurs** (sans la clé) arrive sous le nom
-`jinan-parent-<version>-non-signe.aab`. Le signer sur le PC qui détient la clé,
-sans rien reconstruire :
+`jinan-parent-<version>-non-signe.aab` (ou en morceaux `.001`, `.002`). Le
+signer sur le PC qui détient la clé, sans rien reconstruire — PowerShell, sans
+Git Bash ni copie du dépôt :
 
-    BRAND=jinan bash tools/signer-aab.sh dist/jinan-parent-<version>-non-signe.aab
-    # → dist/jinan-parent-<version>.aab, vérifié ; l'empreinte SHA-256 affichée
-    #   doit être 8D:76:DF:C8:…:CE:7E:F2:86 (sinon Google le refuse).
+    powershell -ExecutionPolicy Bypass -File "$HOME\Downloads\signer-aab.ps1"
+
+Il trouve seul le fichier (ou recolle les morceaux), vérifie qu'il est complet,
+trouve `key-jinan.properties` et le `.jks` (`C:\Eduplateforme\jinan_deployement`
+ou le dépôt) et le JDK, **refuse une clé dont l'empreinte n'est pas
+8D:76:DF:C8:…:CE:7E:F2:86**, signe → `jinan-parent-<version>.aab`, vérifie.
+Même chose en Git Bash depuis le dépôt :
+`BRAND=jinan bash tools/signer-aab.sh dist/jinan-parent-<version>-non-signe.aab`.
 
 Notifications instantanées (facultatif, sinon l'application interroge le
 serveur) : dans le projet Firebase `el-mourad`, ajouter l'application Android
