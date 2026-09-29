@@ -1,6 +1,8 @@
 import { libelleMode, type Periodicite, type ServiceOptionnel } from '@elourwa/shared/facturation';
 import { apiFetch, ApiError, type SessionUser } from '@/lib/session';
 import { anneeConsultee, type Annee } from '@/lib/annee';
+import { estEcoleServices } from '@/lib/tenant';
+import type { CatalogueFacturation } from '@/components/choix-facturation';
 
 /**
  * LA FACTURATION « SERVICES » CÔTÉ SITE — ADR-0073, docs/specs/jinan-facturation.md.
@@ -124,4 +126,26 @@ export function peutFixerLesTarifs(user: SessionUser | undefined): boolean {
 export function montantSaisi(v: string | null | undefined): string {
   if (v === null || v === undefined) return '';
   return v.includes('.') ? v.replace(/0+$/, '').replace(/\.$/, '') : v;
+}
+
+/**
+ * LE CATALOGUE QU'UN FORMULAIRE D'INSCRIPTION LIT (§8) — les tarifs de chaque
+ * niveau par mode, ses frais d'inscription, les six prix de l'année — pour
+ * `<ChoixFacturation>`. `null` pour une école « famille » (aucune requête) ou
+ * quand l'API refuse : le formulaire reste alors celui d'El Ourwa, et c'est
+ * l'API qui dira ce qui manque.
+ */
+export async function catalogueFacturation(
+  academicYearId: string | null | undefined,
+): Promise<CatalogueFacturation | null> {
+  if (!(await estEcoleServices())) return null;
+  const { tarifs } = await lireTarifs(academicYearId);
+  if (!tarifs) return null;
+  return {
+    anneeLabel: tarifs.annee.label,
+    niveaux: Object.fromEntries(
+      tarifs.niveaux.map((n) => [n.id, { nom: n.nom, tarif8h14: n.tarif8h14, tarif8h17: n.tarif8h17, fraisInscription: n.fraisInscription }]),
+    ),
+    services: tarifs.services.map((s) => ({ code: s.code, libelle: s.libelle, periodicite: s.periodicite, prix: s.prix })),
+  };
 }

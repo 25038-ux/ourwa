@@ -2,6 +2,7 @@ import { apiFetch, requireSession, can } from '@/lib/session';
 import type { Annee } from '@/lib/annee';
 import { PageHeader } from '@/components/page-header';
 import { MessagePage } from '@/components/message-page';
+import { catalogueFacturation } from '@/lib/facturation';
 import { AdmitForm } from './admit-form';
 
 export const dynamic = 'force-dynamic';
@@ -29,11 +30,14 @@ export default async function NewStudentPage() {
   const cible = annees.find((a) => a.status === 'active') ?? null;
   const refus = !cible ? "Aucune année scolaire n'est ouverte. Ouvrez-en une dans « Années scolaires »." : null;
 
-  const [groups, moyens] = await Promise.all([
-    apiFetch<{ id: string; name: string; level_name: string | null; capacity: number; headcount: number; monthly_rate: string | null }[]>(
+  // École « services » (Jinan, §8) : le catalogue de l'année cible — modes,
+  // frais d'inscription, prix des services. `null` pour une école « famille ».
+  const [groups, moyens, facturation] = await Promise.all([
+    apiFetch<{ id: string; name: string; level_id: string | null; level_name: string | null; capacity: number; headcount: number; monthly_rate: string | null }[]>(
       cible ? `/groups?academicYearId=${cible.id}` : '/groups',
     ).catch(() => []),
     apiFetch<{ id: string; name: string }[]>('/payment-methods').catch(() => []),
+    cible ? catalogueFacturation(cible.id) : Promise.resolve(null),
   ]);
   groups.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
 
@@ -41,7 +45,7 @@ export default async function NewStudentPage() {
     <>
       <PageHeader titre="Inscrire un étudiant" sousTitre="Nouvel étudiant + rattachement à un correspondant" />
       <MessagePage initial={refus ? { type: 'error', texte: refus } : null}>
-        <AdmitForm groups={groups} academicYearId={cible?.id ?? ''} moyens={moyens} />
+        <AdmitForm groups={groups} academicYearId={cible?.id ?? ''} moyens={moyens} facturation={facturation} />
       </MessagePage>
     </>
   );

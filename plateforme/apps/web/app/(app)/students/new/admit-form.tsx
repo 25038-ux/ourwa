@@ -8,10 +8,18 @@ import { FenetreEncaissement, type FenetreData } from '@/components/fenetre-enca
 import type { Moyen } from '@/components/moyens-paiement';
 import { fr } from '@/components/moyens-paiement';
 import { MotDePasseGenere } from '@/components/mot-de-passe-genere';
+import {
+  ChoixFacturation,
+  montantChamp,
+  tarifDuMode,
+  type CatalogueFacturation,
+} from '@/components/choix-facturation';
+import type { ModeEtude } from '@elourwa/shared/facturation';
 
 interface Group {
   id: string;
   name: string;
+  level_id?: string | null;
   level_name: string | null;
   capacity: number;
   headcount: number;
@@ -37,11 +45,35 @@ type Result =
  * (nom, téléphone, email, mot de passe initial). Réussie, la fenêtre
  * d'encaissement s'ouvre d'elle-même.
  */
-export function AdmitForm({ groups, academicYearId, moyens }: { groups: Group[]; academicYearId: string; moyens: Moyen[] }) {
+export function AdmitForm({
+  groups,
+  academicYearId,
+  moyens,
+  facturation = null,
+}: {
+  groups: Group[];
+  academicYearId: string;
+  moyens: Moyen[];
+  /**
+   * École « services » (Jinan, spécification §8) : le catalogue de l'année.
+   * Présent, le formulaire exige le mode d'étude, pré-remplit la mensualité
+   * par niveau ET par mode, dit les frais d'inscription et propose les
+   * services. Absent (école « famille »), il reste celui d'El Ourwa.
+   */
+  facturation?: CatalogueFacturation | null;
+}) {
   const [state, action, pending] = useActionMessage(admitStudentAction);
 
   const [family, setFamily] = useState<'existant' | 'nouveau'>('existant');
   const [fee, setFee] = useState('0');
+  const [groupeId, setGroupeId] = useState('');
+  const [mode, setMode] = useState<ModeEtude | null>(null);
+  const levelId = groups.find((g) => g.id === groupeId)?.level_id ?? null;
+  /** École « services » : la mensualité suit le niveau ET le mode. */
+  const preRemplir = (lvl: string | null, m: ModeEtude | null) => {
+    if (!facturation) return;
+    setFee(montantChamp(tarifDuMode(facturation, lvl, m)));
+  };
 
   if (state?.fenetre) {
     const e = state.fenetre.eleve;
@@ -95,7 +127,9 @@ export function AdmitForm({ groups, academicYearId, moyens }: { groups: Group[];
             defaultValue=""
             onChange={(e) => {
               const g = groups.find((x) => x.id === e.target.value);
-              if (g?.monthly_rate) setFee(String(Number(g.monthly_rate)));
+              setGroupeId(e.target.value);
+              if (facturation) preRemplir(g?.level_id ?? null, mode);
+              else if (g?.monthly_rate) setFee(String(Number(g.monthly_rate)));
             }}
           >
             <option value="">— Choisir —</option>
@@ -108,6 +142,17 @@ export function AdmitForm({ groups, academicYearId, moyens }: { groups: Group[];
         </div>
         <div className="form-group"><label>Frais mensuel (MRU)</label><input type="number" step={0.01} name="frais_mensuel" id="frais_mensuel" value={fee} onChange={(e) => setFee(e.target.value)} /></div>
       </div>
+      {facturation && (
+        <ChoixFacturation
+          catalogue={facturation}
+          levelId={levelId}
+          mode={mode}
+          onMode={(m) => {
+            setMode(m);
+            preRemplir(levelId, m);
+          }}
+        />
+      )}
 
       <hr style={{ margin: '1.5rem 0', border: 'none', borderTop: '1px solid #eee' }} />
       <h3>Correspondant (parent)</h3>

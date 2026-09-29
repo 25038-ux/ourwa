@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { money, sum, toStorage } from '@elourwa/shared/money';
 import { encaisserGroupeAction } from '@/app/actions';
 import { useActionMessage } from '@/components/message-page';
 import { MoyensPaiement, type LigneMoyen, type Moyen, fr } from '@/components/moyens-paiement';
@@ -31,10 +32,34 @@ export interface FenetreData {
   mois: FenetreMois[];
   moisPayables: { mois: number; annee: number; libelle: string }[];
   annexes: Record<string, { libelle: string; bareme: string; paye: string; reste: string; exempte: boolean }>;
+  /**
+   * École « services » (Jinan, spécification §7) : une ligne par échéance de
+   * chaque abonnement de l'élève pour l'année — un service annuel sans mois.
+   * Absent ou vide dans une école « famille ».
+   */
+  services?: FenetreService[];
+}
+
+/** Une échéance de service dans la fenêtre (`LigneServiceFenetre` de l'API). */
+export interface FenetreService {
+  studentServiceId: string;
+  service: string;
+  label: string;
+  periodicite: 'mensuel' | 'annuel';
+  mois: number | null;
+  annee: number | null;
+  libelleMois: string | null;
+  du: string;
+  paye: string;
+  reste: string;
+  etat: 'du' | 'partiel' | 'paye' | 'exempte';
 }
 
 const mru = (v: string | number) => fr(Math.round(Number(v)));
 const cle = (m: { mois: number; annee: number }) => `${m.annee}-${m.mois}`;
+/** La clé d'une échéance de service : l'abonnement, et son mois pour un mensuel. */
+const cleService = (l: FenetreService) => `${l.studentServiceId}:${l.mois ?? 'an'}:${l.annee ?? ''}`;
+const encaissableService = (l: FenetreService) => (l.etat === 'du' || l.etat === 'partiel') && money(l.reste).greaterThan('0.005');
 
 /**
  * LA FENÊTRE D'ENCAISSEMENT — à l'inscription, à la réinscription et à la
@@ -84,16 +109,41 @@ export function FenetreEncaissement({
   );
   const [fraisCoches, setFraisCoches] = useState<Set<string>>(() => new Set(fraisDus.map(([type]) => type)));
 
-  const cible = useMemo(() => {
-    const m = encaissables.filter((x) => moisCoches.has(cle(x))).reduce((a, x) => a + Number(x.reste), 0);
-    const f = fraisDus.filter(([type]) => fraisCoches.has(type)).reduce((a, [, x]) => a + Number(x.reste), 0);
-    return Math.round((m + f) * 100) / 100;
-  }, [encaissables, moisCoches, fraisDus, fraisCoches]);
+  // École « services » : les échéances encore dues. Cochées à l'ouverture :
+  // les services annuels (inscription, photocopie — dus dès l'inscription) et
+  // les mensuels des mois pré-cochés ; tout se décoche, rien n'est obligatoire.
+  const servicesDus = useMemo(() => (data.services ?? []).filter(encaissableService), [data.services]);
+  const [servicesCoches, setServicesCoches] = useState<Set<string>>(() => {
+    const moisInitiaux = new Set(
+      preselection && preselection.length > 0 ? preselection.map(cle) : encaissables.length > 0 ? [cle(encaissables[0]!)] : [],
+    );
+    return new Set(
+      servicesDus
+        .filter((l) => l.periodicite === 'annuel' || (l.mois !== null && l.annee !== null && moisInitiaux.has(cle({ mois: l.mois, annee: l.annee }))))
+        .map(cleService),
+    );
+  });
 
-  const [lignes, setLignes] = useState<LigneMoyen[]>(() => (moyens[0] ? [{ moyenId: moyens[0].id, montant: String(cible) }] : []));
+  // ⚠ LE TOTAL EN DÉCIMAL (règle 6). Il est comparé au centime par l'API à la
+  // somme des moyens : un total flottant pouvait s'en écarter d'un centime.
+  const cible = useMemo(
+    () =>
+      toStorage(
+        sum([
+          ...encaissables.filter((x) => moisCoches.has(cle(x))).map((x) => x.reste),
+          ...fraisDus.filter(([type]) => fraisCoches.has(type)).map(([, x]) => x.reste),
+          ...servicesDus.filter((l) => servicesCoches.has(cleService(l))).map((l) => l.reste),
+        ]),
+      ),
+    [encaissables, moisCoches, fraisDus, fraisCoches, servicesDus, servicesCoches],
+  );
+  const cibleNulle = !money(cible).greaterThan(0);
+
+  const montantMoyen = (v: string) => (v.endsWith('.00') ? v.slice(0, -3) : v);
+  const [lignes, setLignes] = useState<LigneMoyen[]>(() => (moyens[0] ? [{ moyenId: moyens[0].id, montant: montantMoyen(cible) }] : []));
   // Le total attendu suit les cases ; une seule ligne de moyens le suit aussi (son `recalc`).
   useEffect(() => {
-    setLignes((l) => (l.length === 1 ? [{ ...l[0]!, montant: String(cible) }] : l));
+    setLignes((l) => (l.length === 1 ? [{ ...l[0]!, montant: montantMoyen(cible) }] : l));
   }, [cible]);
   useEffect(() => {
     document.body.style.overflow = ouverte ? 'hidden' : '';
@@ -105,6 +155,17 @@ export function FenetreEncaissement({
 
   const toutCocher = (oui: boolean) => setMoisCoches(oui ? new Set(encaissables.map(cle)) : new Set());
   const nbCoches = encaissables.filter((x) => moisCoches.has(cle(x))).length;
+  const nbServices = servicesDus.filter((l) => servicesCoches.has(cleService(l))).length;
+  const lignesServices = data.services ?? [];
+  const annuels = lignesServices.filter((l) => l.periodicite === 'annuel');
+  const mensuels = lignesServices.filter((l) => l.periodicite === 'mensuel');
+  const basculerService = (k: string, oui: boolean) =>
+    setServicesCoches((s) => {
+      const n = new Set(s);
+      if (oui) n.add(k);
+      else n.delete(k);
+      return n;
+    });
 
   return (
     <div className="modal-overlay active" role="dialog" aria-modal="true">
@@ -118,6 +179,17 @@ export function FenetreEncaissement({
           <input type="hidden" name="academicYearId" value={data.annee.id} />
           <input type="hidden" name="tender" value={JSON.stringify(lignes)} />
           <input type="hidden" name="mois" value={JSON.stringify(encaissables.filter((x) => moisCoches.has(cle(x))).map(({ mois, annee }) => ({ mois, annee })))} />
+          {lignesServices.length > 0 && (
+            <input
+              type="hidden"
+              name="services"
+              value={JSON.stringify(
+                servicesDus
+                  .filter((l) => servicesCoches.has(cleService(l)))
+                  .map((l) => ({ studentServiceId: l.studentServiceId, ...(l.mois !== null && l.annee !== null ? { mois: l.mois, annee: l.annee } : {}) })),
+              )}
+            />
+          )}
           <p style={{ margin: '0 0 .75rem' }}>
             <strong>{`${data.eleve.prenom} ${data.eleve.nom}`.trim()}</strong>
             {sousTitre && <><br /><span className="text-muted">{sousTitre}</span></>}
@@ -214,24 +286,67 @@ export function FenetreEncaissement({
             </>
           )}
 
+          {lignesServices.length > 0 && (
+            <>
+              <h4 style={{ margin: '.25rem 0' }}>Services {data.annee.label}</h4>
+              <div className="enc-services" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: '.4rem', marginBottom: '1rem' }}>
+                {[...annuels, ...mensuels].map((l) => {
+                  const k = cleService(l);
+                  const encaissable = encaissableService(l);
+                  const coche = encaissable && servicesCoches.has(k);
+                  return (
+                    <label
+                      key={k}
+                      style={{
+                        display: 'flex', gap: '.5rem', alignItems: 'center', padding: '.45rem .6rem', borderRadius: 8,
+                        border: `1.5px solid ${coche ? 'var(--primary)' : 'var(--border)'}`,
+                        background: coche ? '#fff2eb' : encaissable ? '#fff' : '#fafafa',
+                        opacity: encaissable ? 1 : 0.6, cursor: encaissable ? 'pointer' : 'default', fontSize: '.88rem',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        aria-label={`${l.label}${l.libelleMois ? ` — ${l.libelleMois}` : ''}`}
+                        checked={coche}
+                        disabled={!encaissable}
+                        onChange={(e) => basculerService(k, e.target.checked)}
+                      />
+                      <span style={{ flex: 1 }}>
+                        <strong>{l.label}</strong>
+                        <br />
+                        <small className="text-muted">
+                          {l.libelleMois ?? 'pour l’année'} ·{' '}
+                          {l.etat === 'paye' ? `réglé (${mru(l.paye)})` : l.etat === 'exempte' ? 'exempté' : l.etat === 'partiel' ? `reste ${mru(l.reste)} sur ${mru(l.du)}` : `${mru(l.du)} MRU`}
+                        </small>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
           <table className="table" style={{ marginBottom: '1rem' }}>
             <tfoot>
               <tr>
-                <th style={{ textAlign: 'right' }}>Total à encaisser ({nbCoches} mois{fraisDus.filter(([t]) => fraisCoches.has(t)).length > 0 ? ' + frais' : ''})</th>
-                <th style={{ textAlign: 'right', width: 160 }}>{cible.toLocaleString('fr-FR')} MRU</th>
+                <th style={{ textAlign: 'right' }}>
+                  Total à encaisser ({nbCoches} mois{fraisDus.filter(([t]) => fraisCoches.has(t)).length > 0 ? ' + frais' : ''}
+                  {nbServices > 0 ? ` + ${nbServices} service${nbServices > 1 ? 's' : ''}` : ''})
+                </th>
+                <th style={{ textAlign: 'right', width: 160 }}>{fr(Number(cible))} MRU</th>
               </tr>
             </tfoot>
           </table>
 
-          <MoyensPaiement moyens={moyens} cible={String(cible)} lignes={lignes} onChange={setLignes} currency="MRU" sens="entrant" />
+          <MoyensPaiement moyens={moyens} cible={cible} lignes={lignes} onChange={setLignes} currency="MRU" sens="entrant" />
 
           <div className="modal-footer">
             {onFermer ? (
               <button type="button" className="btn btn-secondary" onClick={fermer}>{libelleTerminer}</button>
             ) : (
-              <a href={lienTerminer} className="btn btn-secondary">{libelleTerminer}{cible <= 0 ? ' (rien à encaisser)' : ''}</a>
+              <a href={lienTerminer} className="btn btn-secondary">{libelleTerminer}{cibleNulle ? ' (rien à encaisser)' : ''}</a>
             )}
-            <button className="btn btn-primary" disabled={pending || cible <= 0}>Encaisser &amp; imprimer le reçu</button>
+            <button className="btn btn-primary" disabled={pending || cibleNulle}>Encaisser &amp; imprimer le reçu</button>
           </div>
         </form>
       </div>

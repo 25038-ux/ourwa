@@ -16,6 +16,24 @@ interface Groupe {
   guardianPhone: string | null;
   months: { paymentId: string; studentName: string; matricule: string | null; levelName: string | null; groupName: string | null; month: number; year: number; amount: string; reversedBy: string | null }[];
   fees: { id: string; kind: string; label: string; amount: string }[];
+  /**
+   * École « services » (Jinan, spécification §10) : les lignes de son grand
+   * livre, dans l'ordre où les moyens ont été découpés. `[]` (ou absent, API
+   * plus ancienne) dans une école « famille ».
+   */
+  services?: {
+    id: string;
+    studentId: string;
+    studentName: string;
+    matricule: string | null;
+    service: string;
+    label: string;
+    periodicite: 'mensuel' | 'annuel';
+    month: number | null;
+    year: number | null;
+    amount: string;
+    reversedBy: string | null;
+  }[];
   tender: { method: string; amount: string; reference?: string | null }[];
 }
 
@@ -45,18 +63,43 @@ export default async function RecuGroupePage({ params }: { params: Promise<{ rec
     lignes.push([`Scolarité — ${nom}`, mois.map((m) => `${MOIS_NOMS[m.month] ?? ''} ${m.year} : ${mru(m.amount)} MRU${m.reversedBy ? ' (annulé)' : ''}`).join(' · ')]);
   }
   for (const f of r.fees) lignes.push([f.label, `${mru(f.amount)} MRU`]);
-  const annule = r.months.filter((m) => m.reversedBy);
+
+  // Les services (Jinan) : par enfant, puis par service — « Cantine —
+  // déjeuner — Aminetou : Octobre 2025 : 1 500 MRU · Novembre 2025 : … ».
+  const services = r.services ?? [];
+  const nomsVus = new Set(parEleve.keys());
+  const parService = new Map<string, typeof services>();
+  for (const l of services) {
+    const k = `${l.studentId}|${l.service}`;
+    parService.set(k, [...(parService.get(k) ?? []), l]);
+  }
+  for (const groupe of parService.values()) {
+    const premier = groupe[0]!;
+    if (!nomsVus.has(premier.studentName)) {
+      nomsVus.add(premier.studentName);
+      lignes.push([`Étudiant`, `${premier.studentName}${premier.matricule ? ` · ${premier.matricule}` : ''}`]);
+    }
+    lignes.push([
+      `${premier.label} — ${premier.studentName}`,
+      groupe
+        .map((l) =>
+          `${l.month !== null ? `${MOIS_NOMS[l.month] ?? ''} ${l.year} : ` : ''}${mru(l.amount)} MRU${l.reversedBy ? ' (annulé)' : ''}`,
+        )
+        .join(' · '),
+    ]);
+  }
+  const annule = [...r.months.filter((m) => m.reversedBy), ...services.filter((l) => l.reversedBy)];
 
   return (
     <>
       <RecuToolbar retourUrl={`/finance/${r.guardianId}`} retourLabel="← Profil du correspondant" />
       {annule.length > 0 && (
         <div className="alert alert-error no-print" role="alert" style={{ maxWidth: 640, margin: '0 auto 1rem' }}>
-          ⚠ {annule.length === 1 ? 'Une ligne de ce reçu a été annulée' : `${annule.length} lignes de ce reçu ont été annulées`} ({annule.map((m) => m.reversedBy).join(', ')}). Le reçu ne vaut plus preuve pour {annule.length === 1 ? 'ce mois' : 'ces mois'}.
+          ⚠ {annule.length === 1 ? 'Une ligne de ce reçu a été annulée' : `${annule.length} lignes de ce reçu ont été annulées`} ({annule.map((m) => m.reversedBy).join(', ')}). Le reçu ne vaut plus preuve pour {services.length > 0 ? (annule.length === 1 ? 'cette ligne' : 'ces lignes') : annule.length === 1 ? 'ce mois' : 'ces mois'}.
         </div>
       )}
       <RecuDocument
-        type="Reçu de paiement — Scolarité et frais"
+        type={services.length > 0 && r.months.length === 0 ? 'Reçu de paiement — Services' : services.length > 0 ? 'Reçu de paiement — Scolarité et services' : 'Reçu de paiement — Scolarité et frais'}
         numero={r.receiptNumber}
         date={dateHeure(r.paidAt)}
         lignes={[

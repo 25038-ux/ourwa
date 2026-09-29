@@ -1449,6 +1449,35 @@ export async function decideRequestAction(_prev: unknown, form: FormData) {
  * comptable ou un secrétaire, l'avertissement de la demande de frais. Réussie,
  * la fenêtre d'encaissement s'ouvre avec les données de `encaissement_fenetre()`.
  */
+/**
+ * LE MODE D'ÉTUDE ET LES SERVICES D'UN FORMULAIRE D'INSCRIPTION (Jinan, §8) —
+ * `{ champs: {} }` pour une école « famille », sans rien lire du formulaire ;
+ * pour une école « services », le mode (obligatoire, la phrase de l'API) et
+ * les services cochés (`services`, JSON), filtrés sur le catalogue.
+ */
+async function lireChoixFacturation(
+  form: FormData,
+  opts: { avecServices?: boolean } = {},
+): Promise<
+  | { error: string }
+  | { studyMode: '8h-14h' | '8h-17h' | null; champs: { studyMode?: '8h-14h' | '8h-17h'; services?: string[] } }
+> {
+  if (!(await estEcoleServices())) return { studyMode: null, champs: {} };
+  const mode = String(form.get('study_mode') ?? '');
+  if (mode !== '8h-14h' && mode !== '8h-17h') {
+    return { error: "Choisissez le mode d'étude : 8h – 14h ou 8h – 17h." };
+  }
+  if (opts.avecServices === false) return { studyMode: mode, champs: { studyMode: mode } };
+  let services: string[] = [];
+  try {
+    const brut = JSON.parse(String(form.get('services') ?? '[]')) as unknown;
+    services = Array.isArray(brut) ? brut.filter((c): c is string => estServiceOptionnel(c)) : [];
+  } catch {
+    return { error: 'Services illisibles.' };
+  }
+  return { studyMode: mode, champs: { studyMode: mode, services: [...new Set(services)] } };
+}
+
 export async function admitStudentAction(_prev: unknown, form: FormData) {
   const nom = String(form.get('nom') ?? '').trim();
   const prenom = String(form.get('prenom') ?? '').trim();
@@ -1471,6 +1500,12 @@ export async function admitStudentAction(_prev: unknown, form: FormData) {
 
   const sexe = String(form.get('sexe') ?? '');
   const pTel = String(form.get('p_tel') ?? '').trim();
+  // École « services » (Jinan, §8) : le mode est obligatoire, les services
+  // cochés partent avec l'inscription. Rien de tout cela pour une école
+  // « famille » — l'API le refuserait (400).
+  const facturation = await lireChoixFacturation(form);
+  if ('error' in facturation) return { error: facturation.error };
+  const fraisSaisi = String(form.get('frais_mensuel') ?? '').trim();
   try {
     const result = await apiFetch<{
       studentId: string;
@@ -1502,7 +1537,12 @@ export async function admitStudentAction(_prev: unknown, form: FormData) {
           : { guardianId: parentId }),
         academicYearId,
         groupId: groupeId,
-        monthlyFee: Number(String(form.get('frais_mensuel') ?? '0')).toFixed(2),
+        // École « services » : un champ vidé veut dire « le tarif du mode »
+        // (l'API le prend), jamais « gratuit ».
+        ...(facturation.studyMode && fraisSaisi === ''
+          ? {}
+          : { monthlyFee: Number(fraisSaisi || '0').toFixed(2) }),
+        ...facturation.champs,
       },
     });
 
@@ -1539,8 +1579,19 @@ export async function encaisserGroupeAction(_prev: unknown, form: FormData) {
   const tender = lireLignesPaiement(form);
   if (tender.length === 0) return { error: 'Veuillez indiquer au moins un moyen de paiement avec un montant.' };
   let mois: { mois: number; annee: number }[] = [];
+  // École « services » (Jinan, §7) : les échéances de service cochées ; le
+  // champ n'existe pas dans la fenêtre d'une école « famille ».
+  let services: { studentServiceId: string; mois?: number; annee?: number }[] | undefined;
   try {
     mois = (JSON.parse(String(form.get('mois') ?? '[]')) as { mois: number; annee: number }[]).filter((m) => m.mois >= 1 && m.mois <= 12);
+    if (form.has('services')) {
+      services = (JSON.parse(String(form.get('services') ?? '[]')) as { studentServiceId: string; mois?: number; annee?: number }[])
+        .filter((l) => typeof l.studentServiceId === 'string')
+        .map((l) => ({
+          studentServiceId: l.studentServiceId,
+          ...(typeof l.mois === 'number' && typeof l.annee === 'number' ? { mois: l.mois, annee: l.annee } : {}),
+        }));
+    }
   } catch {
     return { error: 'Mois illisibles.' };
   }
@@ -1554,6 +1605,7 @@ export async function encaisserGroupeAction(_prev: unknown, form: FormData) {
         mois,
         fraisInscription: form.get('frais_inscription') === '1',
         fraisPhotocopie: form.get('frais_photocopie') === '1',
+        ...(services && services.length > 0 ? { services } : {}),
         tender,
       },
     });
