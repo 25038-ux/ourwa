@@ -62,6 +62,19 @@ function Fail([string]$m)  { Write-Host "[X]  $m" -ForegroundColor Red; exit 2 }
 function Title([string]$m) { Write-Host ""; Write-Host "== $m ==" -ForegroundColor Cyan }
 
 # --- 0. Jinan's server, named explicitly -----------------------------------
+# Not given: read production.env (written by configurer-production.sh) next to
+# this script or in deploy\jinan\. Never an invented default.
+foreach ($p in @((Join-Path $PSScriptRoot 'production.env'), (Join-Path $PSScriptRoot 'deploy\jinan\production.env'))) {
+  if (Test-Path $p) {
+    $vals = @{}
+    foreach ($line in Get-Content -Path $p -Encoding UTF8) {
+      if ($line -match '^\s*(JINAN_IP|JINAN_DOMAINE)=(.*)$') { $vals[$Matches[1]] = $Matches[2].Trim() }
+    }
+    if ($Server -eq '' -and $vals['JINAN_IP']) { $Server = "root@$($vals['JINAN_IP'])" }
+    if ($Domain -eq '' -and $vals['JINAN_DOMAINE']) { $Domain = $vals['JINAN_DOMAINE'] }
+    break
+  }
+}
 if ($Server -eq '' -or $Domain -eq '') {
   Fail "Give Jinan's server and domain: -Server root@<jinan-vps-ip> -Domain <jinan-domain>. (No default: El Mourad's server must never receive Jinan.)"
 }

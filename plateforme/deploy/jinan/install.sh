@@ -162,6 +162,11 @@ fi
 
 # ═════════════════════════════════════════════════════════════════════════════
 titre "2. La configuration (.env)"
+# Sans PUBLIC_DOMAIN : celui de production.env (configurer-production.sh), s'il
+# est rempli — une première installation n'a alors plus qu'à dire l'e-mail.
+if [ -z "${PUBLIC_DOMAIN:-}" ] && [ -f "$ICI/production.env" ]; then
+  PUBLIC_DOMAIN="$(sed -n 's/^JINAN_DOMAINE=//p' "$ICI/production.env" | tr -d '[:space:]')"
+fi
 DOMAINE_DEMANDE="$(printf '%s' "${PUBLIC_DOMAIN:-}" | tr 'A-Z' 'a-z')"
 if [ ! -f .env ]; then
   : "${PUBLIC_DOMAIN:?Indiquez le domaine : sudo PUBLIC_DOMAIN=jinan-ecole.com ADMIN_EMAIL=... bash install.sh}"
@@ -255,8 +260,11 @@ retenir LEGAL_ADDRESS    "$(defaut LEGAL_ADDRESS "Nouakchott, Mauritanie")"
 retenir LEGAL_ADDRESS_AR "$(defaut LEGAL_ADDRESS_AR "نواكشوط، موريتانيا")"
 retenir LEGAL_EMAIL      "$(defaut LEGAL_EMAIL "")"
 retenir LEGAL_PHONE      "$(defaut LEGAL_PHONE "")"
-retenir LEGAL_HOST       "Hostinger International Ltd — serveur situé dans l’Union européenne"
-retenir LEGAL_HOST_AR    "Hostinger International Ltd — خادم في الاتحاد الأوروبي"
+# L'hébergeur, que la politique de confidentialité nomme : celui du fichier de
+# marque (configurer-production.sh l'y écrit) — l'ancien texte figé nommait
+# Hostinger même sur un autre VPS.
+retenir LEGAL_HOST       "$(defaut LEGAL_HOST "Hostinger International Ltd — serveur situé dans l’Union européenne")"
+retenir LEGAL_HOST_AR    "$(defaut LEGAL_HOST_AR "Hostinger International Ltd — خادم في الاتحاد الأوروبي")"
 retenir LEGAL_UPDATED    "$(date +%Y-%m-%d)"
 # Le nom du frais annuel « photocopie » (« Frais Graytna ») : celui du fichier de
 # marque, remis à chaque mise à jour — c'est un fait de l'école, pas un réglage

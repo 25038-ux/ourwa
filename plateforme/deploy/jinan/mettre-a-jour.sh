@@ -2,8 +2,9 @@
 # METTRE À JOUR LE SERVEUR JINAN DEPUIS CE POSTE — une commande.
 #
 #   SERVEUR=root@<ip-du-vps-jinan> DOMAINE=<domaine-jinan> bash deploy/jinan/mettre-a-jour.sh
-#   (depuis la racine du dépôt, dans Git Bash ; les deux sont OBLIGATOIRES — aucun
-#   défaut, pour que Jinan ne parte jamais sur le serveur d'El Mourad)
+#   (depuis la racine du dépôt, dans Git Bash ; les deux sont OBLIGATOIRES — sans
+#   eux, ceux de deploy/jinan/production.env, écrit par configurer-production.sh ;
+#   aucun défaut inventé, pour que Jinan ne parte jamais sur le serveur d'El Mourad)
 #
 # Ce que fait ce script, dans l'ordre — et ce qu'il ne fait JAMAIS :
 #   1. Sur ce poste : vérifie que le dépôt est propre (le zip est `git archive
@@ -41,8 +42,18 @@ set -euo pipefail
 
 SERVEUR="${SERVEUR:-}"
 DOMAINE="${DOMAINE:-}"
+# Sans SERVEUR/DOMAINE : ceux de production.env (configurer-production.sh), s'il
+# est rempli. Jamais de défaut inventé : vide, le script refuse.
+PROD_ENV="$(cd "$(dirname "$0")" && pwd)/production.env"
+if [ -f "$PROD_ENV" ]; then
+  JINAN_IP="$(sed -n 's/^JINAN_IP=//p' "$PROD_ENV" | tr -d '[:space:]')"
+  JINAN_DOMAINE="$(sed -n 's/^JINAN_DOMAINE=//p' "$PROD_ENV" | tr -d '[:space:]')"
+  [ -z "$SERVEUR" ] && [ -n "$JINAN_IP" ] && SERVEUR="root@$JINAN_IP"
+  [ -z "$DOMAINE" ] && [ -n "$JINAN_DOMAINE" ] && DOMAINE="$JINAN_DOMAINE"
+fi
 if [ -z "$SERVEUR" ] || [ -z "$DOMAINE" ]; then
-  echo "✗ SERVEUR=root@<ip-du-vps-jinan> et DOMAINE=<domaine-jinan> sont obligatoires." >&2; exit 2
+  echo "✗ SERVEUR=root@<ip-du-vps-jinan> et DOMAINE=<domaine-jinan> sont obligatoires" >&2
+  echo "  (ou, une fois pour toutes : bash deploy/jinan/configurer-production.sh <ip> <domaine>)." >&2; exit 2
 fi
 case "$SERVEUR$DOMAINE" in
   *187.7.18.252*|*elmouradarafat*) echo "✗ C'est le serveur d'El Mourad : Jinan a son propre VPS." >&2; exit 2 ;;

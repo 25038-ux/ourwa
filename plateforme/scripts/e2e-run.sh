@@ -37,7 +37,8 @@ wait_for() { # wait_for <name> <command> <seconds>
 # start, rather than trusting that "something answers".
 echo "== Ports =="
 for port in 3000 3001; do
-  pid=$(powershell.exe -NoProfile -Command "(Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique) -join ' '" 2>/dev/null | tr -d '')
+  pid=$(powershell.exe -NoProfile -Command "(Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique) -join ' '" 2>/dev/null | tr -d '
+')
   for one in $pid; do
     [ -n "$one" ] && taskkill //F //PID "$one" >/dev/null 2>&1 && echo "  freed port $port (pid $one)"
   done
@@ -77,6 +78,10 @@ if [ "${students:-0}" -lt 100 ]; then
 else
   echo "  already seeded ($students students)"
 fi
+# L'école « services » de développement (Jinan) : relançable, remise à neuf à
+# chaque passage — ses tests encaissent, arrêtent et réinscrivent.
+pnpm --filter @elourwa/db seed:jinan > "$LOG/seed-jinan.log" 2>&1 || { tail -5 "$LOG/seed-jinan.log"; exit 1; }
+echo "  Jinan (dév.) remise à neuf"
 
 echo "== API =="
 pnpm --filter @elourwa/api dev > "$LOG/api.log" 2>&1 &

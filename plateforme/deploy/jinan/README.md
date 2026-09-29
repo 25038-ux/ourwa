@@ -14,11 +14,25 @@ jour refusent ce serveur.
 
 ## 0. Avant (une fois)
 
-- **Un VPS** : Hostinger KVM 1 (1 vCPU, 4 Go, 50 Go NVMe, Ubuntu 24.04, centre
-  de données en France) — largement assez pour 100 élèves.
+- **Un VPS** Ubuntu 24.04, 2 Go de RAM au minimum (la base, l'API et le site,
+  et la reconstruction du site à chaque mise à jour). Recommandé :
+  **Namecheap « Pulsar »** (2 vCPU, 2 Go, 40 Go SSD, au mois, emplacement
+  européen si proposé), domaine acheté dans le même compte ; Hostinger KVM 1
+  convient aussi.
 - **Un domaine** (ex. `jinan-ecole.com`), et chez son registraire trois
   enregistrements **A** vers l'IP du VPS : `@`, `www`, `api`. **Aucun AAAA**
   (install.sh, section 3).
+- **Donner l'IP et le domaine au dépôt, une fois** (sur le PC, Git Bash, à la
+  racine) — tout le reste les lit ensuite :
+
+      bash deploy/jinan/configurer-production.sh <ip-du-vps> <domaine> namecheap-eu
+
+  Il refuse le serveur d'El Mourad, écrit `deploy/jinan/production.env`
+  (serveur et domaine des scripts), `API_URL` / `WEB_URL` dans
+  `deploy/brands/jinan.env` (l'application Android), l'hébergeur que nomme la
+  politique de confidentialité (`namecheap-eu`, `namecheap-us`,
+  `hostinger-eu`), et vérifie le DNS. Commitez les deux fichiers, puis
+  `BRAND=jinan bash tools/packager.sh zip`.
 - Notifications instantanées (facultatif) : dans la console Firebase du projet
   `el-mourad`, ajouter l'application Android `mr.jinan.parent`, puis
   Paramètres du projet → Comptes de service → Générer une nouvelle clé privée →
@@ -36,8 +50,11 @@ jour refusent ce serveur.
     install -d -m 700 /opt/jinan/deploy/jinan/secrets
     mv /root/fcm-service-account.json /opt/jinan/deploy/jinan/secrets/   # si Firebase
     cd /opt/jinan/deploy/jinan
-    PUBLIC_DOMAIN=<domaine> ACME_EMAIL=infoheavenly24@gmail.com \
+    ACME_EMAIL=infoheavenly24@gmail.com \
       ADMIN_EMAIL=infoheavenly24@gmail.com ADMIN_PASSWORD='<mot-de-passe-provisoire>' bash install.sh
+
+Le domaine vient de `production.env` (§0) ; sans lui, ajoutez
+`PUBLIC_DOMAIN=<domaine>` devant la commande.
 
 10 à 20 minutes la première fois. Le mot de passe s'écrit entre apostrophes
 droites. `ACME_EMAIL` reçoit les messages de Let's Encrypt au sujet des
@@ -66,7 +83,10 @@ son mode n'est pas défini.
 **Depuis le PC Windows, en PowerShell, sans git** (le zip suffit) — le serveur et
 le domaine sont **obligatoires** :
 
-    powershell -ExecutionPolicy Bypass -File .\mettre-a-jour.ps1 -Server root@<ip-du-vps> -Domain <domaine>
+    powershell -ExecutionPolicy Bypass -File .\mettre-a-jour.ps1
+
+(sans `-Server` ni `-Domain`, il lit `production.env` ; les donner les remplace :
+`-Server root@<ip-du-vps> -Domain <domaine>`)
 
 Il prend le plus récent `jinan-*.zip` (`dist\`, son propre dossier ou
 Téléchargements) ou celui de `-Zip C:\…\jinan-<version>.zip`, demande
@@ -77,6 +97,7 @@ que le site en ligne est la nouvelle construction. `-Key` : la clé SSH privée 
 
 **Depuis le PC, en une commande** (Git Bash, à la racine du dépôt, tout commité) :
 
+    bash deploy/jinan/mettre-a-jour.sh          # lit production.env
     SERVEUR=root@<ip-du-vps> DOMAINE=<domaine> bash deploy/jinan/mettre-a-jour.sh
 
 `.env` (mots de passe, clés) et `secrets/` restent ; la base aussi. Jamais
@@ -108,7 +129,7 @@ par défaut dans `deploy/brands/jinan.env`), puis :
 
 Voir `docs/store/jinan/PLAY-CONSOLE.md`. La clé de signature existe déjà
 (`apps/mobile/android/jinan-upload.jks` + `key-jinan.properties`, copie dans
-`C:\Eduplateforme\jinan_deployement`). Le jour où le domaine existe : écrire
-`API_URL=https://api.<domaine>` et `WEB_URL=https://<domaine>` dans
-`deploy/brands/jinan.env`, puis `BRAND=jinan bash tools/packager.sh android` (le
-`.aab` du Play Store, vérifié) et `BRAND=jinan bash tools/packager.sh apk`.
+`C:\Eduplateforme\jinan_deployement`). Une fois `configurer-production.sh`
+passé (§0 : il écrit `API_URL` et `WEB_URL` dans `deploy/brands/jinan.env`) :
+`BRAND=jinan bash tools/packager.sh android` (le `.aab` du Play Store, vérifié)
+et `BRAND=jinan bash tools/packager.sh apk`.
