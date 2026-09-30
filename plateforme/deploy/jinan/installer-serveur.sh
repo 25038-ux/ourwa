@@ -75,8 +75,10 @@ else
     mv -T "$DIR" "$ASIDE"
     ok "essai précédent mis de côté : $ASIDE"
   fi
+  mkdir -p "$(dirname "$DIR")"
   mv -T "$SRC" "$DIR"
   install -d -m 700 "$DIR/deploy/jinan/secrets"
+  PREMIERE=1
   ok "code posé dans $DIR"
 fi
 
@@ -85,7 +87,15 @@ cd "$DIR/deploy/jinan"
 PUBLIC_DOMAIN="$DOMAINE" ACME_EMAIL="${ACME_EMAIL:-$COURRIEL}" ADMIN_EMAIL="$COURRIEL" bash ./install.sh < /dev/null
 
 echo
-if [ -f /root/jinan-installation.txt ] && grep -q 'Mot de passe provisoire' /root/jinan-installation.txt; then
+# Les niveaux, par cycle : ce que la page « Niveaux » affiche, lisible ici sans
+# se connecter au site (0046 a classé ceux de Jinan le 30/09/2026).
+echo "  Niveaux (cycle · rang · nom) — à changer dans Gestion de scolarité → Niveaux :"
+( cd "$DIR/deploy/jinan" && docker compose exec -T db psql -U postgres -d jinan -At -F ' · ' \
+    -c "SELECT cycle, sort_order, name FROM levels ORDER BY cycle, sort_order, name" 2>/dev/null | sed 's/^/    /' ) || true
+echo
+# Le mot de passe provisoire : à la PREMIÈRE installation seulement (le fichier
+# reste sur le serveur, et une mise à jour ne doit pas réafficher un vieux mot de passe).
+if [ "${PREMIERE:-0}" = 1 ] && [ -f /root/jinan-installation.txt ] && grep -q 'Mot de passe provisoire' /root/jinan-installation.txt; then
   echo "  Site      : https://$DOMAINE"
   echo "  Courriel  : $COURRIEL"
   grep 'Mot de passe provisoire' /root/jinan-installation.txt | sed 's/^ */  /'
