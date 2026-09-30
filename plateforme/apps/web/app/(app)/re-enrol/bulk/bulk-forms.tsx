@@ -9,6 +9,7 @@ import {
 } from '@/app/actions';
 import { MODES_ETUDE, libelleMode } from '@elourwa/shared/facturation';
 import { useActionMessage } from '@/components/message-page';
+import { OptionsParCycle } from '@/components/options-par-cycle';
 
 /**
  * ⚠ LES FORMULAIRES DE CRÉANCE VIVENT HORS DU FORMULAIRE DE RÉINSCRIPTION, et
@@ -51,7 +52,7 @@ export function BulkSelection({
   modesEtude = false,
   children,
 }: {
-  groups: { id: string; name: string; level_name: string | null }[];
+  groups: { id: string; name: string; level_name: string | null; cycle?: string | null }[];
   cible: { label: string; startYear: number };
   /**
    * École « services » (Jinan, §2) : un mode d'étude pour tout le lot,
@@ -79,9 +80,7 @@ export function BulkSelection({
           <label htmlFor="groupe_id">Classe de destination *</label>
           <select id="groupe_id" name="groupe_id" required defaultValue="">
             <option value="">— Choisir —</option>
-            {groups.map((g) => (
-              <option key={g.id} value={g.id}>{(g.level_name ? g.level_name + ' / ' : '') + g.name}</option>
-            ))}
+            <OptionsParCycle rubriques={modesEtude} elements={groups} libelle={(g) => (g.level_name ? g.level_name + ' / ' : '') + g.name} />
           </select>
         </div>
         {modesEtude && (

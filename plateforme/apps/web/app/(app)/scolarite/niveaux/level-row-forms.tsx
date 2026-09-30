@@ -4,12 +4,14 @@
 import {
   deleteGroupAction,
   deleteLevelAction,
+  setLevelClassificationAction,
   setLevelPassMarkAction,
   setLevelRateAction,
   setSubjectMaxScoreAction,
   toggleFondamentalAction,
 } from '@/app/actions';
 import { useActionMessage } from '@/components/message-page';
+import { CYCLES } from '@elourwa/shared/cycles';
 
 type Result = { ok?: string; error?: string } | null;
 
@@ -18,6 +20,43 @@ type Result = { ok?: string; error?: string } | null;
  * propre `<form method="POST">`, avec ses pas (`step`), ses largeurs, son « ✓ »,
  * et son message qui remonte EN HAUT de la page.
  */
+
+/**
+ * LE CYCLE ET LE RANG D'UN NIVEAU — demande de Jinan (30/09/2026) : Maternelle,
+ * Fondamentales, Collège, Lycée (ou Autre), et la place du niveau dans son
+ * cycle (1, 2, 3…). La liste se range aussitôt, un intertitre par cycle.
+ */
+export function ClassementCell({ levelId, niveau, cycle, rang }: { levelId: string; niveau: string; cycle: string; rang: number }) {
+  const [state, action, pending] = useActionMessage(setLevelClassificationAction);
+
+  return (
+    <form action={action} style={{ display: 'flex', gap: '.35rem', alignItems: 'center', marginTop: '.35rem', flexWrap: 'wrap' }}>
+      <input type="hidden" name="levelId" value={levelId} />
+      <input type="hidden" name="niveau" value={niveau} />
+      <select
+        name="cycle"
+        defaultValue={cycle}
+        aria-label={`Cycle de ${niveau}`}
+        style={{ padding: '.3rem .4rem', border: '2px solid var(--border)', borderRadius: 6, fontSize: '.8rem' }}
+      >
+        {CYCLES.map((c) => (
+          <option key={c.code} value={c.code}>{c.libelle}</option>
+        ))}
+      </select>
+      <input
+        type="number"
+        name="sortOrder"
+        min={0}
+        max={999}
+        defaultValue={rang}
+        aria-label={`Rang de ${niveau} dans son cycle`}
+        title="Rang dans le cycle (1, 2, 3…)"
+        style={{ width: 62, padding: '.3rem .4rem', border: '2px solid var(--border)', borderRadius: 6, fontSize: '.8rem' }}
+      />
+      <button type="submit" className="btn btn-sm btn-secondary" disabled={pending} style={{ padding: '.3rem .6rem', fontSize: '.8rem' }} aria-label={`Classer ${niveau}`}>✓</button>
+    </form>
+  );
+}
 
 /** TARIF MENSUEL — `modifier_tarif` : la boîte (pas de 100), « MRU », ✓. */
 export function RateCell({ levelId, monthlyRate }: { levelId: string; monthlyRate: string }) {

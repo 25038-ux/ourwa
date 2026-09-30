@@ -9,6 +9,7 @@ import { arreterDetteAction, payerDetteMoisAction, reEnrolAction } from '@/app/a
 import { MOIS_NOMS } from '@/lib/mois';
 import { ChoixFacturation, type CatalogueFacturation } from '@/components/choix-facturation';
 import type { ModeEtude } from '@elourwa/shared/facturation';
+import { OptionsParCycle } from '@/components/options-par-cycle';
 
 /** Une ligne de `dettes_scolarite` d'`obtenir_dette_parent_detaillee()`. */
 export interface LigneScolarite {
@@ -60,7 +61,7 @@ export function ReinscrireModale({
   studentName: string;
   classe: string;
   guardianName: string;
-  groupes: { id: string; name: string; level_id?: string | null; level_name: string | null }[];
+  groupes: { id: string; name: string; level_id?: string | null; level_name: string | null; cycle?: string | null }[];
   aDette: boolean;
   dette: number;
   tuition: LigneScolarite[];
@@ -193,9 +194,7 @@ export function ReinscrireModale({
             <label>Nouveau groupe *</label>
             <select name="nouveau_groupe_id" required value={groupeId} onChange={(e) => setGroupeId(e.target.value)}>
               <option value="">— Choisir —</option>
-              {groupes.map((tg) => (
-                <option key={tg.id} value={tg.id}>{(tg.level_name ?? 'Sans niveau') + ' — ' + tg.name}</option>
-              ))}
+              <OptionsParCycle rubriques={facturation !== null} elements={groupes} libelle={(tg) => (tg.level_name ?? 'Sans niveau') + ' — ' + tg.name} />
             </select>
           </div>
 

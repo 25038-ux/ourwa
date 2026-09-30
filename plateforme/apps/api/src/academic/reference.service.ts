@@ -6,7 +6,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { money, toStorage } from '@elourwa/shared';
+import { estCycle, money, toStorage } from '@elourwa/shared';
 import { DbService } from '../db/db.service.js';
 import { AuditService } from '../audit/audit.service.js';
 import { currentTenant } from '../tenant/tenant.context.js';
@@ -131,7 +131,7 @@ export class ReferenceService {
     return this.db.query(async (tx) => {
       const { rows } = await tx.query(
         `SELECT g.id, g.name, g.capacity, g.level_id, l.name AS level_name,
-                l.monthly_rate,
+                l.monthly_rate, l.cycle,
                 (SELECT count(*)::int FROM enrollments e
                   WHERE e.group_id = g.id AND e.status <> 'cancelled'
                     AND ($1::uuid IS NULL OR e.academic_year_id = $1)) AS headcount
@@ -209,6 +209,45 @@ export class ReferenceService {
         tx,
       );
       return { monthlyRate: rows[0]!.monthly_rate };
+    });
+  }
+
+  /**
+   * CLASSER UN NIVEAU — son cycle (maternelle, fondamentale, collège, lycée,
+   * autre) et son rang dans le cycle. Demande du propriétaire de Jinan
+   * (30/09/2026) ; sans équivalent chez El Ourwa, où le cycle n'était jamais
+   * demandé. Toutes les listes suivent (`ORDER BY cycle, sort_order`) et la
+   * progression d'un ajourné aussi (le cycle d'abord). Ni tarif, ni seuil, ni
+   * « fondamental » (qui décide du bulletin) : ils ont leurs propres actions.
+   */
+  async setLevelClassification(levelId: string, cycle: string, sortOrder: number, actorId: string) {
+    const { schoolId } = currentTenant();
+    if (!estCycle(cycle)) {
+      throw new BadRequestException('Cycle inconnu : choisissez Maternelle, Fondamentale, Collège, Lycée ou Autre.');
+    }
+    if (!Number.isInteger(sortOrder) || sortOrder < 0 || sortOrder > 999) {
+      throw new BadRequestException('Le rang du niveau dans son cycle doit être un entier entre 0 et 999.');
+    }
+    return this.db.query(async (tx) => {
+      const { rows: avant } = await tx.query<{ cycle: string; sort_order: number }>(
+        'SELECT cycle::text, sort_order FROM levels WHERE id = $1',
+        [levelId],
+      );
+      if (!avant[0]) throw new NotFoundException('Niveau introuvable.');
+      await tx.query('UPDATE levels SET cycle = $1::school_cycle, sort_order = $2 WHERE id = $3', [cycle, sortOrder, levelId]);
+      await this.audit.record(
+        {
+          actorId,
+          schoolId,
+          action: 'level_classification_changed',
+          entity: 'level',
+          entityId: levelId,
+          before: avant[0],
+          after: { cycle, sort_order: sortOrder },
+        },
+        tx,
+      );
+      return { cycle, sortOrder };
     });
   }
 

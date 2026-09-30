@@ -1937,7 +1937,13 @@ export async function createLevelAction(_prev: unknown, form: FormData) {
         name: nom,
         monthlyRate: tarif,
         cycle: String(form.get('cycle') ?? '') || 'autre',
-        isFondamental: String(form.get('fondamental') ?? '') === '1' || form.get('cycle') === 'fondamental',
+        // La case « Niveau fondamental » décide seule du bulletin quand le
+        // formulaire la porte (page Niveaux : `bareme_explicite`) ; le cycle
+        // « Fondamentales » ne fait que classer (30/09/2026). `/settings`, qui
+        // n'a pas la case, garde l'ancien raccourci.
+        isFondamental:
+          String(form.get('fondamental') ?? '') === '1' ||
+          (form.get('bareme_explicite') !== '1' && form.get('cycle') === 'fondamental'),
         passMark: seuil.toFixed(2),
         sortOrder: Number(form.get('sortOrder') ?? 0),
       },
@@ -2342,6 +2348,21 @@ export async function setLevelPassMarkAction(_prev: unknown, form: FormData) {
   }
 }
 
+/** LE CYCLE ET LE RANG D'UN NIVEAU (demande de Jinan, 30/09/2026). */
+export async function setLevelClassificationAction(_prev: unknown, form: FormData) {
+  const niveau = String(form.get('niveau') ?? '').trim();
+  try {
+    await apiFetch(`/levels/${String(form.get('levelId') ?? '')}/classement`, {
+      method: 'PATCH',
+      json: { cycle: String(form.get('cycle') ?? ''), sortOrder: Number(form.get('sortOrder') ?? 0) },
+    });
+    revalidatePath('/scolarite/niveaux');
+    return { ok: `Niveau « ${niveau} » classé.` };
+  } catch (error) {
+    return { error: error instanceof ApiError ? error.message : 'Échec.' };
+  }
+}
+
 /** RENDRE FONDAMENTAL / RENDRE NORMAL — its `basculer_fondamental`. */
 export async function toggleFondamentalAction(_prev: unknown, form: FormData) {
   try {
@@ -2529,7 +2550,13 @@ export async function createLevelServicesAction(_prev: unknown, form: FormData) 
         name: nom,
         monthlyRate: '0',
         cycle: String(form.get('cycle') ?? '') || 'autre',
-        isFondamental: String(form.get('fondamental') ?? '') === '1' || form.get('cycle') === 'fondamental',
+        // La case « Niveau fondamental » décide seule du bulletin quand le
+        // formulaire la porte (page Niveaux : `bareme_explicite`) ; le cycle
+        // « Fondamentales » ne fait que classer (30/09/2026). `/settings`, qui
+        // n'a pas la case, garde l'ancien raccourci.
+        isFondamental:
+          String(form.get('fondamental') ?? '') === '1' ||
+          (form.get('bareme_explicite') !== '1' && form.get('cycle') === 'fondamental'),
         passMark: seuil.toFixed(2),
         sortOrder: Number(form.get('sortOrder') ?? 0),
       },

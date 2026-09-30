@@ -8,7 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { firstOwedMonthOrder, type Queryable } from '@elourwa/db';
-import { money, toStorage, type ModeEtude, type ServiceOptionnel } from '@elourwa/shared';
+import { money, rangCycle, toStorage, type ModeEtude, type ServiceOptionnel } from '@elourwa/shared';
 import { DbService } from '../db/db.service.js';
 import { NotificationsService } from '../parent/notifications.service.js';
 import { AuditService } from '../audit/audit.service.js';
@@ -46,13 +46,6 @@ export interface EnrolInput {
    */
   services?: ServiceOptionnel[];
 }
-
-const CYCLE_ORDER: Record<string, number> = {
-  fondamental: 1,
-  college: 2,
-  lycee: 3,
-  autre: 9,
-};
 
 @Injectable()
 export class EnrollmentService {
@@ -162,8 +155,9 @@ export class EnrollmentService {
       const target = targetRows[0];
       if (!target || previous.sort_order === null) return null;
 
-      const previousCycle = CYCLE_ORDER[previous.cycle ?? 'autre'] ?? 9;
-      const targetCycle = CYCLE_ORDER[target.cycle] ?? 9;
+      // Maternelle 0 < fondamental 1 < collège 2 < lycée 3 ; « autre » 9 (0045).
+      const previousCycle = rangCycle(previous.cycle);
+      const targetCycle = rangCycle(target.cycle);
       const movingUp =
         targetCycle > previousCycle ||
         (targetCycle === previousCycle && target.sort_order > previous.sort_order);

@@ -4,6 +4,7 @@
 import { createGroupAction, createLevelAction, createLevelServicesAction } from '@/app/actions';
 import { useActionMessage } from '@/components/message-page';
 import { libelleMode } from '@elourwa/shared/facturation';
+import { CYCLES } from '@elourwa/shared/cycles';
 
 /** Les trois tarifs d'un niveau d'école « services » — mêmes noms que `PATCH /levels/:id/tarifs`. */
 const COLONNES_TARIFS = [
@@ -18,8 +19,9 @@ type Result = { ok?: string; error?: string } | null;
  * CRÉER UN NIVEAU — `gerer_niveaux.php`, `creer_niveau` : « Nom du niveau * »
  * (20 caractères, « Ex: 6ème »), « Tarif mensuel (MRU) * » (pas de 100,
  * 15000), « Seuil d'admission (/20) * » (pas de 0,25, 10, et sa phrase
- * d'aide), et la case « Niveau fondamental » avec sa définition. Le cycle
- * n'est pas demandé : un niveau créé ici est « autre », comme chez lui.
+ * d'aide), et la case « Niveau fondamental » avec sa définition. Plus, depuis
+ * le 30/09/2026 (demande de Jinan), le cycle et le rang dans le cycle — chez
+ * lui le cycle n'était pas demandé ; « Autre » par défaut, comme avant.
  */
 export function LevelForm({ services = false }: { services?: boolean }) {
   // École « services » (Jinan) : les trois tarifs à la place du tarif mensuel,
@@ -30,6 +32,8 @@ export function LevelForm({ services = false }: { services?: boolean }) {
 
   return (
     <form action={action}>
+      {/* La case « Niveau fondamental » ci-dessous décide seule du bulletin ; le cycle ne fait que classer. */}
+      <input type="hidden" name="bareme_explicite" value="1" />
       <div className="form-row">
         <div className="form-group">
           <label htmlFor="nom_niveau">Nom du niveau *</label>
@@ -48,6 +52,18 @@ export function LevelForm({ services = false }: { services?: boolean }) {
             <input type="number" id="tarif_mensuel" name="tarif_mensuel" min={0} step={100} defaultValue={15000} required />
           </div>
         )}
+        <div className="form-group">
+          <label htmlFor="cycle_niveau">Cycle</label>
+          <select id="cycle_niveau" name="cycle" defaultValue="autre">
+            {CYCLES.map((c) => (
+              <option key={c.code} value={c.code}>{c.libelle}</option>
+            ))}
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="rang_niveau">Rang dans le cycle</label>
+          <input type="number" id="rang_niveau" name="sortOrder" min={0} max={999} defaultValue={0} />
+        </div>
         <div>
           <label htmlFor="seuil_eliminatoire">Seuil d&apos;admission (/20) *</label>
           <input type="number" id="seuil_eliminatoire" name="seuil_eliminatoire" min={0} max={20} step={0.25} defaultValue={10} required />

@@ -1,6 +1,6 @@
 import { apiFetch, requireSession } from '@/lib/session';
 import { anneeAffichee } from '@/lib/annee';
-import { currentSchool } from '@/lib/tenant';
+import { currentSchool, estEcoleServices } from '@/lib/tenant';
 import { PageHeader } from '@/components/page-header';
 import { HubNav, mru } from '@/components/hub';
 import { MessagePage } from '@/components/message-page';
@@ -8,6 +8,7 @@ import { SupprimerGroupe } from './supprimer-groupe';
 import { RetirerEleve } from './retirer-eleve';
 import { BoutonsListe } from './boutons-liste';
 import { SCOLARITE_TABS } from '../tabs';
+import { libelleCycle } from '@elourwa/shared/cycles';
 import { MARQUE } from '@/lib/brand';
 
 export const dynamic = 'force-dynamic';
@@ -16,6 +17,7 @@ export const dynamic = 'force-dynamic';
 interface Row {
   level_id: string | null;
   level_name: string | null;
+  cycle?: string | null;
   monthly_rate: string | null;
   level_headcount: number;
   group_id: string | null;
@@ -34,6 +36,7 @@ interface Groupe {
 interface Niveau {
   level_id: string | null;
   level_name: string | null;
+  cycle?: string | null;
   monthlyRate: string | null;
   headcount: number;
   groups: Groupe[];
@@ -102,6 +105,7 @@ export default async function GroupesPage({
       niveau = {
         level_id: row.level_id,
         level_name: row.level_name,
+        cycle: row.cycle ?? null,
         monthlyRate: row.monthly_rate,
         headcount: row.level_headcount ?? 0,
         groups: [],
@@ -221,11 +225,23 @@ export default async function GroupesPage({
     );
   }
 
+  // Intertitres de cycle : écoles « services » (Jinan) seulement — une école
+  // « famille » garde l'écran d'El Ourwa, qui n'en a pas.
+  const plusieursCycles = (await estEcoleServices()) && new Set(hierarchy.map((n) => n.cycle ?? 'autre')).size > 1;
+
   // ══ Niveau → Groupes ════════════════════════════════════════════════════
   return coquille(
     <>
-      {hierarchy.map((niveau) => (
-        <div key={niveau.level_id ?? 'sans'} className="table-container" style={{ marginBottom: '1.5rem' }}>
+      {hierarchy.map((niveau, i) => (
+        <div key={niveau.level_id ?? 'sans'}>
+        {/* Un intertitre et un trait épais à chaque changement de cycle — seulement
+            si l'école en a plusieurs (demande de Jinan, 30/09/2026). */}
+        {plusieursCycles && (i === 0 || hierarchy[i - 1]!.cycle !== niveau.cycle) && (
+          <h2 data-testid={`cycle-${niveau.cycle ?? 'autre'}`} style={{ color: 'var(--primary)', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '.05em', margin: '1.75rem 0 .75rem', paddingTop: '.6rem', borderTop: '4px solid var(--primary)' }}>
+            {libelleCycle(niveau.cycle)}
+          </h2>
+        )}
+        <div className="table-container" style={{ marginBottom: '1.5rem' }}>
           <div className="table-header">
             <h3>
               {niveau.level_name}{' '}
@@ -262,6 +278,7 @@ export default async function GroupesPage({
               </tbody>
             </table>
           </div>
+        </div>
         </div>
       ))}
 

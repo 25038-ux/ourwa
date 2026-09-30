@@ -15,12 +15,15 @@ import {
   type CatalogueFacturation,
 } from '@/components/choix-facturation';
 import type { ModeEtude } from '@elourwa/shared/facturation';
+import { OptionsParCycle } from '@/components/options-par-cycle';
 
 interface Group {
   id: string;
   name: string;
   level_id?: string | null;
   level_name: string | null;
+  /** Le cycle du niveau (rubriques de la liste, 30/09/2026). */
+  cycle?: string | null;
   capacity: number;
   headcount: number;
   monthly_rate: string | null;
@@ -134,11 +137,11 @@ export function AdmitForm({
             }}
           >
             <option value="">— Choisir —</option>
-            {groups.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.level_name ?? 'Sans niveau'} — {g.name} ({g.headcount}/{g.capacity})
-              </option>
-            ))}
+            <OptionsParCycle
+              rubriques={facturation !== null}
+              elements={groups}
+              libelle={(g) => `${g.level_name ?? 'Sans niveau'} — ${g.name} (${g.headcount}/${g.capacity})`}
+            />
           </select>
         </div>
         <div className="form-group"><label>Frais mensuel (MRU)</label><input type="number" step={0.01} name="frais_mensuel" id="frais_mensuel" value={fee} onChange={(e) => setFee(e.target.value)} /></div>

@@ -15,10 +15,12 @@ import {
   peutFixerLesTarifs,
   type TarifNiveau,
 } from '@/lib/facturation';
+import { libelleCycle } from '@elourwa/shared/cycles';
 import { SCOLARITE_TABS } from '../tabs';
 import { SubjectForm, CoefficientCell, DeleteSubjectForm } from './subject-forms';
 import { LevelForm, GroupInLevelForm } from './forms';
 import {
+  ClassementCell,
   DeleteGroupForm,
   DeleteLevelForm,
   FondamentalToggle,
@@ -35,6 +37,7 @@ interface Niveau {
   monthly_rate: string;
   pass_mark: string;
   cycle: string;
+  sort_order: number;
   is_fondamental: boolean;
   group_count: number;
   student_count: number;
@@ -44,16 +47,6 @@ interface LevelDetail {
   level: { id: string; name: string; monthly_rate: string; pass_mark: string; cycle: string; is_fondamental: boolean };
   groups: { id: string; name: string; capacity: number; enrolment_count: number; headcount: number; previous: number | null; delta: number | null }[];
   subjects: { id: string; name: string; name_ar: string | null; coefficient: number; max_score: string; teaching_count: number }[];
-}
-
-/** Son `libelle_cycle()`, mot pour mot. */
-function libelleCycle(cycle: string): string {
-  switch (cycle) {
-    case 'fondamental': return 'Fondamentales';
-    case 'college': return 'Collège';
-    case 'lycee': return 'Lycée';
-    default: return 'Autres niveaux';
-  }
 }
 
 /** Son `rtrim(rtrim(number_format(x, 2, '.', ''), '0'), '.')`. */
@@ -149,8 +142,11 @@ export default async function NiveauxPage({ searchParams }: { searchParams: Prom
                       if (n.cycle !== cycleCourant) {
                         cycleCourant = n.cycle;
                         rows.push(
-                          <tr key={`cyc-${n.cycle}`} className="cycle-sep">
-                            <td colSpan={nbColonnes} style={{ background: 'var(--bg-soft,#F1F5F9)', fontWeight: 700, color: 'var(--primary)', letterSpacing: '.04em', textTransform: 'uppercase', fontSize: '.78rem', padding: '.55rem .75rem', borderTop: '2px solid var(--primary)' }}>
+                          // Son intertitre de cycle (`libelle_cycle()`), et la
+                          // « barrière » demandée par Jinan le 30/09/2026 : un
+                          // trait épais au-dessus de chaque cycle.
+                          <tr key={`cyc-${n.cycle}`} className="cycle-sep" data-testid={`cycle-${n.cycle}`}>
+                            <td colSpan={nbColonnes} style={{ background: 'var(--bg-soft,#F1F5F9)', fontWeight: 700, color: 'var(--primary)', letterSpacing: '.04em', textTransform: 'uppercase', fontSize: '.78rem', padding: '.55rem .75rem', borderTop: '4px solid var(--primary)' }}>
                               {libelleCycle(n.cycle)}
                             </td>
                           </tr>,
@@ -162,6 +158,7 @@ export default async function NiveauxPage({ searchParams }: { searchParams: Prom
                             <strong>{n.name}</strong>
                             {n.is_fondamental && <span className="badge" style={{ background: '#DBEAFE', color: '#1E40AF' }}>Fondamental</span>}
                             {mayEdit && <FondamentalToggle levelId={n.id} isFondamental={n.is_fondamental} />}
+                            {mayEdit && <ClassementCell levelId={n.id} niveau={n.name} cycle={n.cycle} rang={n.sort_order} />}
                           </td>
                           {services ? (
                             COLONNES_TARIFS_NIVEAU.map((c) => {

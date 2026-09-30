@@ -15,7 +15,8 @@
     "./brand": "./src/brand.ts",
     "./tenant-slug": "./src/tenant-slug.ts",
     "./facturation": "./src/facturation.ts",
-    "./emploi-du-temps": "./src/emploi-du-temps.ts"
+    "./emploi-du-temps": "./src/emploi-du-temps.ts",
+    "./cycles": "./src/cycles.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

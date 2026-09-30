@@ -11,6 +11,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { z } from 'zod';
+import { CODES_CYCLES } from '@elourwa/shared';
 import { AcademicYearService } from './academic-year.service.js';
 import { DbService } from '../db/db.service.js';
 import { DebtService } from '../finance/debt.service.js';
@@ -212,6 +213,16 @@ export class ReferenceController {
     return this.reference.setLevelPassMark(uuid.parse(id), body.passMark, request.auth!.userId);
   }
 
+  /** Le cycle d'un niveau et son rang dans le cycle (demande de Jinan, 30/09/2026). */
+  @Patch('levels/:id/classement')
+  @RequirePermission('scolarite.niveaux')
+  setLevelClassification(@Param('id') id: string, @Body() raw: unknown, @Req() request: AuthenticatedRequest) {
+    const body = z
+      .object({ cycle: z.string(), sortOrder: z.coerce.number() })
+      .parse(raw ?? {});
+    return this.reference.setLevelClassification(uuid.parse(id), body.cycle, body.sortOrder, request.auth!.userId);
+  }
+
   @Post('levels/:id/toggle-fondamental')
   @RequirePermission('scolarite.niveaux')
   toggleFondamental(@Param('id') id: string, @Req() request: AuthenticatedRequest) {
@@ -239,7 +250,7 @@ export class ReferenceController {
       .object({
         name: z.string().trim().min(1).max(40),
         monthlyRate: money,
-        cycle: z.enum(['fondamental', 'college', 'lycee', 'autre']),
+        cycle: z.enum(CODES_CYCLES),
         isFondamental: z.boolean().optional(),
         passMark: money.optional(),
         sortOrder: z.coerce.number().int().min(0).max(999).optional(),

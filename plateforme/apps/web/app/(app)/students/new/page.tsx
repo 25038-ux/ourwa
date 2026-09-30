@@ -40,7 +40,11 @@ export default async function NewStudentPage() {
     apiFetch<{ id: string; name: string }[]>('/payment-methods').catch(() => []),
     cible ? catalogueFacturation(cible.id) : Promise.resolve(null),
   ]);
-  groups.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+  // Une école « famille » garde l'ordre alphabétique des classes (le sien). Une
+  // école « services » (Jinan) garde celui de l'API — cycle, rang, nom — que la
+  // liste coupe en rubriques Maternelle / Fondamentales / Collège / Lycée
+  // (30/09/2026) ; trié par nom, « 1 AF A » passait devant la maternelle.
+  if (!facturation) groups.sort((a, b) => a.name.localeCompare(b.name, 'fr'));
   // École « services » dont les tarifs sont illisibles : sans eux, pas de mode
   // d'étude à choisir, et l'API refuserait chaque inscription — on le dit ici.
   const tarifsIllisibles =
