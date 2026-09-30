@@ -268,8 +268,14 @@ describe('financial records are append-only', () => {
   });
 
   it('refuses to reverse the same payment twice', async () => {
+    // ⚠ CETTE école et CET élève : sans eux, la requête (propriétaire, toutes
+    // écoles) ramassait parfois le paiement de mars d'un autre fichier de test
+    // lancé en parallèle — invisible ici, d'où « Paiement introuvable. ».
     const { rows } = await owner.query<{ id: string }>(
-      'SELECT id FROM payments WHERE calendar_month = 3 AND reverses_id IS NULL LIMIT 1',
+      `SELECT id FROM payments
+        WHERE school_id = $1 AND student_id = $2 AND calendar_month = 3 AND reverses_id IS NULL
+        LIMIT 1`,
+      [schoolId, studentId],
     );
     await expect(
       inTenant(() => payments.reverse(rows[0]!.id, 'again', ACTOR)),
