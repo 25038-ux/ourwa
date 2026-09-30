@@ -8,6 +8,28 @@ every session, even short or unproductive ones.
 
 
 
+## NNI ET RIM FACULTATIFS ; LA MISE À JOUR DU SITE — 2026-09-30 (après-midi)
+
+**Demande du propriétaire :** « make the nni and rim optional and give the
+script to update the web app ».
+
+- **Constaté à 14:10 :** Jinan est EN LIGNE — `https://ecole-jinan.com/login`
+  200, `https://api.ecole-jinan.com/health` ok (base up, migration 0043) :
+  l'installation en une ligne (section suivante) a fonctionné.
+- **NNI et RIM facultatifs** (ADR-0077, migration **0044**) : formulaire
+  d'inscription (« RIM (facultatif, unique) »), action web, API (zod), service
+  (absent = NULL via `identiteOuNull`), registre des exclus (un numéro absent ne
+  bloque personne ; un blocage exige l'un des deux), fiche de l'élève (doublon
+  de NNI avec son message), affichages (« — »). Pour toutes les écoles.
+- Vérifié : `nni-rim-facultatifs.spec.ts` (10, écrits avant le code), suite API
+  entière 1022/1022, base 82/82, `tsc` api/web/db, navigateur :
+  `e2e/nni-rim-facultatifs.spec.ts` (deux enfants de suite sans papiers) et
+  `jinan-facturation.spec.ts`.
+- **Mettre à jour le site** = relancer la même ligne sur le serveur
+  (`installer-serveur.sh`) : il voit l'installation, sauvegarde la base, remplace
+  le code en gardant `.env` et `secrets/`, relance `install.sh` (migration 0044
+  comprise).
+
 ## 0.7.8+18 — JINAN : L'INSTALLATION EN UNE LIGNE SUR LE SERVEUR — 2026-09-30
 
 **Retour du propriétaire :** « still doesn't work ». Le dépôt `25038-ux/ourwa`

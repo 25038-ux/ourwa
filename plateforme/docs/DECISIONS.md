@@ -3748,3 +3748,31 @@ d'absence et le parent ne la lisent pas.
 (le vrai garde, les vraies permissions de chaque rôle) ;
 `e2e/jinan-facturation.spec.ts` : la secrétaire inscrit et encaisse dans la même
 fenêtre.
+
+## ADR-0077 — Le NNI et le RIM d'un élève deviennent facultatifs
+
+**Date :** 2026-09-30. **Décision du propriétaire :** « make the nni and rim
+optional ».
+
+**Contexte.** El Ourwa exigeait les deux à l'inscription (« Le RIM est
+obligatoire. Le NNI est obligatoire. », `inscrire_etudiant.php`) et la base les
+portait `NOT NULL`, uniques par école. Un enfant sans papiers ne pouvait pas
+s'inscrire. **Écart assumé avec El Ourwa**, demandé par le propriétaire ; il
+vaut pour toutes les écoles (El Mourad compris à sa prochaine mise à jour) :
+les numéros restent saisissables, et uniques dans l'école quand on les donne.
+
+**Décision.**
+- Migration 0044 : `students.rim` / `national_id` et `expulsions.rim` /
+  `national_id` acceptent NULL ; **absent = NULL, jamais ''** (CHECK
+  `*_non_vide`), les '' éventuels passés à NULL avant.
+- Le registre des exclus bloque toujours par « NNI OU RIM », mais un numéro
+  absent ne correspond à rien : `blockFor` ignore NULL, et un blocage exige au
+  moins l'un des deux (sinon il ne bloquerait personne). Sans cette règle, un
+  exclu rangé sans NNI aurait bloqué tous les enfants sans NNI de l'école.
+- La fiche de l'élève (dossier de la famille) permet d'ajouter plus tard un
+  NNI ou un RIM ; un doublon de NNI y a désormais son message (il donnait une
+  erreur 500 de l'unique).
+
+**Conséquences.** `apps/api/test/nni-rim-facultatifs.spec.ts` (10) ;
+`e2e/nni-rim-facultatifs.spec.ts` : deux enfants de suite sans NNI ni RIM.
+Rien ne touche l'argent.

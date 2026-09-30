@@ -468,6 +468,7 @@ testées. Seule la suspension ne l'est pas.
 | 12j | La secrétaire lit les moyens de paiement (encaisser à l'inscription) | **Fait le 2026-09-29**, décision du propriétaire. ADR-0076. |
 | 12h | Absences des professeurs et des agents, d'après leur emploi du temps | **Fait le 2026-09-29** — n'existe pas chez El Ourwa. 0043 (`staff_work_hours`, `personnel_absences`) ; `/personnel/absences` : journée, synthèse du mois, horaires des agents. Aucune retenue sur la paie (confirmé). ADR-0074. |
 | 12i | IP et domaine de production de Jinan en un seul endroit | **Fait le 2026-09-29.** `deploy/jinan/configurer-production.sh`, `production.env`. ADR-0075. **En attente de l'IP et du domaine réels.** |
+| 12k | NNI et RIM de l'élève facultatifs | **Fait le 2026-09-30**, décision du propriétaire (écart assumé avec El Ourwa, toutes écoles). 0044 ; absent = NULL ; le registre des exclus ne confond pas les « sans numéro ». ADR-0077. |
 | 27, 28 | Interface web en arabe, avec RTL | L'application **parent** est bilingue (fr/ar, RTL) ; l'interface **web** du personnel est en français seul. El Ourwa a les deux. |
 | 31 | Couche de cache | Phase 0, jamais commencée. Rien ne la réclame pour l'instant. |
 | 100 | Le total arabe du fondamental | **Tranché le 2026-09-11 : rien à porter.** `total_ar` vide sur 5 792 lignes, jamais lu. |
