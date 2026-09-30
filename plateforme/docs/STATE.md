@@ -8,6 +8,35 @@ every session, even short or unproductive ones.
 
 
 
+## LES NIVEAUX PAR CYCLE (MATERNELLE → LYCÉE) — 2026-09-30 (soir)
+
+**Demande du propriétaire :** classer les niveaux de Jinan en Maternelle (TPS,
+PS, SM, GS, PGS, PGSB), Fondamentale (6AF), Collège (1AS–4AS), Lycée
+(5AS–7AS), dans cet ordre, avec une barrière entre chaque ; et le script de
+mise à jour.
+
+- **0045** : le cycle `maternelle`, avant `fondamental`. **0046** : les niveaux
+  de l'école `jinan` classés et rangés comme demandé (une fois ; noms comparés
+  sans espaces ni casse ; un nom différent reste « Autres niveaux »).
+- Page **Niveaux** : cycle + rang à la création et sur chaque ligne (✓),
+  intertitre par cycle avec un trait épais. Listes de classes (inscription,
+  réinscription, lot) en rubriques par cycle et page **Groupes** avec
+  intertitres — écoles « services » seulement ; El Mourad inchangé. La case
+  « Niveau fondamental » décide seule du bulletin (ADR-0078).
+- `installer-serveur.sh` : affiche les niveaux par cycle à la fin ; le mot de
+  passe provisoire n'est plus réaffiché lors d'une mise à jour ; crée le
+  dossier parent au besoin.
+- Vérifié : `cycles-niveaux.spec.ts` (6), suites API / base / shared, `tsc`,
+  navigateur : `cycles-niveaux.spec.ts` (création, barrière avant/après,
+  rubrique « Maternelle » dans l'inscription, reclassement, nettoyage),
+  `jinan-facturation`, `nni-rim-facultatifs`.
+- **Le site en ligne n'a encore ni 0044 ni 0045/0046** (health : migration
+  0043 à 14:29) : le propriétaire doit lancer la mise à jour (README Jinan §1 ;
+  il ne savait pas se connecter au serveur — marche à suivre donnée : mot de
+  passe root dans le courriel Namecheap ou « Root/Admin Password → Change »
+  du VPS Panel ; PowerShell `ssh root@209.74.66.223`, ou console VNC du VPS
+  Panel et `bash /root/installer-jinan.sh`).
+
 ## NNI ET RIM FACULTATIFS ; LA MISE À JOUR DU SITE — 2026-09-30 (après-midi)
 
 **Demande du propriétaire :** « make the nni and rim optional and give the

@@ -33,7 +33,8 @@ lists the ones still open.
 | clôture | `closure` / `closeYear()` | End-of-year operation: enrollments archived, year marked closed, next year opened. Nothing deleted. | `cloturer_annee()` :503 |
 | trimestre | `term` | One of three assessment periods. Not "quarter" — there are three. | `notes.trimestre`, `bulletins.trimestre` |
 | niveau | `level` | Grade level (6ème, 3 AF…). Carries the full monthly rate, the pass mark and the cycle. **Not** `grade` — see §4. | `niveaux`, `gerer_niveaux.php` |
-| cycle | `cycle` | `fondamental` \| `college` \| `lycee` \| `autre`. Outranks `ordre` when deciding whether a move is a promotion. | `niveaux.cycle` |
+| cycle | `cycle` | `maternelle` \| `fondamental` \| `college` \| `lycee` \| `autre`, in that order (lists and promotions). `maternelle` added 2026-09-30 (0045, Jinan) — absent from El Ourwa. Outranks `ordre` when deciding whether a move is a promotion. Labels in `@elourwa/shared/cycles`. | `niveaux.cycle` |
+| maternelle | `maternelle` (kept) | Pre-school cycle (TPS, PS, SM, GS…), before the fondamental. Not in El Ourwa. | — |
 | fondamental | `fondamental` (kept) | The Mauritanian basic-education cycle. **Deliberately not translated** — see §4. | `niveaux.fondamental` |
 | groupe | `group` (table `groups`, type `Group`) | A class section within a level ("7D 1"), with a capacity. Table name follows ARCHITECTURE.md §6. In TS/Dart never name a variable `class` — it is reserved. | `groupes`, `gestion_groupes.php` |
 | effectif | `headcount` | Number of students in a class group **for a given year**, counted from `enrollments`. ⚠ El Ourwa snapshots it into `effectifs_annuels` on every page load; we do not — see ADR-0023. | `effectifs_annuels` |

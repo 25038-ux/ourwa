@@ -3776,3 +3776,41 @@ les numéros restent saisissables, et uniques dans l'école quand on les donne.
 **Conséquences.** `apps/api/test/nni-rim-facultatifs.spec.ts` (10) ;
 `e2e/nni-rim-facultatifs.spec.ts` : deux enfants de suite sans NNI ni RIM.
 Rien ne touche l'argent.
+
+## ADR-0078 — Les niveaux classés par cycle : la maternelle, et le classement de Jinan
+
+**Date :** 2026-09-30. **Demande du propriétaire (Jinan) :** « classify niveaux
+based on maternelle, fondamentale, collège, lycée … TPS, PS, SM, GS, PGS, PGSB
+as Maternelle, 6AF as fondamentale, 1AS–4AS as collège, 5AS–7AS as lycée, in
+that order, with a barrier between each classification ».
+
+**Contexte.** L'énumération `school_cycle` n'avait que `fondamental`,
+`college`, `lycee`, `autre` ; le formulaire de création ne demandait pas le
+cycle (comme El Ourwa) : tous les niveaux créés sur le site de Jinan étaient
+« autre », rang 0, dans un ordre quelconque. La page Niveaux avait déjà son
+intertitre par cycle (`libelle_cycle()`).
+
+**Décision.**
+- 0045 : `maternelle` ajouté AVANT `fondamental` (l'ordre de l'énumération est
+  celui de toutes les listes, `ORDER BY l.cycle, l.sort_order`) ; le rang de
+  progression (`rangCycle`, `@elourwa/shared/cycles`) met la maternelle avant
+  la fondamentale — passer de GS en 6AF est une promotion.
+- 0046 : une fois, pour l'école de slug `jinan` seulement, les niveaux nommés
+  par le propriétaire reçoivent leur cycle et leur rang (noms comparés sans
+  espaces ni casse). Un niveau au nom différent reste « autre » et se classe à
+  la main.
+- Page Niveaux : cycle et rang choisis à la création, modifiables sur chaque
+  ligne (`PATCH /levels/:id/classement`, journalisé) ; l'intertitre de cycle
+  porte un trait épais (la « barrière »).
+- ⚠ Le cycle ne décide PAS du bulletin : c'est la case « Niveau fondamental »
+  (`is_fondamental`). Le raccourci « cycle fondamental ⇒ barème fondamental »
+  de l'action de création ne vaut plus que pour `/settings`, qui n'a pas la
+  case ; 0046 ne touche ni `is_fondamental`, ni tarif, ni seuil.
+- Les rubriques par cycle dans les listes de classes (inscription,
+  réinscription, lot) et les intertitres de la page Groupes : écoles
+  « services » (Jinan) seulement. El Mourad garde les écrans d'El Ourwa
+  (liste alphabétique des classes, pas d'intertitre sur Groupes).
+
+**Conséquences.** `apps/api/test/cycles-niveaux.spec.ts` (6, dont 0046 rejouée
+sur une école « jinan » d'essai) ; `e2e/cycles-niveaux.spec.ts`. Après la mise
+à jour, `installer-serveur.sh` affiche les niveaux par cycle.
