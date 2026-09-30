@@ -8,6 +8,17 @@ every session, even short or unproductive ones.
 
 
 
+## 0.7.8+18 — JINAN : L'INSTALLATION EN UNE LIGNE SUR LE SERVEUR — 2026-09-30
+
+**Retour du propriétaire :** « still doesn't work ». Le dépôt `25038-ux/ourwa`
+est public : **`deploy/jinan/installer-serveur.sh`** se lance SUR le serveur
+(une ligne `curl … && bash …`, README Jinan §1) et télécharge lui-même le
+commit de la branche — plus de PC, de zip, de `scp` ni de dossier courant.
+Essayé ici avec le vrai téléchargement GitHub (commit 1afc5e7) et un
+`install.sh` factice : première installation (reste d'essai mis de côté),
+relance (`.env` et `secrets/` gardés) ; l'URL brute sert bien le script.
+Le serveur, lui, n'a toujours rien (80/443 muets le 30/09 au matin).
+
 ## 0.7.8+18 — JINAN : L'INSTALLATION ET LA SIGNATURE SANS « NO SUCH FILE » — 2026-09-29 (nuit)
 
 **Retour du propriétaire :** « the commands didn't work, one said no such file

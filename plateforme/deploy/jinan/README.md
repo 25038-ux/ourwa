@@ -38,7 +38,17 @@ jour refusent ce serveur.
   Paramètres du projet → Comptes de service → Générer une nouvelle clé privée →
   `fcm-service-account.json`.
 
-## 1. Installer en une commande (depuis le PC, PowerShell) — recommandé
+## 1. Installer en UNE ligne, sur le serveur — le plus simple
+
+Connecté au VPS en root (`ssh root@209.74.66.223`, ou la console de Namecheap) :
+
+    curl -fsSL -o /root/installer-jinan.sh https://raw.githubusercontent.com/25038-ux/ourwa/refs/heads/claude/jinan-web-completion-6wv8c0/plateforme/deploy/jinan/installer-serveur.sh && bash /root/installer-jinan.sh
+
+Rien à envoyer depuis le PC : le serveur télécharge le code de GitHub, le pose
+dans `/opt/jinan`, lance `install.sh` et affiche le mot de passe provisoire.
+Relancer est sans danger (déjà installé : sauvegarde, `.env` gardé).
+
+## 1 bis. Installer depuis le PC (PowerShell)
 
 `installer-jinan.ps1` (ici, ou envoyé à côté du zip) trouve seul
 `jinan-<version>.zip` (à côté de lui, dans Téléchargements ou sur le Bureau,
@@ -59,7 +69,7 @@ qui contient le zip ; ailleurs : « No such file or directory », rien n'arrive
 sur le serveur, et toutes les commandes du §2 échouent ensuite (constaté le
 29/09/2026).
 
-## 1 bis. À la main : envoyer les fichiers (depuis le PC, PowerShell)
+## 1 ter. À la main : envoyer les fichiers (depuis le PC, PowerShell)
 
     cd $HOME\Downloads            # le dossier qui contient le zip
     scp jinan-<version>.zip fcm-service-account.json root@<ip-du-vps>:/root/
