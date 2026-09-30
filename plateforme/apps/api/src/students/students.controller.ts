@@ -47,7 +47,7 @@ export class StudentsController {
       .parse(raw ?? {});
     const { schoolId } = currentTenant();
     return this.db.query(async (tx) => {
-      const { rows: avant } = await tx.query<{ first_name: string; last_name: string; sex: string | null; date_of_birth: string | null; place_of_birth: string | null; national_id: string; rim: string }>(
+      const { rows: avant } = await tx.query<{ first_name: string; last_name: string; sex: string | null; date_of_birth: string | null; place_of_birth: string | null; national_id: string | null; rim: string | null }>(
         'SELECT first_name, last_name, sex, date_of_birth::text, place_of_birth, national_id, rim FROM students WHERE id = $1',
         [studentId],
       );
@@ -57,6 +57,12 @@ export class StudentsController {
       if (rim !== avant[0].rim) {
         const { rows: pris } = await tx.query('SELECT 1 FROM students WHERE rim = $1 AND id <> $2', [rim, studentId]);
         if (pris.length > 0) throw new BadRequestException('Ce RIM est déjà celui d’un autre élève de l’école.');
+      }
+      // Le NNI, facultatif à l'inscription (0044), se renseigne souvent ici plus
+      // tard : un doublon a son message, pas une erreur 500 de l'unique.
+      if (nni !== avant[0].national_id) {
+        const { rows: pris } = await tx.query('SELECT 1 FROM students WHERE national_id = $1 AND id <> $2', [nni, studentId]);
+        if (pris.length > 0) throw new BadRequestException('Ce NNI est déjà celui d’un autre élève de l’école.');
       }
       await tx.query(
         `UPDATE students SET first_name = $2, last_name = $3, sex = $4, date_of_birth = $5, place_of_birth = $6,

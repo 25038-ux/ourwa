@@ -282,8 +282,9 @@ export const students = pgTable(
     id: uuid('id').primaryKey().default(uuidv7),
     schoolId: uuid('school_id').notNull(),
     guardianId: uuid('guardian_id'),
-    rim: text('rim').notNull(),
-    nationalId: text('national_id').notNull(),
+    // Facultatifs (0044) : NULL quand absents, jamais '' (CHECK).
+    rim: text('rim'),
+    nationalId: text('national_id'),
     firstName: text('first_name').notNull(),
     lastName: text('last_name').notNull(),
     sex: char('sex', { length: 1 }),

@@ -11,7 +11,7 @@ import { DbService } from '../db/db.service.js';
 import { AuditService } from '../audit/audit.service.js';
 import { EnrollmentService } from '../academic/enrollment.service.js';
 import { NotificationsService } from '../parent/notifications.service.js';
-import { ExpulsionsService } from '../discipline/expulsions.service.js';
+import { ExpulsionsService, identiteOuNull } from '../discipline/expulsions.service.js';
 import { hashPassword } from '../auth/passwords.js';
 import {
   validatePassword,
@@ -45,9 +45,13 @@ export interface NewGuardian {
 export interface AdmitInput {
   firstName: string;
   lastName: string;
-  /** Mauritanian identity numbers. Both unique WITHIN a school, never globally. */
-  rim: string;
-  nationalId: string;
+  /**
+   * Mauritanian identity numbers. Both unique WITHIN a school, never globally.
+   * OPTIONAL since 0044 (owner, 30/09/2026): empty or blank means absent, and
+   * is stored as NULL — never '' (see `identiteOuNull`).
+   */
+  rim?: string | null;
+  nationalId?: string | null;
   sex?: 'M' | 'F';
   dateOfBirth?: string;
   /** A moughataa of Nouakchott. An ADDRESS, never a branch. */
@@ -158,7 +162,9 @@ export class AdmissionsService {
     // ⚠ The expulsion register is checked BEFORE anything is written. Blocking
     // is by identity precisely so that deleting and re-creating a child does
     // not get past it, and a check that ran after the insert would defeat that.
-    const blocked = await this.expulsions.blockFor(input.nationalId, input.rim);
+    const rim = identiteOuNull(input.rim);
+    const nationalId = identiteOuNull(input.nationalId);
+    const blocked = await this.expulsions.blockFor(nationalId, rim);
     if (blocked) {
       // Sa phrase — `inscrire_etudiant.php`.
       throw new ForbiddenException(
@@ -269,8 +275,8 @@ export class AdmissionsService {
             [
               schoolId,
               guardianId,
-              input.rim.trim(),
-              input.nationalId.trim(),
+              rim,
+              nationalId,
               input.firstName.trim(),
               input.lastName.trim(),
               input.sex ?? null,
@@ -302,7 +308,7 @@ export class AdmissionsService {
           entityId: student.rows[0]!.id,
           after: {
             name: `${input.firstName} ${input.lastName}`.trim(),
-            rim: input.rim,
+            rim,
             guardianCreated: Boolean(input.newGuardian),
           },
         },

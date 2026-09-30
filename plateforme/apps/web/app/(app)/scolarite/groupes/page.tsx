@@ -42,8 +42,8 @@ interface Niveau {
 interface Eleve {
   id: string;
   matricule: string | null;
-  rim: string;
-  national_id: string;
+  rim: string | null;
+  national_id: string | null;
   first_name: string;
   last_name: string;
   sex: string | null;

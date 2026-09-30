@@ -4,6 +4,17 @@ import { AuditService } from '../audit/audit.service.js';
 import { currentTenant } from '../tenant/tenant.context.js';
 
 /**
+ * Un NNI ou un RIM tel qu'on le range : le texte sans ses blancs, ou NULL
+ * quand il n'y en a pas. Jamais '' (0044) : l'unique de l'école et le blocage
+ * « NNI OU RIM » traiteraient tous les « sans numéro » comme une seule
+ * personne.
+ */
+export function identiteOuNull(valeur: string | null | undefined): string | null {
+  const v = (valeur ?? '').trim();
+  return v === '' ? null : v;
+}
+
+/**
  * The expulsion register.
  *
  * ⚠ Blocking is by IDENTITY — NNI and RIM — never by student id. That is the
@@ -21,10 +32,15 @@ export class ExpulsionsService {
 
   /** Is this identity blocked here? Called before an admission is allowed. */
   async blockFor(
-    nationalId: string,
-    rim: string,
+    nationalIdBrut: string | null | undefined,
+    rimBrut: string | null | undefined,
     opts: { exact?: boolean } = {},
   ): Promise<{ reason: string | null; expelledAt: Date } | null> {
+    // ⚠ Un numéro ABSENT ne correspond à rien (NULL = NULL est faux en SQL) :
+    // un enfant sans NNI n'est pas « le même » qu'un exclu sans NNI (0044).
+    const nationalId = identiteOuNull(nationalIdBrut);
+    const rim = identiteOuNull(rimBrut);
+    if (!opts.exact && nationalId === null && rim === null) return null;
     return this.db.query(async (tx) => {
       // ⚠ L'UN OU L'AUTRE, comme son `WHERE nni = :n OR rim = :r` : la phrase du
       // refus le disait (« ce NNI ou ce RIM ») mais la requête exigeait les
@@ -33,11 +49,12 @@ export class ExpulsionsService {
       const { rows } = await tx.query<{ reason: string | null; expelled_at: Date }>(
         opts.exact
           ? `SELECT reason, expelled_at FROM expulsions
-               WHERE national_id = $1 AND rim = $2 AND lifted_at IS NULL`
+               WHERE national_id IS NOT DISTINCT FROM $1 AND rim IS NOT DISTINCT FROM $2
+                 AND lifted_at IS NULL`
           : `SELECT reason, expelled_at FROM expulsions
                WHERE (national_id = $1 OR rim = $2) AND lifted_at IS NULL
                ORDER BY expelled_at DESC`,
-        [nationalId.trim(), rim.trim()],
+        [nationalId, rim],
       );
       const r = rows[0];
       return r ? { reason: r.reason, expelledAt: r.expelled_at } : null;
@@ -128,8 +145,8 @@ export class ExpulsionsService {
 
   async expel(
     input: {
-      nationalId: string;
-      rim: string;
+      nationalId?: string | null;
+      rim?: string | null;
       firstName: string;
       lastName: string;
       reason?: string;
@@ -138,8 +155,17 @@ export class ExpulsionsService {
   ) {
     const { schoolId } = currentTenant();
 
+    const nationalId = identiteOuNull(input.nationalId);
+    const rim = identiteOuNull(input.rim);
+    // Sans l'un ni l'autre, le blocage ne bloquerait personne (0044).
+    if (nationalId === null && rim === null) {
+      throw new BadRequestException(
+        "Pour bloquer un élève, il faut le NNI ou le RIM : renseignez l'un des deux dans sa fiche.",
+      );
+    }
+
     return this.db.query(async (tx) => {
-      const existing = await this.blockFor(input.nationalId, input.rim, { exact: true });
+      const existing = await this.blockFor(nationalId, rim, { exact: true });
       if (existing) {
         throw new BadRequestException('Cette personne est déjà bloquée dans cette école.');
       }
@@ -150,8 +176,8 @@ export class ExpulsionsService {
          VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
         [
           schoolId,
-          input.nationalId.trim(),
-          input.rim.trim(),
+          nationalId,
+          rim,
           input.firstName.trim(),
           input.lastName.trim(),
           input.reason ?? null,
@@ -168,7 +194,8 @@ export class ExpulsionsService {
           entityId: rows[0]!.id,
           after: {
             name: `${input.firstName} ${input.lastName}`.trim(),
-            nni: input.nationalId,
+            nni: nationalId,
+            rim,
             reason: input.reason ?? null,
           },
         },
@@ -190,7 +217,7 @@ export class ExpulsionsService {
     const { schoolId } = currentTenant();
 
     return this.db.query(async (tx) => {
-      const { rows } = await tx.query<{ first_name: string; last_name: string; national_id: string; rim: string }>(
+      const { rows } = await tx.query<{ first_name: string; last_name: string; national_id: string | null; rim: string | null }>(
         `UPDATE expulsions
             SET lifted_at = now(), lifted_by = $2, lift_reason = $3
           WHERE id = $1 AND lifted_at IS NULL

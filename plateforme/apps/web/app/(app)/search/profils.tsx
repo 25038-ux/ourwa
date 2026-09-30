@@ -18,8 +18,8 @@ export interface Etudiant {
   first_name: string;
   last_name: string;
   sex: string | null;
-  rim: string;
-  national_id: string;
+  rim: string | null;
+  national_id: string | null;
   matricule: string | null;
   level_name: string | null;
   group_name: string | null;

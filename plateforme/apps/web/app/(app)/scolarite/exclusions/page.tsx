@@ -9,8 +9,8 @@ export const dynamic = 'force-dynamic';
 
 interface Expulsion {
   id: string;
-  national_id: string;
-  rim: string;
+  national_id: string | null;
+  rim: string | null;
   first_name: string;
   last_name: string;
   reason: string | null;
@@ -109,8 +109,8 @@ export default async function ExpelledPage({
                             {data.rows.map((ex) => (
                               <tr key={ex.id}>
                                 <td><strong>{ex.first_name} {ex.last_name}</strong></td>
-                                <td><code>{ex.national_id}</code></td>
-                                <td><code>{ex.rim}</code></td>
+                                <td><code>{ex.national_id || '—'}</code></td>
+                                <td><code>{ex.rim || '—'}</code></td>
                                 <td>{ex.reason || '—'}</td>
                                 <td><small>{dateHeure(ex.expelled_at)}</small></td>
                                 <td>{mayExpel && <LiftForm expulsionId={ex.id} />}</td>

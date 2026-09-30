@@ -55,8 +55,8 @@ export function ExpulserForm({ etudiant }: { etudiant: Etudiant }) {
         largeur={500}
       >
         <form action={action}>
-        <input type="hidden" name="nationalId" value={etudiant.national_id} />
-        <input type="hidden" name="rim" value={etudiant.rim} />
+        <input type="hidden" name="nationalId" value={etudiant.national_id ?? ''} />
+        <input type="hidden" name="rim" value={etudiant.rim ?? ''} />
         <input type="hidden" name="firstName" value={etudiant.first_name} />
         <input type="hidden" name="lastName" value={etudiant.last_name} />
 

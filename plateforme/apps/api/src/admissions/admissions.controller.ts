@@ -39,8 +39,9 @@ export class AdmissionsController {
       .object({
         firstName: z.string().trim().min(1).max(80),
         lastName: z.string().trim().min(1).max(80),
-        rim: z.string().trim().min(1).max(40),
-        nationalId: z.string().trim().min(1).max(40),
+        // Facultatifs (0044, décision du propriétaire du 30/09/2026) ; vides = absents.
+        rim: z.string().trim().max(40).optional(),
+        nationalId: z.string().trim().max(40).optional(),
         sex: z.enum(['M', 'F']).optional(),
         dateOfBirth: z.string().date().optional(),
         // ⚠ Its `lieu_naissance`, free text: the data holds "Guerou"

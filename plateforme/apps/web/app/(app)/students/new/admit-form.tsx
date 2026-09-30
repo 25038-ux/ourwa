@@ -106,8 +106,9 @@ export function AdmitForm({
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         <div className="form-group"><label>Prénom *</label><input type="text" name="prenom" required /></div>
         <div className="form-group"><label>Nom *</label><input type="text" name="nom" required /></div>
-        <div className="form-group"><label>RIM * (unique)</label><input type="text" name="rim" required /></div>
-        <div className="form-group"><label>NNI * (unique)</label><input type="text" name="nni" required /></div>
+        {/* Facultatifs (décision du propriétaire, 30/09/2026) ; uniques quand on les donne. */}
+        <div className="form-group"><label>RIM (facultatif, unique)</label><input type="text" name="rim" maxLength={40} /></div>
+        <div className="form-group"><label>NNI (facultatif, unique)</label><input type="text" name="nni" maxLength={40} /></div>
         <div className="form-group">
           <label>Sexe</label>
           <select name="sexe" defaultValue="">

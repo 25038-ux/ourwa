@@ -13,8 +13,8 @@ export interface FicheEleve {
   sex: string | null;
   date_of_birth: string | null;
   place_of_birth: string | null;
-  national_id: string;
-  rim: string;
+  national_id: string | null;
+  rim: string | null;
   matricule: string | null;
 }
 
@@ -110,8 +110,8 @@ export function DossierFamille({
               <div className="form-group"><label htmlFor="df-lieu">Lieu de naissance</label><input id="df-lieu" type="text" name="lieu_naissance" defaultValue={eleve.place_of_birth ?? ''} maxLength={120} /></div>
             </div>
             <div className="form-row">
-              <div className="form-group"><label htmlFor="df-nni">NNI</label><input id="df-nni" type="text" name="nni" defaultValue={eleve.national_id} maxLength={40} /></div>
-              <div className="form-group"><label htmlFor="df-rim">RIM</label><input id="df-rim" type="text" name="rim" defaultValue={eleve.rim} maxLength={40} /></div>
+              <div className="form-group"><label htmlFor="df-nni">NNI</label><input id="df-nni" type="text" name="nni" defaultValue={eleve.national_id ?? ''} maxLength={40} /></div>
+              <div className="form-group"><label htmlFor="df-rim">RIM</label><input id="df-rim" type="text" name="rim" defaultValue={eleve.rim ?? ''} maxLength={40} /></div>
             </div>
             <p className="text-muted" style={{ fontSize: '.82rem' }}>
               Matricule : <code>{eleve.matricule ?? '—'}</code> (attribué à l'inscription, ne se modifie pas). Le groupe et le tarif se changent

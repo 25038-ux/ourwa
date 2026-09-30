@@ -34,8 +34,9 @@ export class ExpulsionsController {
   expel(@Body() raw: unknown, @Req() request: AuthenticatedRequest) {
     const body = z
       .object({
-        nationalId: z.string().trim().min(1).max(40),
-        rim: z.string().trim().min(1).max(40),
+        // L'un OU l'autre (0044) : le service refuse s'il n'y a aucun des deux.
+        nationalId: z.string().trim().max(40).optional(),
+        rim: z.string().trim().max(40).optional(),
         firstName: z.string().trim().min(1).max(80),
         lastName: z.string().trim().min(1).max(80),
         reason: z.string().trim().max(255).optional(),

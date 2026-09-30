@@ -1443,8 +1443,9 @@ export async function decideRequestAction(_prev: unknown, form: FormData) {
 
 /**
  * INSCRIRE UN ÉTUDIANT — le POST `inscrire` de `inscrire_etudiant.php`, avec ses
- * validations dans son ordre (« Nom invalide. Prénom invalide. Le RIM est
- * obligatoire. Le NNI est obligatoire. Veuillez choisir un groupe. »), son
+ * validations dans son ordre (« Nom invalide. Prénom invalide. Veuillez
+ * choisir un groupe. » — ses « Le RIM / Le NNI est obligatoire » retirés : le
+ * NNI et le RIM sont facultatifs depuis le 30/09/2026, migration 0044), son
  * message « Étudiant inscrit avec succès ! Matricule : … » et, pour un
  * comptable ou un secrétaire, l'avertissement de la demande de frais. Réussie,
  * la fenêtre d'encaissement s'ouvre avec les données de `encaissement_fenetre()`.
@@ -1491,8 +1492,6 @@ export async function admitStudentAction(_prev: unknown, form: FormData) {
   const erreurs: string[] = [];
   if (nom.length < 2) erreurs.push('Nom invalide.');
   if (prenom.length < 2) erreurs.push('Prénom invalide.');
-  if (rim === '') erreurs.push('Le RIM est obligatoire.');
-  if (nni === '') erreurs.push('Le NNI est obligatoire.');
   if (!groupeId) erreurs.push('Veuillez choisir un groupe.');
   const parentId = String(form.get('parent_id') ?? '');
   if (erreurs.length === 0 && mode !== 'nouveau' && !parentId) erreurs.push('Veuillez sélectionner un correspondant existant.');
@@ -1520,8 +1519,8 @@ export async function admitStudentAction(_prev: unknown, form: FormData) {
       json: {
         firstName: prenom,
         lastName: nom,
-        rim,
-        nationalId: nni,
+        rim: rim || undefined,
+        nationalId: nni || undefined,
         sex: sexe === 'M' || sexe === 'F' ? sexe : undefined,
         dateOfBirth: String(form.get('date_naissance') ?? '') || undefined,
         placeOfBirth: String(form.get('lieu_naissance') ?? '').trim() || undefined,
@@ -1831,12 +1830,15 @@ export async function clearSlotAction(_prev: unknown, form: FormData) {
  * student record, or deleting and re-creating a child walks straight past it.
  */
 export async function expelAction(_prev: unknown, form: FormData) {
+  // L'un ou l'autre peut manquer (0044) ; sans aucun des deux, l'API refuse.
+  const nniBloque = String(form.get('nationalId') ?? '').trim();
+  const rimBloque = String(form.get('rim') ?? '').trim();
   try {
     await apiFetch('/expulsions', {
       method: 'POST',
       json: {
-        nationalId: String(form.get('nationalId') ?? '').trim(),
-        rim: String(form.get('rim') ?? '').trim(),
+        nationalId: nniBloque || undefined,
+        rim: rimBloque || undefined,
         firstName: String(form.get('firstName') ?? '').trim(),
         lastName: String(form.get('lastName') ?? '').trim(),
         reason: String(form.get('reason') ?? '').trim() || undefined,
@@ -1845,7 +1847,7 @@ export async function expelAction(_prev: unknown, form: FormData) {
     revalidatePath('/scolarite/exclusions');
     // Son message : « Étudiant expulsé. Ce NNI (X) et RIM (Y) ne pourront plus être réinscrits. »
     return {
-      ok: `Étudiant expulsé. Ce NNI (${String(form.get('nationalId') ?? '').trim()}) et RIM (${String(form.get('rim') ?? '').trim()}) ne pourront plus être réinscrits.`,
+      ok: `Étudiant expulsé. ${[nniBloque && `Ce NNI (${nniBloque})`, rimBloque && `${nniBloque ? 'et ce' : 'Ce'} RIM (${rimBloque})`].filter(Boolean).join(' ')} ne pourr${nniBloque && rimBloque ? 'ont' : 'a'} plus être réinscrit${nniBloque && rimBloque ? 's' : ''}.`,
     };
   } catch (error) {
     return { error: error instanceof ApiError ? error.message : 'Échec du blocage.' };
