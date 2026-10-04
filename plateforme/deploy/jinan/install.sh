@@ -408,6 +408,14 @@ CRON
 chmod 644 /etc/cron.d/jinan-sauvegarde
 vert "chaque nuit à 02:30 → /root/sauvegardes-jinan (copiez-les aussi HORS du serveur)"
 
+# Une mise à jour ne crée pas de mot de passe : ne pas renvoyer à un « ci-dessus » vide.
+if grep -q 'Mot de passe provisoire' "$JOURNAL" 2>/dev/null; then
+  CONNEXION="mot de passe provisoire ci-dessus, À CHANGER à la
+                       première connexion (le site l'exige). Copie : ${JOURNAL} (à supprimer)."
+else
+  CONNEXION="mot de passe inchangé (compte déjà présent : mise à jour)."
+fi
+
 cat <<FIN
 
 ═══════════════════════════════════════════════════════════════════════════════
@@ -415,8 +423,7 @@ cat <<FIN
 
   Site de l'école      https://${PUBLIC_DOMAIN}/
   API (application)    https://api.${PUBLIC_DOMAIN}/health
-  Connexion            ${ADMIN_EMAIL} — mot de passe provisoire ci-dessus, À CHANGER à la
-                       première connexion (le site l'exige). Copie : ${JOURNAL} (à supprimer).
+  Connexion            ${ADMIN_EMAIL} — ${CONNEXION}
 
   Pour le Play Store :
     Politique de confidentialité   https://${PUBLIC_DOMAIN}/legal/confidentialite
