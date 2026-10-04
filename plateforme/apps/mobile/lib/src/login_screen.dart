@@ -97,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Stack(
         children: [
           // ── The hero, its gradient ────────────────────────────────────────
-          // `linear-gradient(135deg, #0a2540 0%, #0e7490 50%, #06b6d4 100%)`
+          // « Jardin » (04/10/2026) : l'émeraude profonde vers l'émeraude claire.
           const Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -105,9 +105,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF0A2540),
-                    Color(0xFF0E7490),
-                    Color(0xFF06B6D4)
+                    Color(0xFF04241A),
+                    Color(0xFF0F5C43),
+                    Color(0xFF1F8A65)
                   ],
                   stops: [0, 0.5, 1],
                 ),
@@ -343,7 +343,7 @@ class _Card extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [Color(0xFFF7FBFC), Color(0xFFECFEFF)],
+          colors: [Color(0xFFFFFFFF), Color(0xFFFBF8F1)],
         ),
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -490,11 +490,11 @@ class _Card extends StatelessWidget {
             const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFCFFAFE)),
+          borderSide: const BorderSide(color: Color(0xFFE9E3D5)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFCFFAFE)),
+          borderSide: const BorderSide(color: Color(0xFFE9E3D5)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

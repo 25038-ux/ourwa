@@ -174,7 +174,7 @@ class _GradeRow extends StatelessWidget {
     final (bg, fg) = onTwenty >= 14
         ? (const Color(0x2610B981), const Color(0xFF047857))
         : onTwenty >= 10
-            ? (const Color(0x2606B6D4), const Color(0xFF0E7490))
+            ? (const Color(0x261F8A65), const Color(0xFF0F5C43))
             : (const Color(0x26EF4444), const Color(0xFFB91C1C));
 
     final kind = '${row['kind']}' == 'exam' ? t('examen', lang) : t('devoir', lang);

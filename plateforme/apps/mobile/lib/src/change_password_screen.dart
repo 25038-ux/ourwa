@@ -108,7 +108,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             padding: const EdgeInsets.all(14),
             margin: const EdgeInsets.only(bottom: 18),
             decoration: BoxDecoration(
-              color: const Color(0xFFECFEFF),
+              color: const Color(0xFFEEF8F3),
               border: Border.all(color: Ocean.c200),
               borderRadius: BorderRadius.circular(16),
             ),

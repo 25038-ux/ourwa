@@ -188,7 +188,7 @@ class ArrierePlan {
           styleInformation: BigTextStyleInformation(corps),
           sound: const RawResourceAndroidNotificationSound('elourwa_notif'),
           vibrationPattern: Int64List.fromList(const [0, 250, 120, 250]),
-          color: const Color(0xFF0891B2),
+          color: const Color(0xFF157252),
           icon: 'ic_notification',
         ),
       ),
