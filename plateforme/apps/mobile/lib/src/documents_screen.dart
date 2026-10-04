@@ -190,7 +190,9 @@ class _EnTete extends StatelessWidget {
                 Text(t('documents', lang), style: th.headlineSmall?.copyWith(color: Colors.white)),
                 const SizedBox(height: 2),
                 Text(
-                  annee == null ? t('documents_sous_titre', lang) : '${t('documents_sous_titre', lang)} · $annee',
+                  // ⚠ L'année et le compte isolés de gauche à droite (U+2066…U+2069) :
+                  // en arabe, « 2025-2026 » se lisait « 2026-2025 » et « 3 / 4 », « 4 / 3 ».
+                  annee == null ? t('documents_sous_titre', lang) : '${t('documents_sous_titre', lang)} · \u2066$annee\u2069',
                   style: th.bodySmall?.copyWith(color: Colors.white.withValues(alpha: .85)),
                 ),
                 const SizedBox(height: 8),
@@ -254,7 +256,7 @@ class _CarteEnfant extends StatelessWidget {
                     ),
                   ),
                   Pastille(
-                    texte: '$prets / ${pieces.length}',
+                    texte: '\u2066$prets / ${pieces.length}\u2069',
                     couleur: prets == pieces.length && pieces.isNotEmpty ? Ocean.success : Ocean.c600,
                   ),
                 ],
