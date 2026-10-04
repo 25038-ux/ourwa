@@ -179,7 +179,7 @@ class _Hero extends StatelessWidget {
               Text(
                 Marque.selon(lang),
                 style: const TextStyle(
-                  fontFamily: 'Fraunces',
+                  fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'],
                   fontSize: 26,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
@@ -214,7 +214,7 @@ class _Hero extends StatelessWidget {
           Text(
             t('hero_titre_l1', lang),
             style: const TextStyle(
-              fontFamily: 'Fraunces',
+              fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'],
               fontSize: 35,
               height: 1.15,
               fontWeight: FontWeight.w700,
@@ -224,7 +224,7 @@ class _Hero extends StatelessWidget {
           Text(
             t('hero_titre_l2', lang),
             style: const TextStyle(
-              fontFamily: 'Fraunces',
+              fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'],
               fontSize: 35,
               height: 1.15,
               fontWeight: FontWeight.w700,
@@ -357,7 +357,7 @@ class _Card extends StatelessWidget {
               Text(
                 t('bonjour', lang),
                 style: const TextStyle(
-                  fontFamily: 'Fraunces',
+                  fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'],
                   fontSize: 34,
                   fontWeight: FontWeight.w700,
                   color: Ocean.ink900,

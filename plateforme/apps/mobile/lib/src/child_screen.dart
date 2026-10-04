@@ -114,7 +114,7 @@ class _ChildScreenState extends State<ChildScreen> with SingleTickerProviderStat
                               ? '?'
                               : widget.child.firstName.characters.first.toUpperCase(),
                           style: const TextStyle(
-                            fontFamily: 'Fraunces',
+                            fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'],
                             fontSize: 26,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -129,7 +129,7 @@ class _ChildScreenState extends State<ChildScreen> with SingleTickerProviderStat
                             Text(
                               widget.child.fullName,
                               style: const TextStyle(
-                                fontFamily: 'Fraunces',
+                                fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'],
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
                                 color: Ocean.ink900,

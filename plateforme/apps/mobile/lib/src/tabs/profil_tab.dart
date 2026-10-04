@@ -137,7 +137,7 @@ class _ProfilTabState extends State<ProfilTab> {
               Text(
                 t('changer_mdp', lang),
                 style: const TextStyle(
-                  fontFamily: 'Fraunces',
+                  fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'],
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
@@ -196,7 +196,7 @@ class _ProfilTabState extends State<ProfilTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(t('numeros_compte', lang), style: const TextStyle(fontFamily: 'Fraunces', fontSize: 16, fontWeight: FontWeight.w700)),
+                Text(t('numeros_compte', lang), style: const TextStyle(fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'], fontSize: 16, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 6),
                 for (final p in widget.api.phones)
                   Padding(
@@ -435,7 +435,7 @@ class _CarteNotifications extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(t('notifs_titre', lang), style: const TextStyle(fontFamily: 'Fraunces', fontSize: 18, fontWeight: FontWeight.w700)),
+          Text(t('notifs_titre', lang), style: const TextStyle(fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'], fontSize: 18, fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           _ligne(etat.compile, etat.compile ? t('notifs_compilees', lang) : t('notifs_non_compilees', lang)),
           FutureBuilder<bool>(

@@ -129,8 +129,8 @@ ThemeData oceanTheme({required bool arabic}) {
         displayColor: Ocean.ink900,
       )
       .copyWith(
-        headlineMedium: const TextStyle(fontFamily: 'Fraunces', fontSize: 26, fontWeight: FontWeight.w700, height: 1.15, color: Ocean.ink900),
-        headlineSmall: const TextStyle(fontFamily: 'Fraunces', fontSize: 21, fontWeight: FontWeight.w700, height: 1.2, color: Ocean.ink900),
+        headlineMedium: const TextStyle(fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'], fontSize: 26, fontWeight: FontWeight.w700, height: 1.15, color: Ocean.ink900),
+        headlineSmall: const TextStyle(fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'], fontSize: 21, fontWeight: FontWeight.w700, height: 1.2, color: Ocean.ink900),
         titleLarge: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, height: 1.25, color: Ocean.ink900),
         titleMedium: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600, height: 1.3, color: Ocean.ink900),
         titleSmall: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.3, color: Ocean.ink700),
@@ -173,7 +173,7 @@ ThemeData oceanTheme({required bool arabic}) {
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Ocean.rLg)),
-      titleTextStyle: const TextStyle(fontFamily: 'Fraunces', fontSize: 20, fontWeight: FontWeight.w700, color: Ocean.ink900),
+      titleTextStyle: const TextStyle(fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'], fontSize: 20, fontWeight: FontWeight.w700, color: Ocean.ink900),
     ),
     bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: Colors.white,

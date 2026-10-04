@@ -161,7 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 t('sans_annee_titre', lang),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontFamily: 'Fraunces',
+                  fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'],
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: Ocean.ink900,
@@ -222,7 +222,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     RichText(
                       text: TextSpan(
-                        style: const TextStyle(fontFamily: 'Fraunces', fontSize: 25, fontWeight: FontWeight.w700, color: Colors.white, height: 1.15),
+                        style: const TextStyle(fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'], fontSize: 25, fontWeight: FontWeight.w700, color: Colors.white, height: 1.15),
                         children: [
                           TextSpan(text: '${salutation(lang)}, '),
                           TextSpan(text: data.familyName, style: const TextStyle(color: Ocean.c200)),
@@ -423,7 +423,7 @@ class _ChildCard extends StatelessWidget {
                         Text(
                           child.fullName,
                           style: const TextStyle(
-                            fontFamily: 'Fraunces',
+                            fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'],
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             height: 1.25,
@@ -522,7 +522,7 @@ class _Stat extends StatelessWidget {
           Text(
             '—',
             style: TextStyle(
-              fontFamily: 'Fraunces',
+              fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'],
               fontSize: 28,
               fontWeight: FontWeight.w700,
               color: accent ? Ocean.c700 : Ocean.ink900,
@@ -532,7 +532,7 @@ class _Stat extends StatelessWidget {
           RichText(
             text: TextSpan(
               style: TextStyle(
-                fontFamily: 'Fraunces',
+                fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'],
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
                 color: accent ? Ocean.c700 : Ocean.ink900,

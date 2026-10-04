@@ -455,7 +455,7 @@ class _TopBar extends StatelessWidget {
                 Text(
                   titre,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontFamily: 'Fraunces', color: Colors.white, fontSize: 21, fontWeight: FontWeight.w700),
+                  style: const TextStyle(fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'], color: Colors.white, fontSize: 21, fontWeight: FontWeight.w700),
                 ),
               ],
             ),
@@ -560,7 +560,7 @@ class _MenuLateral extends StatelessWidget {
                       children: [
                         Text(
                           Marque.selon(lang),
-                          style: const TextStyle(fontFamily: 'Fraunces', color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700),
+                          style: const TextStyle(fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'], color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700),
                         ),
                         Text(
                           lang == 'ar' ? 'فضاء الأولياء' : 'Espace parents',

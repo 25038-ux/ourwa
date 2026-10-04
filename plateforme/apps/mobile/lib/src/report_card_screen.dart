@@ -287,7 +287,7 @@ class BulletinOfficiel extends StatelessWidget {
                     child: Column(
                       children: [
                         const Icon(Icons.school_outlined, size: 40, color: _vertEcole),
-                        Text(ecole, textAlign: TextAlign.center, style: const TextStyle(fontFamily: 'Fraunces', fontWeight: FontWeight.w800, fontSize: 12, color: _vertEcole)),
+                        Text(ecole, textAlign: TextAlign.center, style: const TextStyle(fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'], fontWeight: FontWeight.w800, fontSize: 12, color: _vertEcole)),
                       ],
                     ),
                   ),

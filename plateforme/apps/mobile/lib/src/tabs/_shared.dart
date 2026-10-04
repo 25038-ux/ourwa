@@ -171,7 +171,7 @@ class FeedHeader extends StatelessWidget {
           Text(
             '$emoji $title',
             style: const TextStyle(
-              fontFamily: 'Fraunces',
+              fontFamily: 'Fraunces', fontFamilyFallback: ['Noto Sans Arabic'],
               fontSize: 26,
               fontWeight: FontWeight.w700,
               color: Ocean.ink900,
