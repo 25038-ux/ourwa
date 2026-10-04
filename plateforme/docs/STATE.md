@@ -56,10 +56,20 @@ morceaux, avec la commande de mise à jour.
   Next les passait un par un (un envoi lent gardait les autres boutons en
   « Envoi… », un dépôt en file se perdait au rechargement — vu en préparant
   les captures) ; `POST /documents/envoi`, en parallèle.
-- **Livraison** : APK d'essai 0.8.0+20, `.aab` non signé, projet iOS, zip
-  du serveur, captures, guide (`LISEZMOI-LIVRAISON.md`) — en cours de
-  construction à la clôture de cette entrée. Les versions GitHub (releases)
-  sont refusées à cette session.
+- **Livraison** (construite depuis 49da58f) : zip du serveur, projet iOS,
+  APK d'essai (`mr.jinan.parent`, versionCode 20, clé d'essai), `.aab` NON
+  signé (à signer sur le PC avec `signer-aab.ps1`), 15 captures (site et
+  application, français et arabe), `LISEZMOI-LIVRAISON.md`, `SHA256SUMS.txt`.
+  Les versions GitHub (releases) étant refusées à cette session, le dossier
+  `livraison/jinan-0.8.0+20/` a été déposé au commit **ee942d6** puis retiré
+  au suivant : les liens `raw.githubusercontent.com/…/ee942d6…/livraison/…`
+  restent valables et donnent les fichiers entiers (sommes vérifiées par un
+  téléchargement), et l'archive de la branche que télécharge la mise à jour du
+  serveur ne les contient pas. La clé d'essai et son `key-jinan.properties`
+  n'ont jamais été commités ; aucun `.aab` signé d'essai n'a été livré.
+- **Ensuite** : Firebase (l'App ID de `mr.jinan.parent` dans le projet
+  `el-mourad`, la clé de service sur le serveur), puis reconstruire l'APK /
+  l'AAB avec les valeurs FIREBASE_*.
 
 ## 0.7.9+19 — JINAN : TRANSPORT, PHOTOCOPIE OBLIGATOIRE, REMISES ; LA MISE À JOUR RÉPÉTÉE — 2026-10-04
 
