@@ -8,6 +8,45 @@ every session, even short or unproductive ones.
 
 
 
+## 0.8.0+20 — JINAN : DOCUMENTS SIGNÉS, EXERCICES, COMPTES, BOUTONS BLOQUÉS, DESIGN « JARDIN » — 2026-10-04 (soir)
+
+**Demande du propriétaire** (avant de finaliser Firebase) : des documents
+signés dans l'application — une case par service choisi, plus inscription et
+photocopie, déposés / vus / remplacés / supprimés par l'école, seulement lus
+par la famille, avec une recherche par nom et numéro dans un bouton du menu ;
+corriger « Comptes du personnel », « Envoyer un exercice » (« you can't send
+any document there »), les boutons qui restent bloqués, tous les défauts ;
+une nouvelle interface de l'application ; tout livrer ensemble, pas en
+morceaux, avec la commande de mise à jour.
+
+- **Fait** (ADR-0080, migration **0048**) — détail dans l'ADR :
+  documents signés (DB, API, page « Documents », écran de l'application) ;
+  exercices (documents de bureau, 10 Mo, corps > 10 Mo tronqué par le
+  middleware de Next — la vraie cause des envois qui échouaient) ; comptes du
+  personnel (un compte qui n'a qu'un rôle ici) ; délais sur chaque appel du
+  site à l'API ; avertissements d'hydratation ; application 0.8.0+20 au
+  design « Jardin » avec menu latéral.
+- **Trouvé en chemin** : un exercice SANS pièce jointe était refusé
+  (« undefined : Fichier vide ») dès que le corps traverse le middleware avec
+  sa borne relevée — le champ vide arrive nommé « undefined » ; filtré.
+- **Vérifié** : API 1049/1049 (avant les documents) puis les suites touchées
+  (documents 16, parent-toutes-les-routes, role-grants, attachments,
+  accounts) ; base 89/89 ; shared 127/127 ; Flutter 62/62 + `analyze`
+  propre ; `tsc` API et site ; navigateur : `exercice` 12/12, `documents`
+  12/12 ; la suite complète tournait à la clôture de cette entrée.
+- **Mise à jour RÉPÉTÉE dans Docker** (copie de production 0047 avec
+  données) : la ligne `installer-serveur.sh` → sauvegarde, code 0.8.0,
+  migration 0048, API saine, aucun mot de passe réaffiché ; puis par HTTP :
+  3 élèves aux abonnements / mois / paiements identiques, reçus identiques ;
+  `documents.gerer` à admin, secretaire, super_admin ; recherche par nom et
+  par numéro ; dépôt d'un PDF de 7 Mo, refus d'un Word, remplacement ; la
+  famille lit le fichier exact, ne dépose ni ne supprime (403), une autre
+  famille : 404 ; intégrité des fichiers complète, aucun orphelin.
+- **Livraison** : APK d'essai 0.8.0+20, `.aab` non signé, projet iOS, zip
+  du serveur, captures, guide (`LISEZMOI-LIVRAISON.md`) — en cours de
+  construction à la clôture de cette entrée. Les versions GitHub (releases)
+  sont refusées à cette session.
+
 ## 0.7.9+19 — JINAN : TRANSPORT, PHOTOCOPIE OBLIGATOIRE, REMISES ; LA MISE À JOUR RÉPÉTÉE — 2026-10-04
 
 **Demande du propriétaire :** le transport (mensuel, coché comme les autres
