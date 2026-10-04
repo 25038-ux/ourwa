@@ -15,6 +15,7 @@ import multipart from '@fastify/multipart';
 import { corsEnv, isAllowedOrigin } from './cors.js';
 import { applyApiSecurityHeaders } from './security-headers.js';
 import { AppModule } from './app.module.js';
+import { MAX_BYTES } from './attachments/storage.js';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -43,7 +44,7 @@ async function bootstrap() {
   // Homework attachments arrive as multipart. The limit is declared here as
   // well as checked in the validator: the plugin stops reading once it is
   // passed, so an oversized upload never reaches memory in the first place.
-  await app.register(multipart, { limits: { fileSize: 5 * 1024 * 1024, files: 1 } });
+  await app.register(multipart, { limits: { fileSize: MAX_BYTES, files: 1 } });
 
   /**
    * ⚠ THE API SENT NO SECURITY HEADERS AT ALL. The web app carries a full set

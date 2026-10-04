@@ -56,8 +56,20 @@ export default {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   // Branding differs per subdomain, so nothing here may be statically shared
   // between tenants. Rendering is dynamic by default for that reason.
-  // ⚠ Les exercices partent avec jusqu'à cinq fichiers de 5 Mo par une action
+  // ⚠ Les exercices partent avec jusqu'à cinq fichiers de 10 Mo par une action
   // serveur ; la limite par défaut d'une action est 1 Mo, et au-delà Next
   // refuse la requête AVANT l'action — le formulaire « n'envoyait rien ».
-  experimental: { optimizePackageImports: [], serverActions: { bodySizeLimit: '30mb' } },
+  //
+  // ⚠ ET LE MIDDLEWARE COUPAIT À 10 Mo (04/10/2026, Jinan : « envoyer
+  // exercice : you can't send any document there »). Depuis Next 15.5, une
+  // requête qui traverse middleware.ts n'en garde que les 10 premiers Mo
+  // (`middlewareClientMaxBodySize`) : trois photos de 4 Mo arrivaient
+  // tronquées, l'action ne pouvait plus lire le formulaire et la page tombait
+  // sur « Cette page n'a pas pu s'afficher ». Les deux bornes sont alignées :
+  // 5 × 10 Mo, plus l'enveloppe multipart.
+  experimental: {
+    optimizePackageImports: [],
+    serverActions: { bodySizeLimit: '60mb' },
+    middlewareClientMaxBodySize: '60mb',
+  },
 };

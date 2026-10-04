@@ -158,7 +158,7 @@ describe('what the validator refuses', () => {
       inTenant(() =>
         attachments.attach(
           homeworkId,
-          { buffer: Buffer.concat([PNG, Buffer.alloc(6 * 1024 * 1024)]), filename: 'big.png' },
+          { buffer: Buffer.concat([PNG, Buffer.alloc(11 * 1024 * 1024)]), filename: 'big.png' },
           ACTOR,
         ),
       ),
@@ -276,5 +276,28 @@ describe('storing and reading back', () => {
     const list = await inTenant(() => attachments.forHomework(homeworkId));
     expect(list).toHaveLength(1);
     expect(list[0]!.display_name).toBe('sujet.pdf');
+  });
+});
+
+describe('les documents de bureau (04/10/2026)', () => {
+  it('accepte une fiche Word : « envoyer exercice : you can’t send any document there »', async () => {
+    const docx = Buffer.concat([
+      Buffer.from([0x50, 0x4b, 0x03, 0x04]),
+      Buffer.alloc(26, 1),
+      Buffer.from('[Content_Types].xml'),
+      Buffer.alloc(64, 2),
+    ]);
+    const saved = await inTenant(() =>
+      attachments.attach(homeworkId, { buffer: docx, filename: 'Fiche de révision.docx' }, ACTOR),
+    );
+    expect(saved.mime).toBe('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    expect(saved.displayName).toBe('Fiche de révision.docx');
+  });
+
+  it('⚠ mais pas un .zip renommé', async () => {
+    const zip = Buffer.concat([Buffer.from([0x50, 0x4b, 0x03, 0x04]), Buffer.from('programme.exe'), Buffer.alloc(64)]);
+    await expect(
+      inTenant(() => attachments.attach(homeworkId, { buffer: zip, filename: 'fiche.docx' }, ACTOR)),
+    ).rejects.toThrow(UploadRejected);
   });
 });

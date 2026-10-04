@@ -596,17 +596,7 @@ export class AccountsService {
   async resetPassword(userId: string, actorId: string, explicit?: string) {
     const { schoolId } = currentTenant();
 
-    const belongs = await this.db.query(async (tx) => {
-      const { rows } = await tx.query(
-        `SELECT 1 FROM users u
-          WHERE u.id = $1
-            AND (EXISTS (SELECT 1 FROM staff WHERE user_id = u.id)
-              OR EXISTS (SELECT 1 FROM teachers WHERE user_id = u.id)
-              OR EXISTS (SELECT 1 FROM students WHERE guardian_id = u.id))`,
-        [userId],
-      );
-      return rows.length > 0;
-    });
+    const belongs = await this.appartientIci(userId);
     if (!belongs) {
       throw new NotFoundException('Compte introuvable dans cette école.');
     }
@@ -709,17 +699,7 @@ export class AccountsService {
       }
     }
 
-    const belongs = await this.db.query(async (tx) => {
-      const { rows } = await tx.query(
-        `SELECT 1 FROM users u
-          WHERE u.id = $1
-            AND (EXISTS (SELECT 1 FROM staff WHERE user_id = u.id)
-              OR EXISTS (SELECT 1 FROM teachers WHERE user_id = u.id)
-              OR EXISTS (SELECT 1 FROM students WHERE guardian_id = u.id))`,
-        [userId],
-      );
-      return rows.length > 0;
-    });
+    const belongs = await this.appartientIci(userId);
     if (!belongs) throw new NotFoundException('Compte introuvable dans cette école.');
     // Un compte aussi agent d'une autre branche ou administrateur de la plateforme
     // n'est pas « d'ici » : changer son identifiant global révoquerait ses sessions là-bas.
@@ -845,7 +825,8 @@ export class AccountsService {
                 COALESCE(s.last_name, t.last_name,
                          NULLIF(substr(u.full_name, length(split_part(u.full_name, ' ', 1)) + 2), '')) AS nom,
                 COALESCE(s.phone, t.phone, u.phone) AS telephone,
-                COALESCE(s.role_title, 'Professeur') AS fonction,
+                COALESCE(s.role_title,
+                         CASE WHEN t.id IS NOT NULL THEN 'Professeur' ELSE 'Personnel administratif' END) AS fonction,
                 (t.id IS NOT NULL) AS est_professeur,
                 u.active AS actif,
                 u.last_login_at AS derniere_connexion,
@@ -1027,6 +1008,33 @@ export class AccountsService {
     });
   }
 
+  /**
+   * LE COMPTE EST-IL D'ICI ? Une fiche dans cette école (personnel,
+   * professeur, correspondant d'un élève) OU un rôle dans cette école.
+   *
+   * ⚠ LE RÔLE SEUL SUFFIT (04/10/2026, signalé par Jinan) : « Comptes du
+   * personnel » liste les comptes à partir de leurs RÔLES, et le compte de
+   * direction posé à l'installation, comme un compte rattaché par la console,
+   * n'a pas de fiche de personnel. « Mot de passe » et « Désactiver » leur
+   * répondaient « Compte introuvable dans cette école. » — pour un compte que
+   * la page venait d'afficher. Un compte d'une AUTRE école reste refusé : ni
+   * fiche ni rôle ici.
+   */
+  private async appartientIci(userId: string): Promise<boolean> {
+    const fiche = await this.db.query(async (tx) => {
+      const { rows } = await tx.query(
+        `SELECT 1 FROM users u
+          WHERE u.id = $1
+            AND (EXISTS (SELECT 1 FROM staff WHERE user_id = u.id)
+              OR EXISTS (SELECT 1 FROM teachers WHERE user_id = u.id)
+              OR EXISTS (SELECT 1 FROM students WHERE guardian_id = u.id))`,
+        [userId],
+      );
+      return rows.length > 0;
+    });
+    return fiche || (await this.porteeCompte(userId)).ici;
+  }
+
   private async exigerCompteDIci(userId: string, action: string) {
     const portee = await this.porteeCompte(userId);
     if (portee.plateforme || portee.ailleurs) {
@@ -1186,17 +1194,7 @@ export class AccountsService {
   async setActive(userId: string, active: boolean, actorId: string) {
     const { schoolId } = currentTenant();
 
-    const belongs = await this.db.query(async (tx) => {
-      const { rows } = await tx.query(
-        `SELECT 1 FROM users u
-          WHERE u.id = $1
-            AND (EXISTS (SELECT 1 FROM staff WHERE user_id = u.id)
-              OR EXISTS (SELECT 1 FROM teachers WHERE user_id = u.id)
-              OR EXISTS (SELECT 1 FROM students WHERE guardian_id = u.id))`,
-        [userId],
-      );
-      return rows.length > 0;
-    });
+    const belongs = await this.appartientIci(userId);
     if (!belongs) throw new NotFoundException('Compte introuvable dans cette école.');
     // `users.active` vaut pour toute la plateforme : on ne suspend d'ici qu'un
     // compte qui n'existe qu'ici.

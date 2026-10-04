@@ -66,13 +66,32 @@ export function TableauxEnCartes() {
       });
     };
 
-    marquer();
-    const observateur = new MutationObserver(() => {
-      if (!prevu) prevu = window.requestAnimationFrame(marquer);
-    });
-    observateur.observe(racine, { childList: true, subtree: true });
+    /*
+     * ⚠ PAS AVANT QUE LA PAGE AIT FINI DE S'HYDRATER (04/10/2026). Cette
+     * coquille s'hydrate avant la page qu'elle contient (diffusée en
+     * morceaux) : marquer tout de suite posait `data-label` sur des cellules
+     * que React n'avait pas encore reprises, et chaque liste levait « A tree
+     * hydrated but some attributes … didn't match » — le bandeau rouge
+     * « 1 Issue » sur une page sur deux. Après `load` et une pause, React a
+     * repris la page ; ensuite l'observateur suit les rendus côté client.
+     */
+    let observateur: MutationObserver | null = null;
+    let minuterie = 0;
+    const demarrer = () => {
+      minuterie = window.setTimeout(() => {
+        marquer();
+        observateur = new MutationObserver(() => {
+          if (!prevu) prevu = window.requestAnimationFrame(marquer);
+        });
+        observateur.observe(racine, { childList: true, subtree: true });
+      }, 300);
+    };
+    if (document.readyState === 'complete') demarrer();
+    else window.addEventListener('load', demarrer, { once: true });
     return () => {
-      observateur.disconnect();
+      window.removeEventListener('load', demarrer);
+      window.clearTimeout(minuterie);
+      observateur?.disconnect();
       if (prevu) window.cancelAnimationFrame(prevu);
     };
   }, []);

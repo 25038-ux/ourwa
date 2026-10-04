@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { mkdir, writeFile, readFile, unlink } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { MAX_OCTETS_FICHIER, verifierFichier, type FamilleFichier } from '@elourwa/shared/fichiers';
 
 /**
  * Validating and storing an uploaded file.
@@ -20,49 +21,14 @@ import { join, resolve } from 'node:path';
  * fooled by a crafted prefix, and an extension is only a string.
  */
 
-export const MAX_BYTES = 5 * 1024 * 1024;
-
-/** Real MIME → the extensions that may accompany it. */
-const ALLOWED: Record<string, string[]> = {
-  'image/jpeg': ['jpg', 'jpeg'],
-  'image/png': ['png'],
-  'image/webp': ['webp'],
-  'image/gif': ['gif'],
-  'application/pdf': ['pdf'],
-};
-
-/** The first bytes a genuine file of that type begins with. */
-const MAGIC: Record<string, Buffer[]> = {
-  'image/jpeg': [Buffer.from([0xff, 0xd8, 0xff])],
-  'image/png': [Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])],
-  'image/gif': [Buffer.from('GIF87a'), Buffer.from('GIF89a')],
-  'image/webp': [Buffer.from('RIFF')], // plus "WEBP" at offset 8, checked below
-  'application/pdf': [Buffer.from('%PDF-')],
-};
+/**
+ * The rule itself lives in `@elourwa/shared/fichiers` — the web reads the same
+ * one to warn BEFORE sending. Since 04/10/2026 it admits office documents
+ * (Word, Excel, PowerPoint, OpenDocument, RTF) and 10 MB a file.
+ */
+export const MAX_BYTES = MAX_OCTETS_FICHIER;
 
 export class UploadRejected extends Error {}
-
-/**
- * The type a file actually is, from its opening bytes.
- *
- * Deliberately NOT the `Content-Type` the browser sent, which is chosen by
- * whoever is uploading and therefore proves nothing.
- */
-function sniff(buffer: Buffer): string | null {
-  for (const [mime, signatures] of Object.entries(MAGIC)) {
-    for (const signature of signatures) {
-      if (buffer.subarray(0, signature.length).equals(signature)) {
-        // WebP is "RIFF", four bytes of length, then "WEBP". Without this a
-        // .wav — also RIFF — would pass as an image.
-        if (mime === 'image/webp' && buffer.subarray(8, 12).toString() !== 'WEBP') {
-          continue;
-        }
-        return mime;
-      }
-    }
-  }
-  return null;
-}
 
 /** Strip anything that is not a plain name. For DISPLAY only, never for a path. */
 export function safeDisplayName(name: string): string {
@@ -98,25 +64,12 @@ export async function storeUpload(
   buffer: Buffer,
   originalName: string,
   schoolId: string,
+  familles: readonly FamilleFichier[] = ['image', 'pdf', 'bureau'],
 ): Promise<StoredFile> {
-  if (buffer.length === 0) throw new UploadRejected('Fichier vide.');
-  if (buffer.length > MAX_BYTES) {
-    throw new UploadRejected(
-      `Fichier trop volumineux (max ${MAX_BYTES / 1024 / 1024} MB).`,
-    );
-  }
-
-  const mime = sniff(buffer);
-  if (!mime) {
-    throw new UploadRejected(
-      'Type de fichier non autorisé. Acceptés : JPG, PNG, WebP, GIF, PDF.',
-    );
-  }
-
+  const verdict = verifierFichier(buffer, originalName, familles);
+  if ('refus' in verdict) throw new UploadRejected(verdict.refus);
+  const mime = verdict.mime;
   const extension = (originalName.split('.').pop() ?? '').toLowerCase();
-  if (!ALLOWED[mime]!.includes(extension)) {
-    throw new UploadRejected("L'extension du fichier ne correspond pas à son type réel.");
-  }
 
   // Per school, so one branch's files are not even in the same directory as
   // another's — the tenant boundary held in the filesystem as well as in RLS.

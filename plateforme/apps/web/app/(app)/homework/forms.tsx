@@ -50,12 +50,9 @@ export function HomeworkForm({
       <div className="form-group"><label>Description / consignes *</label><textarea name="description" rows={6} required /></div>
       <div className="form-group"><label>Date limite (optionnel)</label><input type="date" name="date_limite" /></div>
 
-      <Dropzone
-        name="fichiers"
-        label="Pièces jointes (optionnel — jusqu'à 5 fichiers, 5 MB max chacun)"
-        accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
-        max={5}
-      />
+      {/* Images, PDF et, depuis le 04/10/2026, documents Word / Excel /
+          PowerPoint / OpenDocument : le sélecteur grisait une fiche Word. */}
+      <Dropzone name="fichiers" label="Pièces jointes (optionnel)" max={5} />
 
       <button type="submit" className="btn btn-primary" disabled={pending}>Envoyer l&apos;exercice</button>
     </form>

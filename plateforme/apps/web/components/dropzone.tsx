@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, useRef, useState } from 'react';
+import { acceptPour, libellesPour, MAX_OCTETS_FICHIER, type FamilleFichier } from '@elourwa/shared/fichiers';
 
 /** Its `fmtSize` — French units, one decimal. */
 export function fmtSize(bytes: number): string {
@@ -18,27 +19,32 @@ export function fmtSize(bytes: number): string {
  * families is the wrong moment. Anything over the limit is named in red, with
  * its own words: "— trop volumineux !"
  *
- * ⚠ FIVE FILES, FIVE MEGABYTES EACH. Both are its limits and both are also the
- * server's, so the preview agrees with what will actually happen.
+ * ⚠ FIVE FILES, TEN MEGABYTES EACH (five until 04/10/2026 — a phone photo is
+ * often more). Both are also the server's, so the preview agrees with what will
+ * actually happen. The accepted types are the server's too
+ * (`@elourwa/shared/fichiers`): images, PDF and, since 04/10/2026, office
+ * documents — a teacher's worksheet is usually a Word file, and the picker used
+ * to grey it out.
  *
  * The whole zone is clickable, and it accepts a drop — its terracotta highlight
  * on drag-over, `#c67139` on `#fff2eb`.
  */
 export function Dropzone({
   name = 'files',
-  accept,
+  familles = ['image', 'pdf', 'bureau'],
   max = 5,
-  maxBytes = 5 * 1024 * 1024,
+  maxBytes = MAX_OCTETS_FICHIER,
   hint,
   label,
 }: {
   name?: string;
-  accept?: string;
+  familles?: FamilleFichier[];
   max?: number;
   maxBytes?: number;
   hint?: string;
   label?: string;
 }) {
+  const accept = acceptPour(familles);
   const id = useId();
   const input = useRef<HTMLInputElement | null>(null);
   const [files, setFiles] = useState<File[]>([]);
@@ -92,7 +98,7 @@ export function Dropzone({
         </svg>
         <p style={{ margin: 0, fontWeight: 600, color: '#334155' }}>Glissez-déposez vos fichiers ici</p>
         <p style={{ margin: '.3rem 0 0', fontSize: '.85rem', color: '#64748b' }}>
-          ou <span style={{ color: '#c67139', textDecoration: 'underline' }}>parcourez</span> · {hint ?? 'JPG, PNG, WebP, GIF, PDF'}
+          ou <span style={{ color: '#c67139', textDecoration: 'underline' }}>parcourez</span> · {hint ?? `${libellesPour(familles)} · ${max > 1 ? `jusqu'à ${max} fichiers, ` : ''}${maxBytes / 1024 / 1024} Mo max chacun`}
         </p>
       </div>
 

@@ -109,6 +109,7 @@ async function renewSession(request: NextRequest, headers: Headers): Promise<Ren
       },
       body: JSON.stringify({ refreshToken: refresh }),
       cache: 'no-store',
+      signal: AbortSignal.timeout(20_000),
     });
   } catch {
     // The API is unreachable. Leave the cookies alone: the page will fail on

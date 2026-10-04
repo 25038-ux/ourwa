@@ -35,6 +35,7 @@ export async function POST(request: Request) {
         ...(slug ? { 'X-School-Slug': slug } : {}),
       },
       body: JSON.stringify({ refreshToken }),
+      signal: AbortSignal.timeout(15_000),
     }).catch(() => undefined);
   }
   await clearSession(slug);

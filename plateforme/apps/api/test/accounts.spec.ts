@@ -646,3 +646,58 @@ describe('l’identifiant et le mot de passe, de bout en bout', () => {
     ).rejects.toThrow(/e-mail ou le téléphone d’un autre compte/);
   });
 });
+
+/**
+ * « Comptes du personnel » : un compte qui n'a QU'UN RÔLE ici, sans fiche de
+ * personnel (le compte de direction posé à l'installation, les comptes de
+ * démonstration, un compte rattaché par la console). La page le liste — elle
+ * part des rôles — et « Mot de passe » / « Désactiver » répondaient « Compte
+ * introuvable dans cette école. » : la vérification ne cherchait qu'une fiche
+ * (personnel, professeur, correspondant). Signalé par Jinan le 04/10/2026.
+ */
+describe('un compte qui n’a qu’un rôle ici, sans fiche de personnel', () => {
+  let id: string;
+
+  beforeAll(async () => {
+    const { rows } = await owner.query<{ id: string }>(
+      `INSERT INTO users (username, password_hash, full_name) VALUES ('role.seul', 'x', 'Agent Sans Fiche') RETURNING id`,
+    );
+    id = rows[0]!.id;
+    await owner.query(
+      `INSERT INTO user_school_roles (user_id, school_id, role_id)
+       SELECT $1, $2, id FROM roles WHERE code = 'secretaire'`,
+      [id, schoolId],
+    );
+  });
+
+  it('la liste le montre, avec une fonction de personnel — pas « Professeur »', async () => {
+    const liste = await inTenant(() => accounts.listComptesPersonnel());
+    const c = liste.find((x) => x.id === id);
+    expect(c).toBeDefined();
+    expect(c!.fonction).toBe('Personnel administratif');
+    expect(c!.est_professeur).toBe(false);
+  });
+
+  it('« Mot de passe » le réinitialise', async () => {
+    const r = await inTenant(() => accounts.resetPassword(id, ACTOR));
+    expect(r.temporaryPassword).toMatch(/^\S{10}$/);
+  });
+
+  it('« Désactiver » puis « Activer »', async () => {
+    await inTenant(() => accounts.setActive(id, false, ACTOR));
+    const { rows: a } = await owner.query<{ active: boolean }>('SELECT active FROM users WHERE id = $1', [id]);
+    expect(a[0]!.active).toBe(false);
+    await inTenant(() => accounts.setActive(id, true, ACTOR));
+    const { rows: b } = await owner.query<{ active: boolean }>('SELECT active FROM users WHERE id = $1', [id]);
+    expect(b[0]!.active).toBe(true);
+  });
+
+  it('⚠ toujours pas un compte d’une autre école', async () => {
+    await expect(
+      runInTenant({ schoolId: otherSchoolId, slug: 'acc-other' }, () => accounts.resetPassword(id, ACTOR)),
+    ).rejects.toThrow(/Compte introuvable dans cette école/i);
+    await expect(
+      runInTenant({ schoolId: otherSchoolId, slug: 'acc-other' }, () => accounts.setActive(id, false, ACTOR)),
+    ).rejects.toThrow(/Compte introuvable dans cette école/i);
+  });
+});

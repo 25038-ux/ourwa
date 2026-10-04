@@ -72,6 +72,8 @@ export async function POST(request: Request): Promise<Response> {
       },
       body: JSON.stringify({ identifier, password }),
       cache: 'no-store',
+      // Un bouton « Se connecter » qui tourne sans fin : jamais plus de 30 s.
+      signal: AbortSignal.timeout(30_000),
     });
     const body = (await response.json()) as {
       accessToken?: string;
@@ -86,15 +88,6 @@ export async function POST(request: Request): Promise<Response> {
       // message through keeps a real refusal (locked out, too many attempts)
       // legible without inventing detail it withheld.
       return back(body.message ?? 'Identifiant ou mot de passe incorrect.');
-    }
-
-    // ⚠ SANS CONSOLE, IL N'Y A PAS DE PLACE POUR UN COMPTE SANS RÔLE ICI. En
-    // école unique l'API laisse entrer un administrateur de plateforme dans
-    // l'école même sans rôle (c'est sa règle) ; le site, lui, n'a aucune page
-    // à lui montrer — chaque page répondrait 403. Refusé à la porte, avec la
-    // raison, plutôt qu'un tableau de bord vide.
-    if (!DEPLOIEMENT.console && (!body.school || rolesFromToken(body.accessToken).length === 0)) {
-      return back('Ce compte n’a aucun rôle dans cette école.');
     }
 
     // ⚠ SANS CONSOLE, IL N'Y A PAS DE PLACE POUR UN COMPTE SANS RÔLE ICI. En

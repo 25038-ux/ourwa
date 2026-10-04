@@ -14,6 +14,7 @@ import { clientIdentityHeaders } from '@/lib/client-identity';
 import { currentSlug, estEcoleServices } from '@/lib/tenant';
 import { MOIS_NOMS } from '@/lib/mois';
 import { validatePassword } from '@elourwa/shared/password';
+import { verifierFichier as verifierRegleFichier, type FamilleFichier } from '@elourwa/shared/fichiers';
 import { money, toStorage } from '@elourwa/shared/money';
 import { estServiceOptionnel, libelleMode, libelleService } from '@elourwa/shared/facturation';
 import { hoteAvecSlug, LIBELLE_FRAIS_PHOTOCOPIE } from '@/lib/brand';
@@ -1749,6 +1750,7 @@ async function renouvelerSession(slug: string | null): Promise<void> {
       },
       body: JSON.stringify({ refreshToken: refresh }),
       cache: 'no-store',
+      signal: AbortSignal.timeout(30_000),
     });
     if (!response.ok) return;
     const body = (await response.json()) as { accessToken?: string; refreshToken?: string };
@@ -3209,37 +3211,35 @@ export async function addFamilyDebtAction(_prev: unknown, form: FormData) {
 
 // ── Homework and remarks ────────────────────────────────────────────────────
 
-/** Les cinq fichiers d'El Ourwa, et ses cinq mégaoctets. */
+/** Les cinq fichiers d'El Ourwa ; dix mégaoctets chacun depuis le 04/10/2026. */
 const MAX_FICHIERS = 5;
-const MAX_OCTETS = 5 * 1024 * 1024;
-
-/** Son `UPLOAD_TYPES_AUTORISES` et ses `UPLOAD_MAGIC_BYTES`. */
-const TYPES_AUTORISES: Record<string, { extensions: string[]; signatures: string[] }> = {
-  'image/jpeg': { extensions: ['jpg', 'jpeg'], signatures: ['\xFF\xD8\xFF'] },
-  'image/png': { extensions: ['png'], signatures: ['\x89PNG\r\n\x1A\n'] },
-  'image/gif': { extensions: ['gif'], signatures: ['GIF87a', 'GIF89a'] },
-  'image/webp': { extensions: ['webp'], signatures: ['RIFF'] },
-  'application/pdf': { extensions: ['pdf'], signatures: ['%PDF-'] },
-};
 
 /**
  * Son `valider_et_deplacer_upload()`, la partie qui juge : taille, type réel
- * (les premiers octets), extension, WebP. Renvoie sa phrase, ou null.
+ * (les octets), extension — LA règle de l'API (`@elourwa/shared/fichiers`),
+ * appliquée avant d'envoyer pour que le refus se lise ici, nommé. Depuis le
+ * 04/10/2026 : Word, Excel, PowerPoint, OpenDocument et RTF en plus.
  */
-async function verifierFichier(fichier: File): Promise<string | null> {
-  if (fichier.size > MAX_OCTETS) return 'Fichier trop volumineux (max 5 MB).';
-  if (fichier.size === 0) return 'Fichier vide.';
-  const debut = Buffer.from(await fichier.slice(0, 16).arrayBuffer()).toString('latin1');
-  const mime = Object.keys(TYPES_AUTORISES).find((m) =>
-    TYPES_AUTORISES[m]!.signatures.some((s) => debut.startsWith(s)),
-  );
-  if (!mime) return 'Type de fichier non autorisé. Acceptés : JPG, PNG, WebP, GIF, PDF.';
-  const extension = (fichier.name.split('.').pop() ?? '').toLowerCase();
-  if (!TYPES_AUTORISES[mime]!.extensions.includes(extension)) {
-    return "L'extension du fichier ne correspond pas à son type réel.";
-  }
-  if (mime === 'image/webp' && debut.slice(8, 12) !== 'WEBP') return 'Fichier WebP invalide.';
-  return null;
+async function verifierFichier(fichier: File, familles?: readonly FamilleFichier[]): Promise<string | null> {
+  const verdict = verifierRegleFichier(new Uint8Array(await fichier.arrayBuffer()), fichier.name, familles);
+  return 'refus' in verdict ? verdict.refus : null;
+}
+
+/**
+ * Les fichiers réellement choisis dans un champ `<input type="file">`.
+ *
+ * Son `if (empty($_FILES['fichiers']['name'][$i])) continue;` : un champ
+ * laissé vide arrive quand même, comme un fichier de 0 octet — nommé « » ou
+ * « blob », et, depuis que le corps traverse le middleware avec sa borne
+ * relevée (04/10/2026), nommé « undefined ». Sans ce filtre, un exercice
+ * SANS pièce jointe répondait « Échec des téléversements : undefined :
+ * Fichier vide. » et ne partait pas.
+ */
+function fichiersJoints(form: FormData, champ: string): File[] {
+  return form
+    .getAll(champ)
+    .filter((f): f is File => f instanceof File)
+    .filter((f) => !(f.size === 0 && ['', 'blob', 'undefined'].includes(f.name ?? '')));
 }
 
 /**
@@ -3255,12 +3255,7 @@ async function verifierFichier(fichier: File): Promise<string | null> {
  * rattaché à une ligne qui existe (son commentaire sur l'orphelin).
  */
 export async function sendHomeworkAction(_prev: unknown, form: FormData) {
-  // Son `if (empty($_FILES['fichiers']['name'][$i])) continue;` : un champ
-  // de fichier laissé vide arrive comme un fichier sans nom (ou « blob »).
-  const fichiers = form
-    .getAll('fichiers')
-    .filter((f): f is File => f instanceof File && !(f.size === 0 && (f.name === '' || f.name === 'blob')))
-    .slice(0, MAX_FICHIERS);
+  const fichiers = fichiersJoints(form, 'fichiers').slice(0, MAX_FICHIERS);
   const limite = String(form.get('date_limite') ?? '').trim();
   // Ses refus, dans son ordre, servis en tête de page (plus de `required` côté
   // navigateur : un champ vide n'avalait plus l'envoi en silence).

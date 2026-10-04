@@ -78,6 +78,7 @@ export const currentSchool = cache(async function currentSchool(): Promise<Schoo
     const response = await fetch(`${API}/school`, {
       headers: { 'X-School-Slug': slug },
       cache: 'no-store',
+      signal: AbortSignal.timeout(30_000),
     });
     if (!response.ok) return null;
     const school = (await response.json()) as Omit<School, 'billingModel'> & { billingModel?: unknown };

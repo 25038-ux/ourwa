@@ -12,3 +12,4 @@ export * from './tenant-slug.js';
 export * from './facturation.js';
 export * from './emploi-du-temps.js';
 export * from './cycles.js';
+export * from './fichiers.js';

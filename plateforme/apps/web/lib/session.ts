@@ -63,6 +63,7 @@ export const readSession = cache(async function readSession(): Promise<
         ...(slug ? { 'X-School-Slug': slug } : {}),
       },
       cache: 'no-store',
+      signal: AbortSignal.timeout(30_000),
     });
     // ⚠ 401 = session finie ; 5xx ou réseau = l'API ne répond pas. Confondre
     // les deux disait « votre session a expiré » à tout le bureau à chaque
@@ -188,6 +189,11 @@ export class ApiError extends Error {
   }
 }
 
+/** Le plus long qu'une action attend l'API (un bulletin de classe, une réinscription en lot tiennent dedans). */
+const DELAI_API_MS = 90_000;
+/** Un envoi de fichiers part d'un téléphone sur une ligne lente : plus long. */
+const DELAI_TELEVERSEMENT_MS = 180_000;
+
 export async function apiFetch<T>(
   path: string,
   init: RequestInit & { json?: unknown } = {},
@@ -208,13 +214,31 @@ export async function apiFetch<T>(
   // Une panne réseau (API en redémarrage, socket coupée) est journalisée ICI,
   // une fois pour les 120 actions : sans cela une erreur non-ApiError finissait
   // en « Échec » générique et personne ne savait pourquoi.
+  //
+  // ⚠ ET JAMAIS SANS FIN (04/10/2026, Jinan : « sometimes some buttons get
+  // stuck »). Sans délai, une requête que l'API ne terminait pas (un verrou
+  // attendu, une socket à moitié fermée par un redémarrage) laissait l'action
+  // serveur suspendue — et avec elle le bouton grisé « en cours », et toutes
+  // les actions suivantes de la page, que Next exécute l'une après l'autre.
+  // Passé le délai, l'action répond une erreur et le bouton revient.
+  const delai = init.body instanceof FormData ? DELAI_TELEVERSEMENT_MS : DELAI_API_MS;
   const response = await fetch(`${API}${path}`, {
     ...init,
     headers,
     body: init.json !== undefined ? JSON.stringify(init.json) : init.body,
     cache: 'no-store',
+    signal: init.signal ?? AbortSignal.timeout(delai),
   }).catch((error: unknown) => {
     console.error(`[api] ${init.method ?? 'GET'} ${path} injoignable :`, error instanceof Error ? error.message : error);
+    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+      // ⚠ Une écriture a peut-être abouti côté serveur : on ne dit pas « échec ».
+      throw new ApiError(
+        (init.method ?? 'GET') === 'GET'
+          ? 'Le serveur a mis trop de temps à répondre. Réessayez dans un instant.'
+          : "Le serveur a mis trop de temps à répondre. L'opération a peut-être abouti : rechargez la page et vérifiez avant de recommencer.",
+        504,
+      );
+    }
     throw new ApiError('Le serveur ne répond pas. Réessayez dans un instant.', 503);
   });
 

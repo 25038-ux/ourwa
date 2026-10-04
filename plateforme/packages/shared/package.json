@@ -16,7 +16,8 @@
     "./tenant-slug": "./src/tenant-slug.ts",
     "./facturation": "./src/facturation.ts",
     "./emploi-du-temps": "./src/emploi-du-temps.ts",
-    "./cycles": "./src/cycles.ts"
+    "./cycles": "./src/cycles.ts",
+    "./fichiers": "./src/fichiers.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
