@@ -390,10 +390,11 @@ même écran chez lui, et l'écran dit laquelle est laquelle.
 - **production.env (Jinan)** — `deploy/jinan/production.env` : l'IP du VPS et
   le domaine de production, écrits par `configurer-production.sh`, lus par les
   scripts de mise à jour et `install.sh`. ADR-0075.
-- **Document signé / pièce** — `student_documents` (0048) : une **pièce** est
-  l'emplacement d'un document signé, par élève et par année — `inscription`,
-  `photocopie` toujours, puis chaque service souscrit (`cantine_*`, `piscine`,
-  `docteur`, `transport`). Une pièce porte un document au plus (PDF ou image) ;
+- **Document signé / pièce** — `student_documents` (0048, 0049) : une
+  **pièce** est l'emplacement d'un document signé, par élève et par année —
+  `inscription` et `comportement_social` (« Comportements sociaux »)
+  toujours, puis chaque service souscrit (`cantine_*`, `piscine`, `docteur`,
+  `transport`) ; jamais la photocopie. Une pièce porte un document au plus (PDF ou image) ;
   « En attente » tant que l'école ne l'a pas déposé. `documents.gerer`
   (direction, secrétariat) écrit ; la famille lit. ADR-0080.
 - **Règle de fichier** — `@elourwa/shared/fichiers` : le type réel lu dans les

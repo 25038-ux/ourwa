@@ -33,7 +33,7 @@ const Map<String, Map<String, String>> kStrings = {
   'document_depose_le': {'fr': 'Déposé le {date}', 'ar': 'أودعت بتاريخ {date}'},
   'document_attente_texte': {'fr': 'L’école déposera ce document signé ici.', 'ar': 'ستودع المدرسة هذه الوثيقة الموقعة هنا.'},
   'documents_vide': {'fr': 'Aucun document pour l’instant', 'ar': 'لا توجد وثائق حاليا'},
-  'documents_vide_texte': {'fr': 'Les documents signés (inscription, photocopie, services) apparaîtront ici.', 'ar': 'ستظهر هنا الوثائق الموقعة (التسجيل، النسخ، الخدمات).'},
+  'documents_vide_texte': {'fr': 'Les documents signés (inscription, comportements sociaux, services) apparaîtront ici.', 'ar': 'ستظهر هنا الوثائق الموقعة (التسجيل، السلوك الاجتماعي، الخدمات).'},
   'documents_lecture_seule': {'fr': 'Ces documents sont déposés par l’école. Vous pouvez les consulter et les télécharger.', 'ar': 'تودع المدرسة هذه الوثائق. يمكنكم الاطلاع عليها وتنزيلها.'},
   'document_ouvrir': {'fr': 'Ouvrir', 'ar': 'فتح'},
   'document_telecharger': {'fr': 'Télécharger', 'ar': 'تنزيل'},

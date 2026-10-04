@@ -41,7 +41,7 @@ const SUPER_ADMIN: MenuItem[] = [
   // et d'admin — et écoles « services » seulement.
   { titre: 'Frais', href: '/frais', icon: ICONS.ICN_EXPENSE!, services: true },
   // Sans équivalent chez El Ourwa (ADR-0080) : les documents signés —
-  // inscription, photocopie, chaque service — que la famille lit dans l'application.
+  // inscription, comportements sociaux, chaque service — que la famille lit dans l'application.
   { titre: 'Documents', href: '/documents', icon: ICONS.ICN_NOTES!, perm: 'documents.gerer', services: true },
   { titre: 'Années scolaires', href: '/annees', icon: ICONS.ICN_KEY! },
   { titre: 'Envoyer un exercice', href: '/homework', icon: ICONS.ICN_MSG! },

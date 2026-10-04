@@ -6,7 +6,8 @@ import { withTenant, type Queryable } from '../src/client.js';
  * LES DOCUMENTS SIGNÉS — CE QUE LA BASE GARANTIT D'ELLE-MÊME (0048, ADR-0080).
  *
  *   - une pièce, un document, par élève et par année ;
- *   - seulement les pièces connues (inscription, photocopie, les services) ;
+ *   - seulement les pièces connues (inscription, comportements sociaux, les
+ *     services) — plus la photocopie depuis 0049 ;
  *   - seulement PDF et images, sous un nom tiré au hasard ;
  *   - une école ne voit, ni n'écrit, les documents d'une autre ;
  *
@@ -76,8 +77,13 @@ describe('student_documents (0048)', () => {
     await A((tx) => deposer(tx, 'transport'));
   });
 
+  it('« comportements sociaux » est une pièce (0049)', async () => {
+    await A((tx) => deposer(tx, 'comportement_social'));
+  });
+
   it('⚠ refuse une pièce inconnue, un format modifiable et un nom de fichier fabriqué', async () => {
     await expect(A((tx) => deposer(tx, 'bus'))).rejects.toThrow(/check constraint/i);
+    await expect(A((tx) => deposer(tx, 'photocopie'))).rejects.toThrow(/check constraint/i);
     await expect(
       A((tx) => deposer(tx, 'piscine', { mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' })),
     ).rejects.toThrow(/check constraint/i);
@@ -87,11 +93,11 @@ describe('student_documents (0048)', () => {
   it('⚠ une autre école ne voit rien et n’écrit rien ici', async () => {
     const vus = await B(async (tx) => (await tx.query('SELECT 1 FROM student_documents')).rows.length);
     expect(vus).toBe(0);
-    await expect(B((tx) => deposer(tx, 'photocopie', { school: ecoleA }))).rejects.toThrow(/row-level security/i);
+    await expect(B((tx) => deposer(tx, 'comportement_social', { school: ecoleA }))).rejects.toThrow(/row-level security/i);
   });
 
   it('⚠ et la clé composite interdit de rattacher l’élève d’une autre école', async () => {
-    await expect(B((tx) => deposer(tx, 'photocopie', { school: ecoleB }))).rejects.toThrow(/foreign key/i);
+    await expect(B((tx) => deposer(tx, 'comportement_social', { school: ecoleB }))).rejects.toThrow(/foreign key/i);
   });
 
   it('RLS activée ET forcée', async () => {

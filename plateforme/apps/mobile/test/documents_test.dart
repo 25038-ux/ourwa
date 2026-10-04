@@ -37,7 +37,7 @@ void main() {
             'souscrit': true,
             'document': {'id': 'd1', 'nom': 'inscription signée.pdf', 'mime': 'application/pdf', 'octets': 120000, 'deposeLe': '2026-10-04T10:00:00Z', 'deposePar': null},
           },
-          {'piece': 'photocopie', 'libelle': 'Photocopie', 'souscrit': true, 'document': null},
+          {'piece': 'comportement_social', 'libelle': 'Comportements sociaux', 'souscrit': false, 'document': null},
           {'piece': 'piscine', 'libelle': 'Piscine', 'souscrit': true, 'document': null},
         ],
       },

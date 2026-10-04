@@ -3859,10 +3859,16 @@ by the admin and they can only be seen by the parent … fix the bugs in
 comptes personnels and fix envoyer exercice … Sometimes some buttons get
 stuck. Change the ui of the app and make it better (not the same ui). »
 
-**Décision — documents signés (migration 0048).**
+**Décision — documents signés (migrations 0048, 0049).**
 - Une **pièce** = l'emplacement d'un document, par élève et par année :
-  `inscription` et `photocopie` toujours, puis chaque service souscrit cette
-  année-là (même arrêté depuis). `student_documents` porte UNE ligne par
+  `inscription` (libellé « Inscription », pas « Frais d'inscription ») et
+  `comportement_social` (« Comportements sociaux ») toujours, puis chaque
+  service souscrit cette année-là (même arrêté depuis). **Pas de pièce
+  « photocopie »** : demandé le même jour (« add comportement sociaux to
+  documents and change frais d'inscription to inscription and delete
+  photocopie ») ; 0049 change la liste de la base. La photocopie reste un
+  service facturé (0047) ; seul son document disparaît. 0048 et 0049 partent
+  ensemble : aucun document « photocopie » n'a existé en production. `student_documents` porte UNE ligne par
   pièce (UNIQUE école, élève, année, pièce) : « Remplacer » met la ligne à
   jour et efface l'ancien fichier APRÈS l'enregistrement ; « Supprimer » vide
   la pièce. Pas une écriture financière : le journal d'audit garde chaque

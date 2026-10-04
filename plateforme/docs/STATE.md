@@ -26,6 +26,11 @@ morceaux, avec la commande de mise à jour.
   personnel (un compte qui n'a qu'un rôle ici) ; délais sur chaque appel du
   site à l'API ; avertissements d'hydratation ; application 0.8.0+20 au
   design « Jardin » avec menu latéral.
+- **Puis, même soir** (« add comportement sociaux to documents and change
+  frais d'inscription to inscription and delete photocopie ») : migration
+  **0049** — pièces « Inscription » et « Comportements sociaux » pour chaque
+  enfant, puis ses services ; la photocopie n'a plus de pièce (elle reste
+  facturée).
 - **Trouvé en chemin** : un exercice SANS pièce jointe était refusé
   (« undefined : Fichier vide ») dès que le corps traverse le middleware avec
   sa borne relevée — le champ vide arrive nommé « undefined » ; filtré.

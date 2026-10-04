@@ -8,7 +8,7 @@ import { PieceDocument, type PieceVue } from './piece';
 export const dynamic = 'force-dynamic';
 
 const TITRE = 'Documents';
-const SOUS_TITRE = 'Les documents signés de chaque famille — inscription, photocopie et services';
+const SOUS_TITRE = 'Les documents signés de chaque famille — inscription, comportements sociaux et services';
 
 interface FamilleTrouvee {
   id: string;
@@ -42,7 +42,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  *    « en cours ». Le nom du parent, celui d'un enfant, ou un numéro.
  * 2. La famille choisie : chaque enfant inscrit cette année (celle du
  *    sélecteur de l'en-tête), et pour chacun une PIÈCE par document attendu —
- *    l'inscription et la photocopie toujours, chaque service souscrit ensuite.
+ *    l'inscription et les comportements sociaux toujours, chaque service
+ *    souscrit ensuite (la photocopie n'a pas de document : 0049).
  *    Une pièce vide attend son document (« Déposer ») ; une pièce remplie se
  *    voit, se remplace et se supprime. La famille, elle, ne fait que lire,
  *    dans l'application.
@@ -169,7 +170,7 @@ export default async function DocumentsPage({
           <div className="doc-aide">
             <p>
               Cherchez une famille, ouvrez-la : chaque enfant y a une case par document signé — l’inscription et la
-              photocopie toujours, puis chaque service souscrit (cantine, piscine, docteur, transport).
+              comportements sociaux toujours, puis chaque service souscrit (cantine, piscine, docteur, transport).
             </p>
             <p className="text-muted">
               PDF ou photo, 10 Mo au plus. La famille voit ces documents dans l’application, sans pouvoir les modifier.

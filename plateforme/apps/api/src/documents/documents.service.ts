@@ -9,45 +9,51 @@ import { currentTenant } from '../tenant/tenant.context.js';
 import { deleteStored, readStored, storeUpload, UploadRejected } from '../attachments/storage.js';
 
 /**
- * LES DOCUMENTS SIGNÉS — ADR-0080, migration 0048. Demande du propriétaire de
- * Jinan (04/10/2026) :
+ * LES DOCUMENTS SIGNÉS — ADR-0080, migrations 0048 et 0049. Demande du
+ * propriétaire de Jinan (04/10/2026) :
  *
  *   « Each service has a signed document and inscription has a signed
  *     document … a placeholder for every service the parent chose for either
- *     one of his children + inscription + photocopie. The documents are
- *     available to see and delete or replace anytime by the admin and they
- *     can only be seen by the parent. »
+ *     one of his children … The documents are available to see and delete or
+ *     replace anytime by the admin and they can only be seen by the parent. »
+ *   puis : « add comportement sociaux to documents and change frais
+ *     d'inscription to inscription and delete photocopie ».
  *
  * Une PIÈCE est l'emplacement d'un document, par élève et par année :
- * l'inscription et la photocopie toujours, puis chaque service souscrit cette
- * année-là (même arrêté depuis : le contrat signé reste le sien). Une pièce
- * porte un document au plus ; « Remplacer » efface l'ancien fichier une fois
- * le nouveau enregistré.
+ * « Inscription » et « Comportements sociaux » toujours, puis chaque service
+ * souscrit cette année-là (même arrêté depuis : le contrat signé reste le
+ * sien). La photocopie n'est PAS une pièce (0049) : elle reste un service
+ * facturé, sans document signé. Une pièce porte un document au plus ;
+ * « Remplacer » efface l'ancien fichier une fois le nouveau enregistré.
  *
  * ⚠ UN DOCUMENT SIGNÉ EST UN SCAN OU UNE PHOTO : PDF et images seulement — pas
  * un fichier Word qu'on pourrait retoucher (la base le refuse aussi).
  */
 
-/** L'ordre des pièces à l'écran : l'inscription, la photocopie, puis les services du catalogue. */
-export const ORDRE_PIECES: readonly ServiceCode[] = [
-  'inscription',
-  'photocopie',
-  ...SERVICE_CODES.filter((c) => c !== 'inscription' && c !== 'photocopie'),
-];
-const TOUJOURS: readonly ServiceCode[] = ['inscription', 'photocopie'];
+/** Les services qui ont une pièce : tous, sauf la photocopie et l'inscription (pièce à part). */
+type ServicePiece = Exclude<ServiceCode, 'photocopie' | 'inscription'>;
+export type PieceCode = 'inscription' | 'comportement_social' | ServicePiece;
+
+const SERVICES_PIECES = SERVICE_CODES.filter(
+  (c): c is ServicePiece => c !== 'inscription' && c !== 'photocopie',
+);
+
+/** L'ordre des pièces à l'écran : l'inscription, les comportements sociaux, puis les services du catalogue. */
+export const ORDRE_PIECES: readonly PieceCode[] = ['inscription', 'comportement_social', ...SERVICES_PIECES];
+const TOUJOURS: readonly PieceCode[] = ['inscription', 'comportement_social'];
 
 /**
- * Le nom d'une pièce : celui du service, sauf pour les deux frais annuels —
- * le document signé est « l'inscription », pas « les frais d'inscription ».
+ * Le nom d'une pièce. « Inscription », pas « Frais d'inscription » : le
+ * document signé est l'inscription elle-même (demande du 04/10/2026).
  */
-export function libellePiece(p: ServiceCode): string {
+export function libellePiece(p: PieceCode): string {
   if (p === 'inscription') return 'Inscription';
-  if (p === 'photocopie') return 'Photocopie';
+  if (p === 'comportement_social') return 'Comportements sociaux';
   return libelleService(p);
 }
 
-export function estPiece(p: string): p is ServiceCode {
-  return (SERVICE_CODES as readonly string[]).includes(p);
+export function estPiece(p: string): p is PieceCode {
+  return (ORDRE_PIECES as readonly string[]).includes(p);
 }
 
 export interface DocumentPiece {
@@ -60,7 +66,7 @@ export interface DocumentPiece {
 }
 
 export interface Piece {
-  piece: ServiceCode;
+  piece: PieceCode;
   libelle: string;
   /** La pièce existe parce que le service a été souscrit (sinon : inscription / photocopie, d'office). */
   souscrit: boolean;
@@ -79,7 +85,7 @@ export interface EnfantDocuments {
 interface LigneDocument {
   id: string;
   student_id: string;
-  piece: ServiceCode;
+  piece: PieceCode;
   display_name: string;
   mime: string;
   bytes: number;
@@ -179,7 +185,7 @@ export class DocumentsService {
     if (enfants.length === 0) return [];
     const ids = enfants.map((e) => e.id);
 
-    const { rows: services } = await tx.query<{ student_id: string; service: ServiceCode }>(
+    const { rows: services } = await tx.query<{ student_id: string; service: string }>(
       `SELECT DISTINCT student_id, service FROM student_services
         WHERE student_id = ANY($1::uuid[]) AND academic_year_id = $2`,
       [ids, yearId],
@@ -193,7 +199,7 @@ export class DocumentsService {
     );
 
     return enfants.map((e) => {
-      const souscrits = new Set(services.filter((s) => s.student_id === e.id).map((s) => s.service));
+      const souscrits = new Set<string>(services.filter((s) => s.student_id === e.id).map((s) => s.service));
       const siens = docs.filter((d) => d.student_id === e.id);
       const pieces = ORDRE_PIECES.filter(
         (p) => TOUJOURS.includes(p) || souscrits.has(p) || siens.some((d) => d.piece === p),

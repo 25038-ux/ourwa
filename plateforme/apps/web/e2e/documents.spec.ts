@@ -8,7 +8,8 @@ import type { Page } from '@playwright/test';
  * et Aminetou (cantine déjeuner, piscine).
  *
  *   1. chercher la famille par le nom ou le numéro, l'ouvrir ;
- *   2. chaque enfant : inscription + photocopie + ses services ;
+ *   2. chaque enfant : inscription + comportements sociaux + ses services
+ *      (pas de photocopie : 0049) ;
  *   3. déposer, voir, remplacer, refuser un Word, supprimer.
  */
 const DIRECTION = 'e2e/.auth/jinan-admin.json';
@@ -42,13 +43,13 @@ const enfant = (page: Page, prenom: string) => page.locator('.doc-enfant', { has
 test.describe('Documents — la direction', () => {
   test.use({ storageState: DIRECTION });
 
-  test('chercher par le nom : chaque enfant a inscription, photocopie et ses services', async ({ page }) => {
+  test('chercher par le nom : chaque enfant a inscription, comportements sociaux et ses services', async ({ page }) => {
     await ouvrirFamille(page, 'Abdallahi');
     await expect(enfant(page, 'Hamoud').locator('.doc-piece__titre')).toHaveText([
-      'Inscription', 'Photocopie', 'Cantine — petit déjeuner',
+      'Inscription', 'Comportements sociaux', 'Cantine — petit déjeuner',
     ]);
     await expect(enfant(page, 'Aminetou').locator('.doc-piece__titre')).toHaveText([
-      'Inscription', 'Photocopie', 'Cantine — déjeuner', 'Piscine',
+      'Inscription', 'Comportements sociaux', 'Cantine — déjeuner', 'Piscine',
     ]);
   });
 

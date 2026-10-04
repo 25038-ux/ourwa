@@ -16,7 +16,8 @@ import type { AuthenticatedRequest } from '../src/auth/permissions.guard.js';
  *
  *   - « search button for parents by name and number » ;
  *   - « a placeholder for every service the parent chose for either one of
- *     his children + inscription + photocopie » ;
+ *     his children + inscription » — puis (même jour) « add comportement
+ *     sociaux to documents … and delete photocopie » ;
  *   - « available to see and delete or replace anytime by the admin » ;
  *   - « they can only be seen by the parent, not modified or replaced or
  *     deleted » — et seulement par CE parent.
@@ -124,14 +125,17 @@ describe('« search button for parents by name and number »', () => {
   });
 });
 
-describe('les pièces : inscription + photocopie toujours, puis chaque service souscrit', () => {
-  it('Ahmed : inscription, photocopie, cantine, transport ; Fatima : inscription, photocopie', async () => {
+describe('les pièces : inscription + comportements sociaux toujours, puis chaque service souscrit', () => {
+  it('Ahmed : inscription, comportements sociaux, cantine, transport ; Fatima : les deux premières ; jamais la photocopie', async () => {
     const f = await ici(() => documents.famille(famille));
     expect(f.annee?.label).toBe('2026-2027');
     expect(f.famille.autresTelephones).toEqual(['22445566']);
     const parNom = Object.fromEntries(f.enfants.map((e) => [e.prenom, e.pieces.map((p) => p.piece)]));
-    expect(parNom.Ahmed).toEqual(['inscription', 'photocopie', 'cantine_complet', 'transport']);
-    expect(parNom.Fatima).toEqual(['inscription', 'photocopie']);
+    // Ahmed est abonné à la photocopie (d'office) : elle n'a PAS de pièce (0049).
+    expect(parNom.Ahmed).toEqual(['inscription', 'comportement_social', 'cantine_complet', 'transport']);
+    expect(parNom.Fatima).toEqual(['inscription', 'comportement_social']);
+    const libelles = f.enfants.find((e) => e.prenom === 'Ahmed')!.pieces.map((x) => x.libelle);
+    expect(libelles.slice(0, 2)).toEqual(['Inscription', 'Comportements sociaux']);
     expect(f.enfants[0]!.classe).toBe('1 AF — 1 AF A');
     expect(f.enfants.flatMap((e) => e.pieces).every((p) => p.document === null)).toBe(true);
   });
@@ -167,11 +171,24 @@ describe('déposer, voir, remplacer, supprimer — l’école', () => {
 
   it('⚠ un document signé est un PDF ou une image : pas un fichier Word, pas une pièce inventée', async () => {
     await expect(
-      ici(() => documents.deposer(ahmed, yearId, 'photocopie', { buffer: DOCX, filename: 'contrat.docx' }, ACTOR)),
+      ici(() => documents.deposer(ahmed, yearId, 'comportement_social', { buffer: DOCX, filename: 'contrat.docx' }, ACTOR)),
     ).rejects.toThrow(/Acceptés : JPG, PNG, WebP, GIF, PDF/);
     await expect(
       ici(() => documents.deposer(ahmed, yearId, 'bus', { buffer: PDF, filename: 'x.pdf' }, ACTOR)),
     ).rejects.toThrow(/Pièce inconnue/);
+    // La photocopie n'est plus une pièce, même pour un élève qui la paie.
+    await expect(
+      ici(() => documents.deposer(ahmed, yearId, 'photocopie', { buffer: PDF, filename: 'x.pdf' }, ACTOR)),
+    ).rejects.toThrow(/Pièce inconnue/);
+  });
+
+  it('les comportements sociaux : une pièce pour chaque enfant, sans service', async () => {
+    const r = await ici(() => documents.deposer(fatima, yearId, 'comportement_social', { buffer: PDF, filename: 'comportement.pdf' }, ACTOR));
+    expect(r.remplace).toBe(false);
+    const f = await ici(() => documents.famille(famille));
+    const p = f.enfants.find((e) => e.prenom === 'Fatima')!.pieces.find((x) => x.piece === 'comportement_social')!;
+    expect(p.libelle).toBe('Comportements sociaux');
+    expect(p.document?.nom).toBe('comportement.pdf');
   });
 
   it('remplacer : même pièce, nouveau fichier ; l’ancien quitte le disque', async () => {

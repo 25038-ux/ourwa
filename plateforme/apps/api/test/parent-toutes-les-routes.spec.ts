@@ -213,7 +213,7 @@ describe('chaque route de lecture répond', () => {
     // École « famille » : la route répond, l'application ne montre pas l'entrée.
     expect(out.actif).toBe(false);
     expect(out.enfants).toHaveLength(1);
-    expect(out.enfants[0]!.pieces.map((p) => p.piece)).toEqual(['inscription', 'photocopie']);
+    expect(out.enfants[0]!.pieces.map((p) => p.piece)).toEqual(['inscription', 'comportement_social']);
   });
   it('documents/:id — un document qui n’existe pas : introuvable, pas une erreur', async () => {
     const res = { header: () => res, send: () => res } as never;
