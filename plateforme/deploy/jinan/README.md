@@ -36,7 +36,10 @@ jour refusent ce serveur.
 - Notifications instantanées (facultatif) : dans la console Firebase du projet
   `el-mourad`, ajouter l'application Android `mr.jinan.parent`, puis
   Paramètres du projet → Comptes de service → Générer une nouvelle clé privée →
-  `fcm-service-account.json`.
+  `fcm-service-account.json`. **Fait le 04/10/2026** : l'application est
+  déclarée (ses valeurs sont dans `deploy/brands/jinan.env`, compilées depuis
+  la version 0.8.1+21) et la clé est sur le serveur (`/health` dit
+  `"push":"firebase"`). Détail : `docs/FIREBASE.md`.
 
 ## 1. Installer en UNE ligne, sur le serveur — le plus simple
 
