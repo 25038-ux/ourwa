@@ -10,6 +10,8 @@ import { AcademicYearService } from '../academic/academic-year.service.js';
 import { CommsService } from '../comms/comms.service.js';
 import { NotificationsService } from './notifications.service.js';
 import { PushService } from '../push/push.service.js';
+import { DocumentsService } from '../documents/documents.service.js';
+import { envoyer } from '../documents/documents.controller.js';
 // ⚠ ONE bulletin, shared (`reportCardFor`). The parent space had its own copy
 // of the calculation and the two were already one correction apart — the
 // drift El Ourwa's own `bulletin.php` records and cured the same way.
@@ -73,6 +75,7 @@ export class ParentController {
     @Inject(NotificationsService) private readonly notifications: NotificationsService,
     @Inject(GradesService) private readonly gradesService: GradesService,
       @Inject(PushService) private readonly push: PushService,
+    @Inject(DocumentsService) private readonly documents: DocumentsService,
 ) {}
 
   /** La langue du compte (`parents.langue` chez lui) : ses avis sont bilingues. */
@@ -1186,5 +1189,44 @@ export class ParentController {
     res.header('content-type', 'text/html; charset=utf-8');
     res.header('cache-control', 'no-store');
     return html;
+  }
+
+  /**
+   * LES DOCUMENTS SIGNÉS DE LA FAMILLE (ADR-0080) — par enfant, chaque pièce
+   * (inscription, photocopie, chaque service souscrit) avec son document ou
+   * « en attente ». LECTURE SEULE : il n'existe aucune route d'écriture ici,
+   * et l'école seule dépose, remplace et supprime.
+   */
+  @Get('documents')
+  async documentsFamille(@Req() request: AuthenticatedRequest) {
+    const parts = await this.dansChaqueEcole(request, () => this.documents.pourFamille(request.auth!.userId));
+    const avecAnnee = parts.filter((p) => p.valeur.annee !== null);
+    return {
+      annee: avecAnnee[0]?.valeur.annee ?? null,
+      enfants: parts.flatMap((p) => p.valeur.enfants.map((e) => ({ ...e, school: etiquette(p.ecole) }))),
+    };
+  }
+
+  /** Le fichier d'un document — celui d'un enfant du compte, dans l'une de ses écoles. */
+  @Get('documents/:id')
+  async documentFichier(
+    @Req() request: AuthenticatedRequest,
+    @Param('id') id: string,
+    @Query('voir') voir: string | undefined,
+    @Res() reply: FastifyReply,
+  ) {
+    const docId = uuid.parse(id);
+    for (const ecole of this.ecolesDe(request)) {
+      try {
+        const f = await runInTenant({ schoolId: ecole.id, slug: ecole.slug }, () =>
+          this.documents.fichierPourFamille(docId, request.auth!.userId),
+        );
+        return envoyer(reply, f, voir === '1');
+      } catch (e) {
+        if (e instanceof NotFoundException) continue;
+        throw e;
+      }
+    }
+    throw new NotFoundException('Document introuvable.');
   }
 }

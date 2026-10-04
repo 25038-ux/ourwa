@@ -278,3 +278,22 @@ export async function apiFetch<T>(
   if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }
+
+/**
+ * L'API, sans lire la réponse : pour RELAYER un fichier (un document signé)
+ * au navigateur, qui ne détient jamais le jeton. Mêmes en-têtes que
+ * `apiFetch` ; la réponse est rendue telle quelle, échec compris.
+ */
+export async function apiFetchBrut(path: string): Promise<Response> {
+  const slug = await currentSlug();
+  const session = await readSession();
+  return fetch(`${API}${path}`, {
+    headers: {
+      ...(slug ? { 'X-School-Slug': slug } : {}),
+      ...(session ? { Authorization: `Bearer ${session.accessToken}` } : {}),
+      ...clientIdentityHeaders(await nextHeaders()),
+    },
+    cache: 'no-store',
+    signal: AbortSignal.timeout(DELAI_API_MS),
+  });
+}

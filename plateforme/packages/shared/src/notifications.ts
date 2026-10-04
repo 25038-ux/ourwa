@@ -111,6 +111,15 @@ export const NOTIF: Record<string, Record<Langue, string>> = {
     fr: 'L\'emploi du temps de la classe {groupe} a été publié. Consultez le profil de votre enfant pour le voir.',
     ar: 'تم نشر جدول الحصص للقسم {groupe}. اطلع على ملف ابنك (ابنتك) للاطلاع عليه.',
   },
+  // Un document signé déposé par l'école (ADR-0080) : il attend dans « Documents ».
+  notif_document_titre: {
+    fr: 'Nouveau document : {document}',
+    ar: 'وثيقة جديدة : {document}',
+  },
+  notif_document_corps: {
+    fr: 'Le document « {document} » de {eleve} est disponible dans l’application.',
+    ar: 'وثيقة « {document} » الخاصة بـ {eleve} متاحة في التطبيق.',
+  },
   // Poussée par le serveur à la demande du téléphone (profil → « Notifications ») :
   // si elle arrive, toute la chaîne — jeton, Firebase, canal, son, vibration — est en place.
   notif_test_titre: {

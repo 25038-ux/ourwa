@@ -34,6 +34,8 @@ const THEIRS: Record<string, string[]> = {
     'comptes.parents', 'comptes.professeurs', 'annees.gerer', 'messagerie.envoyer',
     'exercices.envoyer', 'demandes.traiter', 'statistiques.consulter',
     'recherche.globale', 'journal.consulter', 'derogations.gerer',
+    // Pas chez El Ourwa : les documents signés de Jinan (0048, ADR-0080).
+    'documents.gerer',
   ],
   comptable: [
     'finance.consulter', 'finance.encaisser', 'finance.depenser', 'finance.dette',
@@ -43,6 +45,7 @@ const THEIRS: Record<string, string[]> = {
   secretaire: [
     'scolarite.inscrire', 'scolarite.reinscrire', 'notes.saisir', 'notes.consulter',
     'comptes.parents', 'messagerie.envoyer', 'recherche.globale', 'demandes.traiter',
+    'documents.gerer', // 0048, ADR-0080 — le dossier d'inscription signé
   ],
   collecteur_absence: ['absences.saisir', 'absences.consulter'],
 };
@@ -126,6 +129,11 @@ describe('the ones worth naming', () => {
       if (p === 'derogations.gerer') continue; // ours, added with the feature
       expect(ours('super_admin')).toContain(p);
     }
+  });
+
+  it('⚠ les documents signés : la direction et le secrétariat, ni la caisse ni le professeur', () => {
+    for (const r of ['super_admin', 'admin', 'secretaire']) expect(ours(r)).toContain('documents.gerer');
+    for (const r of ['comptable', 'professeur', 'collecteur_absence', 'parent']) expect(ours(r)).not.toContain('documents.gerer');
   });
 
   it('a parent holds none', () => {

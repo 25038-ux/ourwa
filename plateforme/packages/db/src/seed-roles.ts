@@ -26,7 +26,9 @@ export const ROLES = [
     'finance.rapport', 'finance.salaires', 'journal.consulter', 'messagerie.envoyer',
     'notes.consulter', 'notes.saisir', 'recherche.globale', 'scolarite.groupes',
     'scolarite.inscrire', 'scolarite.niveaux', 'scolarite.reinscrire',
-    'statistiques.consulter', 'derogations.gerer'] },
+    'statistiques.consulter', 'derogations.gerer',
+    // Les documents signés (0048, ADR-0080) : la direction et le secrétariat.
+    'documents.gerer'] },
   // ⚠ `notes.saisir` and `absences.saisir` were missing, and `comptes.staff`
   // was here and is not in its list: hiring is the super administrator's alone.
   { code: 'admin', label: 'Administrateur', description: "Administration générale de l'école.", order: 2, perms: [
@@ -39,7 +41,8 @@ export const ROLES = [
     // accountant and NOT the secretary. When a debt is settled the door opens by
     // itself, so the till needs no power of derogation to do its job. A
     // derogation is an exception to school policy — a decision of the direction.
-    'derogations.gerer'] },
+    'derogations.gerer',
+    'documents.gerer'] },
   /**
    * ⚠ NO `finance.salaires`. It is the super administrator's alone, and we had
    * granted it — putting the payment of staff in the same hands that take the
@@ -57,7 +60,9 @@ export const ROLES = [
   { code: 'secretaire', label: 'Secrétaire', description: 'Inscriptions, réinscriptions, notes, scolarité.', order: 11, perms: [
     'comptes.parents', 'demandes.traiter', 'messagerie.envoyer', 'notes.consulter',
     'notes.saisir', 'recherche.globale', 'scolarite.inscrire',
-    'scolarite.reinscrire'] },
+    'scolarite.reinscrire',
+    // Le dossier d'inscription signé (0048, ADR-0080).
+    'documents.gerer'] },
   { code: 'collecteur_absence', label: "Collecteur d'absence", description: 'Saisie et suivi des absences.', order: 12, perms: [
     'absences.consulter', 'absences.saisir'] },
   // Teachers deliberately do NOT hold notes.saisir — El Ourwa v13 removed grade

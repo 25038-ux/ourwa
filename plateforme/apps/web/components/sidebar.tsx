@@ -40,6 +40,9 @@ const SUPER_ADMIN: MenuItem[] = [
   // prix des services. Direction seule — ce menu n'est que celui de super_admin
   // et d'admin — et écoles « services » seulement.
   { titre: 'Frais', href: '/frais', icon: ICONS.ICN_EXPENSE!, services: true },
+  // Sans équivalent chez El Ourwa (ADR-0080) : les documents signés —
+  // inscription, photocopie, chaque service — que la famille lit dans l'application.
+  { titre: 'Documents', href: '/documents', icon: ICONS.ICN_NOTES!, perm: 'documents.gerer', services: true },
   { titre: 'Années scolaires', href: '/annees', icon: ICONS.ICN_KEY! },
   { titre: 'Envoyer un exercice', href: '/homework', icon: ICONS.ICN_MSG! },
   { titre: 'Demandes comptable', href: '/requests', icon: ICONS.ICN_MSG! },
@@ -86,6 +89,8 @@ const MENUS: Record<string, MenuItem[]> = {
     { titre: 'Réinscrire un étudiant', href: '/re-enrol', icon: ICONS.ICN_REIN! },
     { titre: 'Gestion de scolarité', href: '/scolarite', icon: ICONS.ICN_CAP! },
     { titre: 'Saisir les notes', href: '/notes', icon: ICONS.ICN_NOTES! },
+    // Le dossier d'inscription signé (ADR-0080) — écoles « services ».
+    { titre: 'Documents', href: '/documents', icon: ICONS.ICN_NOTES!, perm: 'documents.gerer', services: true },
   ],
   comptable: [
     { titre: 'Inscrire un étudiant', href: '/students/new', icon: ICONS.ICN_STUDENT! },

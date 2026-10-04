@@ -115,7 +115,12 @@ export class AttachmentsService {
     const { readdir } = await import('node:fs/promises');
     const { join } = await import('node:path');
     const onDisk = await readdir(join(uploadRoot(), schoolId)).catch(() => [] as string[]);
-    const known = new Set(rows.map((r) => r.stored_name));
+    // Les documents signés (0048) vivent dans le même dossier : ils ne sont pas des orphelins.
+    const documents = await this.db.query(async (tx) => {
+      const { rows } = await tx.query<{ stored_name: string }>('SELECT stored_name FROM student_documents');
+      return rows.map((r) => r.stored_name);
+    });
+    const known = new Set([...rows.map((r) => r.stored_name), ...documents]);
     const orphanFiles = onDisk.filter((name) => !known.has(name));
 
     return {

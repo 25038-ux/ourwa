@@ -208,6 +208,18 @@ describe('chaque route de lecture répond', () => {
     expect(entetes['content-type']).toContain('text/html');
   });
 
+  it('documents (ADR-0080) — les pièces de chaque enfant, même vides', async () => {
+    const out = await inTenant(() => parent.documentsFamille(r()));
+    expect(out.enfants).toHaveLength(1);
+    expect(out.enfants[0]!.pieces.map((p) => p.piece)).toEqual(['inscription', 'photocopie']);
+  });
+  it('documents/:id — un document qui n’existe pas : introuvable, pas une erreur', async () => {
+    const res = { header: () => res, send: () => res } as never;
+    await expect(
+      inTenant(() => parent.documentFichier(r(), '00000000-0000-7000-8000-000000000000', undefined, res)),
+    ).rejects.toThrow(/Document introuvable/);
+  });
+
   it('⚠ aucune route de lecture n’a été ajoutée sans être appelée ici', () => {
     const lectures = Object.getOwnPropertyNames(ParentController.prototype).filter((n) => {
       if (n === 'constructor') return false;
@@ -224,6 +236,7 @@ describe('chaque route de lecture répond', () => {
       'children', 'messages', 'unread', 'notificationList', 'notificationsUnread',
       'familyGrades', 'familyAttendance', 'familyHomework', 'familyRemarks',
       'childTimetable', 'remarks', 'homework', 'attendance', 'balance', 'grades', 'reportCard', 'reportCardDocument',
+      'documentsFamille', 'documentFichier',
     ];
     for (const l of lectures) expect(couvertes, `route GET non couverte : ${l}`).toContain(l);
   });
