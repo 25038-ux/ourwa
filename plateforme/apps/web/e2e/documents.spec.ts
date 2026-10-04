@@ -99,6 +99,41 @@ test.describe('Documents — la direction', () => {
     await expect(piscine).toContainText('En attente du document signé');
   });
 
+  /**
+   * ⚠ LES DÉPÔTS NE FONT PLUS LA QUEUE (04/10/2026). En actions serveur, Next
+   * les passait un par un : le second restait « Envoi… » derrière le premier,
+   * et se perdait si l'on rechargeait la page. Deux dépôts lancés ensemble
+   * arrivent tous les deux, et on peut recharger dès qu'ils sont faits.
+   */
+  test('deux dépôts lancés ensemble arrivent tous les deux', async ({ page }) => {
+    page.on('dialog', (d) => d.accept());
+    await ouvrirFamille(page, 'Abdallahi');
+    const aminetou = enfant(page, 'Aminetou');
+    const pieces = [aminetou.getByTestId('piece-comportement_social'), aminetou.getByTestId('piece-piscine')];
+    for (const p of pieces) {
+      if (await p.getByRole('button', { name: 'Supprimer' }).count()) {
+        await p.getByRole('button', { name: 'Supprimer' }).click();
+        await expect(p).toContainText('En attente du document signé', { timeout: 30000 });
+      }
+    }
+    await pieces[0]!.locator('input[type=file]').setInputFiles({ ...PDF, name: 'comportement-signe.pdf' });
+    await pieces[1]!.locator('input[type=file]').setInputFiles({ ...PDF, name: 'piscine-ensemble.pdf' });
+    // Le second clic part pendant que le premier envoi est encore en vol.
+    await pieces[0]!.getByRole('button', { name: 'Déposer' }).click();
+    await pieces[1]!.getByRole('button', { name: 'Déposer' }).click();
+    await expect(pieces[0]!).toContainText('comportement-signe.pdf', { timeout: 30000 });
+    await expect(pieces[1]!).toContainText('piscine-ensemble.pdf', { timeout: 30000 });
+    await page.reload();
+    await expect(enfant(page, 'Aminetou').getByTestId('piece-comportement_social')).toContainText('comportement-signe.pdf');
+    await expect(enfant(page, 'Aminetou').getByTestId('piece-piscine')).toContainText('piscine-ensemble.pdf');
+    // Et on remet les pièces à vide pour la prochaine exécution.
+    for (const id of ['piece-comportement_social', 'piece-piscine']) {
+      const p = enfant(page, 'Aminetou').getByTestId(id);
+      await p.getByRole('button', { name: 'Supprimer' }).click();
+      await expect(p).toContainText('En attente du document signé', { timeout: 30000 });
+    }
+  });
+
   test('chercher par le numéro de téléphone', async ({ page }) => {
     await page.goto(`${J}/documents`);
     // Le numéro de la famille, lu sur le résultat de la recherche par nom.

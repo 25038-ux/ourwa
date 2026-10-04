@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect, useState, type FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { acceptPour } from '@elourwa/shared/fichiers';
-import { useActionMessage } from '@/components/message-page';
-import { deposerDocumentAction, supprimerDocumentAction } from './actions';
+import { useMessagePage } from '@/components/message-page';
 
 export interface PieceVue {
   piece: string;
@@ -34,16 +33,6 @@ function dateCourte(iso: string): string {
   return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
 }
 
-/** Le bouton d'envoi : grisé pendant l'envoi, et rien d'autre (jamais bloqué hors envoi). */
-function Envoyer({ texte, enCours, classe = 'btn btn-primary btn-sm' }: { texte: string; enCours: string; classe?: string }) {
-  const { pending } = useFormStatus();
-  return (
-    <button type="submit" className={classe} disabled={pending} aria-busy={pending}>
-      {pending ? enCours : texte}
-    </button>
-  );
-}
-
 /**
  * UNE PIÈCE — l'emplacement d'un document signé (ADR-0080) : « en attente »
  * avec « Déposer », ou le document avec « Voir », « Remplacer » et
@@ -60,17 +49,58 @@ export function PieceDocument({
   prenom: string;
   anneeId: string;
 }) {
-  const [etat, deposer] = useActionMessage(deposerDocumentAction);
-  const [, supprimer] = useActionMessage(supprimerDocumentAction);
+  const router = useRouter();
   const [choisi, setChoisi] = useState<string | null>(null);
   const [remplacer, setRemplacer] = useState(false);
-  // Déposé : la pièce montre son document (React a déjà vidé le champ du formulaire).
+  const [envoi, setEnvoi] = useState<null | 'depot' | 'suppression'>(null);
+  const [resultat, setResultat] = useState<{ ok?: string; error?: string } | null>(null);
+  useMessagePage(resultat);
+
+  // Quitter la page pendant qu'un document monte l'interromprait : le navigateur le dit.
   useEffect(() => {
-    if (etat?.ok) {
-      setChoisi(null);
-      setRemplacer(false);
+    if (envoi !== 'depot') return;
+    const retenir = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', retenir);
+    return () => window.removeEventListener('beforeunload', retenir);
+  }, [envoi]);
+
+  /**
+   * Une requête ordinaire vers `/documents/envoi` (pas une action serveur) :
+   * elle part tout de suite, à côté des autres, et ne bloque aucun autre
+   * bouton de la page. Toujours une réponse : succès, refus, ou « pas de
+   * réponse » — le bouton revient dans tous les cas.
+   */
+  async function envoyer(e: FormEvent<HTMLFormElement>, operation: 'depot' | 'suppression') {
+    e.preventDefault();
+    if (envoi) return;
+    if (
+      operation === 'suppression' &&
+      !window.confirm(`Supprimer le document « ${p.libelle} » de ${prenom} ?\n\nLa famille ne le verra plus dans l'application.`)
+    ) {
+      return;
     }
-  }, [etat]);
+    const form = new FormData(e.currentTarget);
+    form.set('operation', operation === 'suppression' ? 'supprimer' : 'deposer');
+    setEnvoi(operation);
+    try {
+      const r = await fetch('/documents/envoi', { method: 'POST', body: form, signal: AbortSignal.timeout(180_000) });
+      const corps = (await r.json().catch(() => null)) as { ok?: string; error?: string } | null;
+      setResultat(corps ?? { error: 'Le serveur a répondu sans message. Rechargez la page pour vérifier.' });
+      if (corps?.ok) {
+        setChoisi(null);
+        setRemplacer(false);
+        router.refresh();
+      }
+    } catch {
+      setResultat({ error: "Le serveur n'a pas répondu. Vérifiez la connexion, rechargez la page, puis réessayez." });
+    } finally {
+      setEnvoi(null);
+    }
+  }
+
   const d = p.document;
   const montrerDepot = !d || remplacer;
 
@@ -105,21 +135,18 @@ export function PieceDocument({
           <button type="button" className="btn btn-secondary btn-sm" onClick={() => setRemplacer(true)}>
             Remplacer
           </button>
-          <form
-            action={supprimer}
-            onSubmit={(e) => {
-              if (!window.confirm(`Supprimer le document « ${p.libelle} » de ${prenom} ?\n\nLa famille ne le verra plus dans l'application.`)) e.preventDefault();
-            }}
-          >
+          <form onSubmit={(e) => envoyer(e, 'suppression')}>
             <input type="hidden" name="document_id" value={d.id} />
             <input type="hidden" name="libelle" value={`${p.libelle} — ${prenom}`} />
-            <Envoyer texte="Supprimer" enCours="Suppression…" classe="btn btn-danger btn-sm" />
+            <button type="submit" className="btn btn-danger btn-sm" disabled={envoi !== null} aria-busy={envoi === 'suppression'}>
+              {envoi === 'suppression' ? 'Suppression…' : 'Supprimer'}
+            </button>
           </form>
         </div>
       )}
 
       {montrerDepot && (
-        <form action={deposer} className="doc-piece__depot">
+        <form onSubmit={(e) => envoyer(e, 'depot')} className="doc-piece__depot">
           <input type="hidden" name="eleve_id" value={eleveId} />
           <input type="hidden" name="annee_id" value={anneeId} />
           <input type="hidden" name="piece" value={p.piece} />
@@ -136,7 +163,9 @@ export function PieceDocument({
             <span>{choisi ?? 'Choisir le PDF ou la photo signé(e)…'}</span>
           </label>
           <div className="doc-piece__actions">
-            <Envoyer texte={d ? 'Enregistrer le remplacement' : 'Déposer'} enCours="Envoi…" />
+            <button type="submit" className="btn btn-primary btn-sm" disabled={envoi !== null} aria-busy={envoi === 'depot'}>
+              {envoi === 'depot' ? 'Envoi…' : d ? 'Enregistrer le remplacement' : 'Déposer'}
+            </button>
             {remplacer && (
               <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setRemplacer(false); setChoisi(null); }}>
                 Annuler
