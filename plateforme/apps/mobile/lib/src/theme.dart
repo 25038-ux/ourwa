@@ -139,7 +139,12 @@ ThemeData oceanTheme({required bool arabic}) {
         bodySmall: const TextStyle(fontSize: 12.5, height: 1.4, color: Ocean.ink500),
         labelLarge: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: .1),
         labelMedium: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: .3, color: Ocean.ink500),
-      );
+      )
+      // ⚠ ET LE REPLI ARABE UNE SECONDE FOIS : les styles posés par `copyWith`
+      // ci-dessus sont NEUFS et ne l'héritaient pas — sur le web, chaque titre
+      // et chaque ligne de texte arabe s'affichait en carrés (le téléphone, lui,
+      // trouve l'arabe dans ses polices système). Vu sur l'écran Documents, 04/10/2026.
+      .apply(fontFamilyFallback: const ['Noto Sans Arabic']);
 
   return base.copyWith(
     textTheme: texte,
