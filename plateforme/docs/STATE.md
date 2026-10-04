@@ -37,8 +37,10 @@ morceaux, avec la commande de mise à jour.
 - **Vérifié** : API 1049/1049 (avant les documents) puis les suites touchées
   (documents 16, parent-toutes-les-routes, role-grants, attachments,
   accounts) ; base 89/89 ; shared 127/127 ; Flutter 62/62 + `analyze`
-  propre ; `tsc` API et site ; navigateur : `exercice` 12/12, `documents`
-  12/12 ; la suite complète tournait à la clôture de cette entrée.
+  propre ; `tsc` API et site ; navigateur, suite COMPLÈTE : 167 réussis,
+  0 échec (1 réussi à la reprise : `/finance tient dans 375 px`, la
+  compilation du serveur de développement sous charge), 48 ignorés par
+  conception ; puis `documents` 13/13 après 0049 et l'envoi par requête.
 - **Mise à jour RÉPÉTÉE dans Docker** (copie de production 0047 avec
   données) : la ligne `installer-serveur.sh` → sauvegarde, code 0.8.0,
   migration 0048, API saine, aucun mot de passe réaffiché ; puis par HTTP :
@@ -46,7 +48,14 @@ morceaux, avec la commande de mise à jour.
   `documents.gerer` à admin, secretaire, super_admin ; recherche par nom et
   par numéro ; dépôt d'un PDF de 7 Mo, refus d'un Word, remplacement ; la
   famille lit le fichier exact, ne dépose ni ne supprime (403), une autre
-  famille : 404 ; intégrité des fichiers complète, aucun orphelin.
+  famille : 404 ; intégrité des fichiers complète, aucun orphelin. Répété
+  une seconde fois avec 0049 : mêmes résultats, pièces « inscription,
+  comportement_social, cantine_dejeuner », et le résumé dit désormais « mot
+  de passe inchangé » sur une mise à jour.
+- **Les dépôts de documents ne font plus la queue** : en actions serveur,
+  Next les passait un par un (un envoi lent gardait les autres boutons en
+  « Envoi… », un dépôt en file se perdait au rechargement — vu en préparant
+  les captures) ; `POST /documents/envoi`, en parallèle.
 - **Livraison** : APK d'essai 0.8.0+20, `.aab` non signé, projet iOS, zip
   du serveur, captures, guide (`LISEZMOI-LIVRAISON.md`) — en cours de
   construction à la clôture de cette entrée. Les versions GitHub (releases)
