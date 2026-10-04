@@ -3846,3 +3846,72 @@ sur une école « jinan » d'essai) ; `e2e/cycles-niveaux.spec.ts`. Après la mi
 transport coché), fiche (remise, « Arrêter » absent pour les services
 d'office). L'application parent n'a rien à changer : elle affiche les
 libellés que l'API envoie.
+
+## ADR-0080 — Les documents signés ; les exercices en documents de bureau ; le design « Jardin »
+
+**Date :** 2026-10-04. **Demande du propriétaire (Jinan)**, mot pour mot :
+« add a documents in the mobile app where every parent sees documents sent by
+the admin or a person with the privileges given. Each service has a signed
+document and inscription has a signed document … a placeholder for every
+service the parent chose for either one of his children + inscription +
+photocopie. The documents are available to see and delete or replace anytime
+by the admin and they can only be seen by the parent … fix the bugs in
+comptes personnels and fix envoyer exercice … Sometimes some buttons get
+stuck. Change the ui of the app and make it better (not the same ui). »
+
+**Décision — documents signés (migration 0048).**
+- Une **pièce** = l'emplacement d'un document, par élève et par année :
+  `inscription` et `photocopie` toujours, puis chaque service souscrit cette
+  année-là (même arrêté depuis). `student_documents` porte UNE ligne par
+  pièce (UNIQUE école, élève, année, pièce) : « Remplacer » met la ligne à
+  jour et efface l'ancien fichier APRÈS l'enregistrement ; « Supprimer » vide
+  la pièce. Pas une écriture financière : le journal d'audit garde chaque
+  dépôt / remplacement / suppression (`document_signe_*`).
+- **PDF et images seulement** (CHECK en base, règle partagée côté API) : un
+  document signé est un scan ou une photo, pas un fichier qu'on retouche.
+- **`documents.gerer`** : super_admin, admin, **secretaire** (le dossier
+  d'inscription). Déléguer = donner le rôle « Secrétaire » dans « Comptes du
+  personnel ». Ni le comptable, ni le professeur.
+- **La famille lit seulement** : `GET /parent/documents`, `GET
+  /parent/documents/:id` — ses enfants, l'année active ; aucune route
+  d'écriture (un test le vérifie). Une notification `notif_document` part à
+  chaque dépôt. L'application n'offre l'entrée « Documents » qu'aux familles
+  d'une école « services » (`actif`).
+- Le site : page « Documents » (menu des écoles « services », direction et
+  secrétariat), recherche **rendue par le serveur** (nom du parent, d'un
+  enfant, ou numéro principal / supplémentaire) — pas de script qui puisse
+  rester « en cours ».
+
+**Décision — « Envoyer un exercice ».** Trois causes, trois corrections :
+(1) le sélecteur des deux formulaires (`accept=`) n'admettait qu'images et
+PDF : une fiche Word était grisée sur téléphone ; (2) le serveur refusait les
+documents de bureau ; (3) **le middleware de Next tronquait tout corps au-delà
+de 10 Mo** (`middlewareClientMaxBodySize`, Next 15.5) — trois photos de 4 Mo
+faisaient tomber la page. Règle commune `@elourwa/shared/fichiers` : Word,
+Excel, PowerPoint (OOXML vérifié par `[Content_Types].xml`, pas un .zip
+renommé), OpenDocument, anciens formats OLE, RTF ; formats à macros refusés ;
+**10 Mo par fichier** (5 auparavant). `bodySizeLimit` et
+`middlewareClientMaxBodySize` à 60 Mo.
+
+**Décision — « Comptes du personnel ».** La liste part des RÔLES ; « Mot de
+passe » et « Désactiver » exigeaient une FICHE (personnel, professeur,
+correspondant) et répondaient « Compte introuvable dans cette école » pour un
+compte qui n'a qu'un rôle ici (le compte posé à l'installation, un compte
+rattaché par la console). Un rôle ici suffit désormais ; un compte d'une autre
+école reste refusé. La fonction d'un tel compte ne s'affiche plus
+« Professeur ».
+
+**Décision — boutons bloqués.** Chaque appel du site à l'API a un délai
+(90 s ; 180 s pour un envoi de fichiers ; 30 s pour la connexion et le
+renouvellement) : une requête que l'API ne terminait pas laissait le bouton
+grisé — et toutes les actions suivantes de la page, que Next exécute l'une
+après l'autre. Passé le délai, une écriture répond « l'opération a peut-être
+abouti : rechargez et vérifiez » (jamais « échec », pour ne pas faire payer
+deux fois).
+
+**Décision — design « Jardin » de l'application (0.8.0+20).** Émeraude, or,
+ivoire ; cartes pleines au lieu du verre ; en-tête émeraude ; **menu
+latéral** (toutes les sections, dont Documents) ; barre du bas flottante. La
+classe `Ocean` garde son nom et ses noms de teintes (cent quarante usages) :
+ses VALEURS ont changé, ce qui change toute l'application d'un coup. Toutes
+les enseignes le reçoivent à leur prochaine construction.
