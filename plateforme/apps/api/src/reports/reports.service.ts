@@ -953,6 +953,7 @@ export const SOURCE_LABELS: Record<string, string> = {
   service_cantine: libelleSourceService('service_cantine'),
   service_piscine: libelleSourceService('service_piscine'),
   service_docteur: libelleSourceService('service_docteur'),
+  service_transport: libelleSourceService('service_transport'),
   /** Le nom de l'école pour la photocopie (FEE_PHOTOCOPY_LABEL), lu à chaque lecture. */
   get service_photocopie(): string {
     return libelleSourceService('service_photocopie');

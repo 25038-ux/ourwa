@@ -21,7 +21,7 @@ export interface CatalogueFacturation {
   anneeLabel: string;
   /** Par id de niveau. */
   niveaux: Record<string, { nom: string; tarif8h14: string | null; tarif8h17: string | null; fraisInscription: string | null }>;
-  services: { code: ServiceOptionnel; libelle: string; periodicite: Periodicite; prix: string | null }[];
+  services: { code: ServiceOptionnel; libelle: string; periodicite: Periodicite; obligatoire: boolean; prix: string | null }[];
 }
 
 /** Le tarif d'un niveau pour un mode — `null` si l'un manque ou n'est pas défini. */
@@ -56,9 +56,10 @@ const CARTE_ACTIVE: React.CSSProperties = { ...CARTE, borderColor: 'var(--primar
  *   - chaque mode montre le tarif du niveau choisi ; `onMode` prévient le
  *     formulaire, qui pré-remplit « Frais mensuel » ;
  *   - les frais d'inscription du niveau sont dits (dus d'office, une fois par
- *     élève — ils ne se cochent pas) ;
+ *     élève — ils ne se cochent pas), et de même, depuis le 04/10/2026
+ *     (ADR-0079), la photocopie : UN prix d'école, d'office ;
  *   - la cantine (aucune, petit déjeuner, déjeuner, les deux), la piscine, le
- *     docteur, la photocopie — chacun avec son prix de l'année ; un service
+ *     docteur, le transport — chacun avec son prix de l'année ; un service
  *     sans prix ne se coche pas. Le choix part dans `name="services"` (JSON).
  *
  * Rien de tout cela n'existe pour une école « famille » : le formulaire ne
@@ -83,7 +84,9 @@ export function ChoixFacturation({
   const niveau = levelId ? catalogue.niveaux[levelId] : undefined;
   const prixDe = (code: ServiceOptionnel) => catalogue.services.find((s) => s.code === code)?.prix ?? null;
   const cantines = catalogue.services.filter((s) => (SERVICES_CANTINE as readonly string[]).includes(s.code));
-  const autres = catalogue.services.filter((s) => !(SERVICES_CANTINE as readonly string[]).includes(s.code));
+  const autres = catalogue.services.filter((s) => !s.obligatoire && !(SERVICES_CANTINE as readonly string[]).includes(s.code));
+  // D'office, comme les frais d'inscription : dits, jamais cochés.
+  const dOffice = catalogue.services.filter((s) => s.obligatoire);
 
   const [cantine, setCantine] = useState<ServiceOptionnel | ''>(
     () => servicesInitiaux.find((s) => (SERVICES_CANTINE as readonly string[]).includes(s)) ?? '',
@@ -132,6 +135,21 @@ export function ChoixFacturation({
           )}
         </p>
       )}
+      {levelId &&
+        dOffice.map((s) => (
+          <p key={s.code} style={{ margin: '.35rem 0 0', fontSize: '.9rem' }} data-testid={`frais-${s.code}`}>
+            <strong>{s.libelle} : </strong>
+            {s.prix === null ? (
+              <span className="text-danger">non défini pour {catalogue.anneeLabel} — l&apos;inscription sera refusée (bouton « Frais »).</span>
+            ) : Number(s.prix) === 0 ? (
+              <span>gratuit.</span>
+            ) : (
+              <span>
+                {mru(s.prix)} MRU {s.periodicite === 'mensuel' ? 'par mois' : `, dus une fois pour cet élève en ${catalogue.anneeLabel}`} — obligatoire, le même pour tous les niveaux.
+              </span>
+            )}
+          </p>
+        ))}
 
       {avecServices && (
         <>

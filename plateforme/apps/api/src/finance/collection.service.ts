@@ -1014,21 +1014,28 @@ export class CollectionService {
       // l'arrêt et l'exemption d'un abonnement : l'échéance doit encore
       // exister, ne pas être devenue exemptée, et n'avoir rien reçu entre-temps.
       for (const l of servicesChoisis) {
-        const { rows } = await tx.query<{ paye: string; exempt: boolean }>(
+        const { rows } = await tx.query<{ paye: string; exempt: boolean; du: string }>(
           `SELECT COALESCE((SELECT SUM(p.amount) FROM service_payments p
                              WHERE p.student_service_id = m.student_service_id
                                AND p.calendar_month = m.calendar_month
                                AND p.calendar_year = m.calendar_year), 0)::text AS paye,
-                  ss.exempt
+                  ss.exempt, m.amount_due::text AS du
              FROM student_service_months m
              JOIN student_services ss ON ss.id = m.student_service_id
             WHERE m.student_service_id = $1 AND m.calendar_month = $2 AND m.calendar_year = $3`,
           [l.studentServiceId, l.echeance.month, l.echeance.year],
         );
         const relu = rows[0];
-        if (!relu || relu.exempt !== l.exempt || !money(relu.paye).equals(money(l.paye))) {
+        // ⚠ ET SON MONTANT : une remise posée pendant que la fenêtre était
+        // ouverte (ADR-0079) ferait encaisser l'ancien prix — un trop-perçu.
+        if (
+          !relu ||
+          relu.exempt !== l.exempt ||
+          !money(relu.paye).equals(money(l.paye)) ||
+          !money(relu.du).equals(money(l.du))
+        ) {
           throw new ConflictException(
-            `« ${nomLigne(l)} » vient de changer (encaissé, exempté ou arrêté par ailleurs) : rechargez la page.`,
+            `« ${nomLigne(l)} » vient de changer (encaissé, exempté, remisé ou arrêté par ailleurs) : rechargez la page.`,
           );
         }
       }

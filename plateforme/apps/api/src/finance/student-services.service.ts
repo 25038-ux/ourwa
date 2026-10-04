@@ -90,6 +90,10 @@ export interface Abonnement {
   periodicite: Periodicite;
   famille: FamilleService;
   amount: string;
+  /** La remise PAR MOIS (0047) ; '0.00' sans remise. Dû d'un mois sans paiement = amount − remise. */
+  remise: string;
+  /** Faux pour les services d'office (inscription, photocopie) : ils s'exemptent. */
+  arretable: boolean;
   exempt: boolean;
   startMonth: number;
   startYear: number;
@@ -292,6 +296,19 @@ export class StudentServicesService {
       }
 
       const months = await this.years.payableMonthsIn(tx, year);
+      // ⚠ UN MOIS NE SE FACTURE PAS DEUX FOIS (04/10/2026) : un abonnement
+      // arrêté de la même famille garde ses mois d'avant l'arrêt ; reprendre
+      // le service commence APRÈS le dernier d'entre eux.
+      const { rows: facture } = await tx.query<{ dernier: number | null }>(
+        `SELECT MAX(m.calendar_year * 12 + m.calendar_month) AS dernier
+           FROM student_service_months m
+           JOIN student_services ss ON ss.id = m.student_service_id
+          WHERE ss.student_id = $1 AND ss.academic_year_id = $2 AND ss.famille = $3
+            AND ss.ended_at IS NOT NULL`,
+        [input.studentId, year.id, definitionService(service).famille],
+      );
+      const dejaFacture = facture[0]?.dernier ?? null;
+      const libre = (m: PayableMonth) => dejaFacture === null || index(m.month, m.year) > dejaFacture;
       let start: PayableMonth | null = null;
       if (actif[0]) {
         // Le même service, déjà en cours : `souscrireIn` le rend tel quel
@@ -300,8 +317,19 @@ export class StudentServicesService {
       } else if (input.startMonth !== undefined) {
         start = months.find((m) => m.month === input.startMonth && m.year === input.startYear) ?? null;
         if (!start) throw new BadRequestException(`Ce mois n'appartient pas à l'année ${year.label}.`);
+        if (!libre(start)) {
+          const apres = months.find(libre);
+          const dernierMois = ((dejaFacture! - 1) % 12) + 1;
+          throw new BadRequestException(
+            `« ${libelleService(service)} » est déjà facturé jusqu'en ${MOIS[dernierMois - 1]} : ` +
+              (apres ? `reprenez à partir ${deMois(MOIS[apres.month - 1]!)} ${apres.year}.` : "il ne reste aucun mois à facturer."),
+          );
+        }
       } else {
-        start = moisDeDepartParDefaut(months, today);
+        const regle = moisDeDepartParDefaut(months, today);
+        // Après le dernier mois de l'année, `regle` est nul : rien à facturer,
+        // même si des mois « libres » précèdent.
+        start = !regle ? null : libre(regle) ? regle : (months.find((m) => libre(m) && m.order >= regle.order) ?? null);
         if (!start) {
           throw new BadRequestException(
             `L'année ${year.label} est terminée : il ne reste aucun mois à facturer.`,
@@ -373,9 +401,11 @@ export class StudentServicesService {
     return this.db.query(async (tx) => {
       await this.verrouFamille(tx, tete.guardian_id, year.id);
       const sub = await this.abonnementPourMaj(tx, id);
-      if (sub.service === 'inscription') {
+      // L'inscription et (04/10/2026) la photocopie sont obligatoires : elles
+      // s'exemptent, elles ne s'arrêtent pas.
+      if (!definitionService(sub.service).arretable) {
         throw new BadRequestException(
-          `L'abonnement « ${libelleService('inscription')} » ne s'arrête pas : exemptez-le si l'école y renonce.`,
+          `L'abonnement « ${libelleService(sub.service)} » est obligatoire, il ne s'arrête pas : exemptez-le si l'école y renonce.`,
         );
       }
       if (sub.ended_at) throw new ConflictException('Cet abonnement est déjà arrêté.');
@@ -505,6 +535,105 @@ export class StudentServicesService {
   }
 
   /**
+   * UNE REMISE SUR UN SERVICE MENSUEL — `POST /finance/student-services/:id/remise`
+   * (direction). Demande du propriétaire de Jinan (04/10/2026, ADR-0079).
+   *
+   * Un montant PAR MOIS retranché du prix figé de l'abonnement (0 la retire) :
+   * chaque mois SANS PAIEMENT (net 0) passe à `amount − remise` ; un mois réglé,
+   * même en partie, garde son prix et son reçu — la règle de « changer de mode »
+   * et de « Modifier le frais mensuel ». Rien n'est écrit au grand livre.
+   *
+   * ⚠ Mensuel seulement : un service annuel (inscription, photocopie)
+   * s'exempte. Ni négative ni plus que le prix (CHECK de 0047). Un abonnement
+   * arrêté garde ses mois passés tels quels. Même verrou que l'encaissement :
+   * un mois ne peut pas être réévalué pendant qu'on l'encaisse.
+   */
+  async setRemise(
+    id: string,
+    input: { remise: string },
+    actorId: string,
+  ): Promise<{
+    id: string;
+    service: ServiceCode;
+    remise: string;
+    monthsChanged: number;
+    changed: boolean;
+    guardianId: string | null;
+    academicYearId: string;
+  }> {
+    await this.tarifs.exigerServices();
+    const brut = input.remise.trim().replace(',', '.');
+    if (!/^\d{1,12}(\.\d{1,2})?$/.test(brut)) {
+      throw new BadRequestException('La remise est un montant positif (ex. 500), en MRU par mois.');
+    }
+    const remise = money(brut);
+    const tete = await this.tete(id);
+    const year = await this.years.assertWritable(tete.academic_year_id);
+    const { schoolId } = currentTenant();
+
+    return this.db.query(async (tx) => {
+      await this.verrouFamille(tx, tete.guardian_id, year.id);
+      const sub = await this.abonnementPourMaj(tx, id);
+      const base = { id, service: sub.service, guardianId: tete.guardian_id, academicYearId: year.id };
+      if (definitionService(sub.service).periodicite !== 'mensuel') {
+        throw new BadRequestException(
+          `« ${libelleService(sub.service)} » se paie une fois l'an : il ne se remise pas — exemptez-le si l'école y renonce.`,
+        );
+      }
+      if (sub.ended_at) throw new ConflictException('Cet abonnement est arrêté : sa remise ne change plus.');
+      const prix = money(sub.amount);
+      if (remise.greaterThan(prix)) {
+        throw new BadRequestException(
+          `La remise (${toStorage(remise)}) dépasse le prix du service (${toStorage(prix)} MRU par mois).`,
+        );
+      }
+      if (remise.equals(money(sub.remise))) return { ...base, remise: toStorage(remise), monthsChanged: 0, changed: false };
+
+      const du = toStorage(prix.minus(remise));
+      // Les seuls mois sans paiement : net 0 (un paiement annulé ne retient rien).
+      const maj = await tx.query(
+        `UPDATE student_service_months m
+            SET amount_due = $2
+          WHERE m.student_service_id = $1
+            AND COALESCE((SELECT SUM(p.amount) FROM service_payments p
+                           WHERE p.student_service_id = m.student_service_id
+                             AND p.calendar_month = m.calendar_month
+                             AND p.calendar_year = m.calendar_year), 0) = 0`,
+        [id, du],
+      );
+      await tx.query(
+        `UPDATE student_services
+            SET remise = $2::numeric,
+                remise_by = CASE WHEN $2::numeric > 0 THEN $3::uuid ELSE NULL END,
+                remise_at = CASE WHEN $2::numeric > 0 THEN now() ELSE NULL END
+          WHERE id = $1`,
+        [id, toStorage(remise), actorId],
+      );
+      const monthsChanged = maj.rowCount ?? 0;
+      await this.audit.record(
+        {
+          actorId,
+          schoolId,
+          action: 'student_service_remise_set',
+          entity: 'student_service',
+          entityId: id,
+          before: { remise: sub.remise },
+          after: {
+            service: sub.service,
+            studentId: sub.student_id,
+            remise: toStorage(remise),
+            dueParMois: du,
+            monthsChanged,
+            year: year.label,
+          },
+        },
+        tx,
+      );
+      return { ...base, remise: toStorage(remise), monthsChanged, changed: true };
+    });
+  }
+
+  /**
    * LES ABONNEMENTS D'UN ÉLÈVE POUR UNE ANNÉE, mois par mois — pour la fiche.
    *
    * `outstanding` = exempté ? 0 : max(0, dû − payé net). Tous les mois de
@@ -517,12 +646,13 @@ export class StudentServicesService {
         id: string;
         service: ServiceCode;
         amount: string;
+        remise: string;
         exempt: boolean;
         start_month: number;
         start_year: number;
         ended_at: Date | null;
       }>(
-        `SELECT id, service, amount::text AS amount, exempt, start_month, start_year, ended_at
+        `SELECT id, service, amount::text AS amount, remise::text AS remise, exempt, start_month, start_year, ended_at
            FROM student_services
           WHERE student_id = $1 AND academic_year_id = $2
           ORDER BY created_at, id`,
@@ -561,6 +691,8 @@ export class StudentServicesService {
             periodicite: def.periodicite,
             famille: def.famille,
             amount: s.amount,
+            remise: s.remise,
+            arretable: def.arretable,
             exempt: s.exempt,
             startMonth: s.start_month,
             startYear: s.start_year,
@@ -614,14 +746,17 @@ export class StudentServicesService {
   private async abonnementPourMaj(
     tx: Queryable,
     id: string,
-  ): Promise<{ service: ServiceCode; student_id: string; exempt: boolean; ended_at: Date | null }> {
+  ): Promise<{ service: ServiceCode; student_id: string; exempt: boolean; ended_at: Date | null; amount: string; remise: string }> {
     const { rows } = await tx.query<{
       service: ServiceCode;
       student_id: string;
       exempt: boolean;
       ended_at: Date | null;
+      amount: string;
+      remise: string;
     }>(
-      'SELECT service, student_id, exempt, ended_at FROM student_services WHERE id = $1 FOR UPDATE',
+      `SELECT service, student_id, exempt, ended_at, amount::text AS amount, remise::text AS remise
+         FROM student_services WHERE id = $1 FOR UPDATE`,
       [id],
     );
     if (!rows[0]) throw new NotFoundException('Abonnement introuvable.');

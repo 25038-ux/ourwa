@@ -5,13 +5,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
+  SERVICES_COCHABLES,
+  SERVICES_D_OFFICE,
   SERVICES_OPTIONNELS,
   definitionService,
   estModeEtude,
+  estServiceCochable,
   estServiceOptionnel,
   libelleFraisPhotocopie,
   libelleMode,
   libelleService,
+  money,
   toStorage,
   type ModeEtude,
   type Periodicite,
@@ -70,6 +74,8 @@ function duService(service: ServiceOptionnel): string {
       return 'de la piscine';
     case 'docteur':
       return 'du docteur';
+    case 'transport':
+      return 'du transport';
     case 'photocopie':
       return `de « ${libelleFraisPhotocopie()} »`;
   }
@@ -105,6 +111,11 @@ export interface PrixService {
   code: ServiceOptionnel;
   libelle: string;
   periodicite: Periodicite;
+  /**
+   * Vrai : créé d'office à chaque (ré)inscription (la photocopie, ADR-0079) —
+   * pas une case à cocher ; faux : la famille le coche.
+   */
+  obligatoire: boolean;
   /** NULL = non défini : le service ne peut pas être souscrit cette année. */
   prix: string | null;
 }
@@ -134,7 +145,10 @@ export interface PlanInscription {
   levelName: string;
   /** `levels.student_enrolment_fee` au jour de l'inscription ('0.00' = gratuit). */
   enrolmentFee: string;
-  /** Les services cochés, sans doublon, dans l'ordre du catalogue, au prix de l'année. */
+  /**
+   * Les services à souscrire, au prix de l'année, dans l'ordre du catalogue :
+   * ceux d'office (la photocopie, sauf prix 0) puis les cochés, sans doublon.
+   */
   services: { service: ServiceOptionnel; amount: string }[];
 }
 
@@ -239,6 +253,7 @@ export class TarifsService {
           code,
           libelle: libelleService(code),
           periodicite: definitionService(code).periodicite,
+          obligatoire: !definitionService(code).optionnel,
           prix: prix.get(code) ?? null,
         })),
       };
@@ -406,7 +421,10 @@ export class TarifsService {
 
     const coches = new Set<ServiceOptionnel>();
     for (const s of p.services ?? []) {
-      if (!estServiceOptionnel(s)) {
+      // La photocopie, d'office depuis le 04/10/2026 : un ancien écran qui la
+      // coche encore n'est pas refusé — elle est de toute façon ajoutée, une fois.
+      if (SERVICES_D_OFFICE.includes(s as ServiceOptionnel)) continue;
+      if (!estServiceCochable(s)) {
         throw new BadRequestException(
           s === 'inscription'
             ? "« Frais d'inscription » est ajouté d'office à chaque (ré)inscription : ne le cochez pas."
@@ -415,7 +433,7 @@ export class TarifsService {
       }
       coches.add(s);
     }
-    const services = SERVICES_OPTIONNELS.filter((s) => coches.has(s));
+    const services = SERVICES_COCHABLES.filter((s) => coches.has(s));
     if (services.filter((s) => definitionService(s).famille === 'cantine').length > 1) {
       throw new BadRequestException(CANTINE_UNIQUE);
     }
@@ -444,6 +462,14 @@ export class TarifsService {
 
       const prix = await this.prixIn(tx, p.year.id);
       const plan: PlanInscription['services'] = [];
+      // ⚠ D'OFFICE, COMME LES FRAIS D'INSCRIPTION (ADR-0079) : un prix non
+      // défini REFUSE l'inscription (D4 : non défini n'est pas gratuit) ; un
+      // prix de 0 n'écrit rien (comme une inscription gratuite).
+      for (const service of SERVICES_D_OFFICE) {
+        const amount = prix.get(service);
+        if (amount === undefined) throw new BadRequestException(prixNonDefini(service, p.year.label));
+        if (money(amount).greaterThan(0)) plan.push({ service, amount });
+      }
       for (const service of services) {
         const amount = prix.get(service);
         if (amount === undefined) throw new BadRequestException(prixNonDefini(service, p.year.label));

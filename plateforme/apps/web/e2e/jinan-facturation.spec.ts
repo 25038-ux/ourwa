@@ -63,6 +63,11 @@ test.describe('Jinan — la direction', () => {
     await expect(page.locator('#frais_mensuel')).toHaveValue('3000');
     await page.getByLabel(/8h – 17h/).check();
     await expect(page.getByTestId('frais-inscription')).toContainText('2 000 MRU');
+    // La photocopie : d'office (ADR-0079), dite, jamais cochée.
+    await expect(page.getByTestId('frais-photocopie')).toContainText('700 MRU');
+    await expect(page.getByTestId('frais-photocopie')).toContainText('obligatoire');
+    await expect(page.getByRole('checkbox', { name: /photocopie/i })).toHaveCount(0);
+    await expect(page.getByRole('checkbox', { name: 'Transport' })).toBeVisible();
     await page.getByLabel(/Cantine — déjeuner/).check();
     await page.getByRole('checkbox', { name: 'Piscine' }).check();
     await page.getByRole('radio', { name: 'Nouveau parent' }).check();
@@ -72,9 +77,10 @@ test.describe('Jinan — la direction', () => {
 
     const fenetre = page.locator('.modal-overlay.active');
     await expect(fenetre.getByText('Services 2025-2026')).toBeVisible({ timeout: 60000 });
-    // Octobre (4 500) + inscription (2 000) + cantine d'octobre (1 500) + piscine d'octobre (1 000).
-    await expect(fenetre.locator('tfoot')).toContainText('1 mois + 3 services');
-    await expect(fenetre.locator('tfoot')).toContainText('9 000 MRU');
+    // Octobre (4 500) + inscription (2 000) + photocopie (700, d'office) + cantine d'octobre (1 500)
+    // + piscine d'octobre (1 000).
+    await expect(fenetre.locator('tfoot')).toContainText('1 mois + 4 services');
+    await expect(fenetre.locator('tfoot')).toContainText('9 700 MRU');
     await fenetre.getByRole('button', { name: /Encaisser & imprimer/ }).click();
     await expect(page).toHaveURL(/\/finance\/recu\/groupe\//, { timeout: 60000 });
     const recu = page.locator('#recu');
@@ -83,7 +89,7 @@ test.describe('Jinan — la direction', () => {
     await expect(recu).toContainText('Cantine — déjeuner');
     await expect(recu).toContainText('Piscine');
     await expect(recu).toContainText("Frais d'inscription");
-    await expect(recu).toContainText('9 000');
+    await expect(recu).toContainText('9 700');
     // Le lien de retour mène à la fiche de la famille.
     familleUrl = (await page.getByRole('link', { name: /Profil du correspondant/ }).getAttribute('href'))!;
     expect(familleUrl).toMatch(/^\/finance\/[0-9a-f-]{36}$/);
@@ -167,7 +173,8 @@ test.describe('Jinan — la direction', () => {
     await modale.getByRole('button', { name: 'Confirmer la réinscription' }).click();
     const fenetre = page.locator('.modal-overlay.active');
     // 3 200 (2 AF, 8h – 14h) + inscription 2 000 + docteur d'octobre 500.
-    await expect(fenetre.locator('tfoot')).toContainText('5 700 MRU', { timeout: 60000 });
+    // + la photocopie (700), d'office depuis le 04/10/2026.
+    await expect(fenetre.locator('tfoot')).toContainText('6 400 MRU', { timeout: 60000 });
   });
 
   test('les impayés disent que les services sont dans la scolarité due', async ({ page }) => {
@@ -199,13 +206,13 @@ test.describe('Jinan — la secrétaire', () => {
     await page.getByRole('button', { name: /Inscrire l.étudiant/ }).click();
 
     const fenetre = page.locator('.modal-overlay.active');
-    await expect(fenetre.locator('tfoot')).toContainText('1 mois + 1 service', { timeout: 60000 });
+    await expect(fenetre.locator('tfoot')).toContainText('1 mois + 2 services', { timeout: 60000 });
     await expect(page.getByText(/Aucun moyen de paiement configuré/)).toHaveCount(0);
-    // 2 AF en 8h – 14h (3 200) + frais d'inscription (2 000).
-    await expect(fenetre.locator('tfoot')).toContainText('5 200 MRU');
+    // 2 AF en 8h – 14h (3 200) + frais d'inscription (2 000) + photocopie (700, d'office).
+    await expect(fenetre.locator('tfoot')).toContainText('5 900 MRU');
     await fenetre.getByRole('button', { name: /Encaisser & imprimer/ }).click();
     await expect(page).toHaveURL(/\/finance\/recu\/groupe\//, { timeout: 60000 });
-    await expect(page.locator('#recu')).toContainText('5 200');
+    await expect(page.locator('#recu')).toContainText('5 900');
   });
 });
 

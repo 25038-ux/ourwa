@@ -178,6 +178,22 @@ export class FacturationController {
     return result;
   }
 
+  /**
+   * Une remise PAR MOIS sur un service mensuel (cantine, piscine, docteur,
+   * transport) : les mois sans paiement seulement — direction seule, comme
+   * l'exemption (ADR-0079). `remise: '0'` la retire.
+   */
+  @Post('finance/student-services/:id/remise')
+  @RequirePermission('finance.dette')
+  @RequireRole('super_admin', 'admin')
+  async remise(@Param('id') id: string, @Body() raw: unknown, @Req() request: AuthenticatedRequest) {
+    // En CHAÎNE (règle 6) : le format est vérifié par le service, qui le dit en français.
+    const body = z.object({ remise: z.string().trim().max(20) }).parse(raw ?? {});
+    const result = await this.abonnements.setRemise(uuid.parse(id), { remise: body.remise }, request.auth!.userId);
+    await this.cliquet(result.guardianId, result.academicYearId);
+    return result;
+  }
+
   /** Changer le mode d'étude en cours d'année : les mois non réglés seulement — direction seule. */
   @Post('finance/concessions/study-mode')
   @RequirePermission('finance.dette')

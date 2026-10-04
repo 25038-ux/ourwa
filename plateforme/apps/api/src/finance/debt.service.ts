@@ -47,6 +47,10 @@ export interface AbonnementFiche {
   famille: FamilleService;
   /** Le montant figé à la souscription. */
   amount: string;
+  /** La remise par mois (0047, ADR-0079) ; '0.00' sans remise. */
+  remise: string;
+  /** Faux pour les services d'office (inscription, photocopie) : ils s'exemptent, ne s'arrêtent pas. */
+  arretable: boolean;
   exempt: boolean;
   startMonth: number;
   startYear: number;
@@ -1126,12 +1130,13 @@ export class DebtService {
       id: string;
       service: ServiceCode;
       amount: string;
+      remise: string;
       exempt: boolean;
       start_month: number;
       start_year: number;
       ended_at: Date | null;
     }>(
-      `SELECT id, service, amount::text AS amount, exempt, start_month, start_year, ended_at
+      `SELECT id, service, amount::text AS amount, remise::text AS remise, exempt, start_month, start_year, ended_at
          FROM student_services
         WHERE student_id = $1 AND academic_year_id = $2
         ORDER BY created_at, id`,
@@ -1193,6 +1198,8 @@ export class DebtService {
           periodicite: def.periodicite,
           famille: def.famille,
           amount: s.amount,
+          remise: s.remise,
+          arretable: def.arretable,
           exempt: s.exempt,
           startMonth: s.start_month,
           startYear: s.start_year,

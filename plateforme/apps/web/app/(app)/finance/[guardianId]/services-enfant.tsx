@@ -6,11 +6,13 @@ import { useActionMessage } from '@/components/message-page';
 import { fr } from '@/components/moyens-paiement';
 import type { CatalogueFacturation } from '@/components/choix-facturation';
 import { MOIS_NOMS } from '@/lib/mois';
+import { money, toStorage } from '@elourwa/shared/money';
 import {
   annulerPaiementServiceAction,
   arreterServiceAction,
   changerModeAction,
   exempterServiceAction,
+  remiseServiceAction,
   souscrireServiceAction,
 } from './services-actions';
 
@@ -21,6 +23,9 @@ import {
  * échéance de service.
  */
 
+/** La remise par mois, pour savoir s'il y en a une et pré-remplir le champ ; le dû se calcule en décimal (règle 6). */
+const remiseDe = (a: { remise?: string }) => Number(a.remise ?? '0');
+
 /** Un abonnement (`familyLedger` → `children[].services`). */
 export interface AbonnementFiche {
   id: string;
@@ -29,6 +34,10 @@ export interface AbonnementFiche {
   periodicite: 'mensuel' | 'annuel';
   famille: string;
   amount: string;
+  /** La remise par mois (ADR-0079) ; '0.00' sans remise. Absente d'une API plus ancienne. */
+  remise?: string;
+  /** Faux pour les services d'office (inscription, photocopie) : ils s'exemptent, ne s'arrêtent pas. */
+  arretable?: boolean;
   exempt: boolean;
   startMonth: number;
   startYear: number;
@@ -202,6 +211,7 @@ export function BlocServices({
   const [, souscrire, pSous] = useActionMessage(souscrireServiceAction);
   const [, arreter, pArr] = useActionMessage(arreterServiceAction);
   const [, exempter, pExe] = useActionMessage(exempterServiceAction);
+  const [, remiser, pRem] = useActionMessage(remiseServiceAction);
   const [, changerMode, pMode] = useActionMessage(changerModeAction);
   const [ouvert, setOuvert] = useState(false);
   const [modeOuvert, setModeOuvert] = useState(false);
@@ -289,7 +299,17 @@ export function BlocServices({
             return (
               <div key={a.id} data-testid={`abonnement-${a.service}`} style={{ display: 'flex', alignItems: 'center', gap: '.4rem', flexWrap: 'wrap', fontSize: '.85rem', opacity: arrete ? 0.6 : 1 }}>
                 <span style={{ minWidth: 200 }}>
-                  <strong>{a.label}</strong> — {mru(a.amount)} MRU{a.periodicite === 'mensuel' ? ' / mois' : ''}
+                  <strong>{a.label}</strong> —{' '}
+                  {remiseDe(a) > 0 ? (
+                    // La remise (ADR-0079) : le prix, la remise, ce qui est dû par mois.
+                    <span data-testid={`remise-${a.service}`}>
+                      <s className="text-muted">{mru(a.amount)}</s> − {mru(a.remise!)} ={' '}
+                      <strong>{mru(toStorage(money(a.amount).minus(money(a.remise!))))}</strong> MRU / mois
+                    </span>
+                  ) : (
+                    <>{mru(a.amount)} MRU{a.periodicite === 'mensuel' ? ' / mois' : ''}</>
+                  )}
+                  {a.arretable === false && <span className="text-muted"> · obligatoire</span>}
                   <span className="text-muted"> · depuis {MOIS_NOMS[a.startMonth]} {a.startYear}</span>
                 </span>
                 {arrete ? (
@@ -309,7 +329,28 @@ export function BlocServices({
                     </button>
                   </form>
                 )}
-                {peutAdministrer && !arrete && a.service !== 'inscription' && (
+                {peutAdministrer && !arrete && a.periodicite === 'mensuel' && (
+                  // Une remise par mois (direction) : les mois non réglés suivent.
+                  <form action={remiser} style={{ display: 'inline-flex', gap: '.25rem', alignItems: 'center' }}>
+                    <input type="hidden" name="studentServiceId" value={a.id} />
+                    <input type="hidden" name="service" value={a.service} />
+                    <input
+                      type="number"
+                      name="remise"
+                      min={0}
+                      max={Number(a.amount)}
+                      step="any"
+                      defaultValue={remiseDe(a) > 0 ? String(remiseDe(a)) : ''}
+                      placeholder="0"
+                      aria-label={`Remise par mois sur ${a.label}`}
+                      style={{ width: 80, padding: '.1rem .3rem', fontSize: '.72rem' }}
+                    />
+                    <button className="btn btn-sm btn-secondary" disabled={pRem} style={{ padding: '.1rem .45rem', fontSize: '.72rem' }}>
+                      Remise / mois
+                    </button>
+                  </form>
+                )}
+                {peutAdministrer && !arrete && (a.arretable ?? (a.service !== 'inscription' && a.service !== 'photocopie')) && (
                   <form
                     action={arreter}
                     style={{ display: 'inline-flex', gap: '.25rem', alignItems: 'center' }}

@@ -3814,3 +3814,35 @@ intertitre par cycle (`libelle_cycle()`).
 **Conséquences.** `apps/api/test/cycles-niveaux.spec.ts` (6, dont 0046 rejouée
 sur une école « jinan » d'essai) ; `e2e/cycles-niveaux.spec.ts`. Après la mise
 à jour, `installer-serveur.sh` affiche les niveaux par cycle.
+
+## ADR-0079 — Le transport, la photocopie obligatoire, les remises sur les services mensuels
+
+**Date :** 2026-10-04. **Demande du propriétaire (Jinan)** — texte et détail :
+`docs/specs/jinan-facturation.md`, addendum du 04/10/2026.
+
+**Décision.**
+- `transport` : un huitième service, mensuel, coché, au prix de l'école ;
+  migration 0047 élargit les deux CHECK de codes de 0042.
+- La photocopie devient **d'office** (`optionnel: false`, `arretable: false`)
+  — comme l'inscription : prix non défini → refus, prix 0 → rien. Choisi
+  plutôt que « ignorée si non définie » pour ne jamais oublier silencieusement
+  une dette (D4 : non défini n'est pas gratuit). **Aucun rattrapage** sur les
+  élèves déjà inscrits (une dette rétroactive serait une décision, pas un
+  effet de bord) ; la fiche permet de l'ajouter.
+- **Remise par mois** sur un service mensuel (`student_services.remise`),
+  direction seule, comme l'exemption : réévalue les seuls mois sans paiement
+  (la règle de « changer de mode ») ; CHECK `remise_bornee` et
+  `remise_mensuelle` ; journalisée (`student_service_remise_set`). Le grand
+  livre n'est jamais touché.
+- **Deux défauts trouvés en chemin et fermés** : (1) l'encaissement relisait
+  sous verrou le payé et l'exemption, pas le montant — une remise posée fenêtre
+  ouverte aurait fait encaisser l'ancien prix (trop-perçu) ; il relit
+  désormais `amount_due`. (2) reprendre un service arrêté à partir d'un mois
+  déjà facturé l'aurait facturé deux fois ; refusé, et la règle du 25
+  reprend après le dernier mois facturé.
+
+**Conséquences.** Écrans : page « Frais » (transport ; photocopie marquée
+« obligatoire »), inscription/réinscription (photocopie dite, pas cochée ;
+transport coché), fiche (remise, « Arrêter » absent pour les services
+d'office). L'application parent n'a rien à changer : elle affiche les
+libellés que l'API envoie.

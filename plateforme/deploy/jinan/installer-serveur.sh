@@ -93,6 +93,22 @@ echo "  Niveaux (cycle · rang · nom) — à changer dans Gestion de scolarité
 ( cd "$DIR/deploy/jinan" && docker compose exec -T db psql -U postgres -d jinan -At -F ' · ' \
     -c "SELECT cycle, sort_order, name FROM levels ORDER BY cycle, sort_order, name" 2>/dev/null | sed 's/^/    /' ) || true
 echo
+# Les prix des services de l'année active (page « Frais ») — et l'alerte qui
+# compte depuis le 04/10/2026 (ADR-0079) : la photocopie est d'office ; sans
+# prix, CHAQUE inscription est refusée jusqu'à ce qu'on le pose.
+PRIX="$(cd "$DIR/deploy/jinan" && docker compose exec -T db psql -U postgres -d jinan -At -F ' · ' \
+    -c "SELECT y.label, COALESCE(sp.service, '-'), COALESCE(sp.amount::text, '-')
+          FROM academic_years y LEFT JOIN service_prices sp ON sp.academic_year_id = y.id
+         WHERE y.status = 'active' ORDER BY sp.service" 2>/dev/null || true)"
+if [ -n "$PRIX" ]; then
+  echo "  Prix des services de l'année active (année · service · MRU) — page « Frais » :"
+  printf '%s\n' "$PRIX" | sed 's/^/    /'
+  if ! printf '%s\n' "$PRIX" | grep -q ' · photocopie · '; then
+    printf '\033[33m  ⚠ Le prix de la photocopie n’est pas défini : elle est désormais obligatoire,\n'
+    printf '    et chaque inscription sera REFUSÉE tant qu’il manque. Posez-le dans « Frais » (0 = gratuit).\033[0m\n'
+  fi
+  echo
+fi
 # Le mot de passe provisoire : à la PREMIÈRE installation seulement (le fichier
 # reste sur le serveur, et une mise à jour ne doit pas réafficher un vieux mot de passe).
 if [ "${PREMIERE:-0}" = 1 ] && [ -f /root/jinan-installation.txt ] && grep -q 'Mot de passe provisoire' /root/jinan-installation.txt; then

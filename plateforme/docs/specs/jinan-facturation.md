@@ -261,3 +261,42 @@ termes, **avant** la déduction des remises de dette :
 10. rapports : `revenusDuJour` par origine `service_*` ; `monthly().income.services`.
 Plus : `rls.test.ts` (nouvelles tables sous RLS forcée), caisse-direction-only
 (nouvelles routes direction), permission-names.
+
+---
+
+## Addendum du 04/10/2026 — transport, photocopie obligatoire, remises (ADR-0079, migration 0047)
+
+Demande du propriétaire : « add transport service (billed monthly and selected
+just like any other service at inscription) and make frais de photocopie
+constant for every niveau and mandatory just like frais d'inscription and make
+it possible to apply reductions to the monthly services and also add services
+or stop one later after inscription ».
+
+1. **Transport** (`transport`) : mensuel, au prix de l'école par année (page
+   « Frais »), une case à l'inscription et à la réinscription comme la
+   piscine ; s'ajoute (« + Ajouter un service », la caisse) et s'arrête
+   (direction) depuis la fiche. `source_type` : `service_transport`.
+2. **Photocopie obligatoire** : son prix était déjà UN prix d'école (pas par
+   niveau). Elle n'est plus cochée : créée d'office à chaque (ré)inscription,
+   comme les frais d'inscription — prix non défini → l'inscription est
+   refusée (« Le prix de « Frais de photocopie » n'est pas défini… — bouton
+   « Frais » ») ; prix 0 → rien. Elle s'exempte, elle ne s'arrête pas. **Pas de
+   rattrapage** : un élève inscrit avant ne reçoit aucune dette rétroactive ;
+   la fiche permet de la lui ajouter.
+3. **Remises sur les services mensuels** (cantine, piscine, docteur,
+   transport) : un montant PAR MOIS (`student_services.remise`), posé par la
+   direction depuis la fiche (« Remise / mois »). Les mois **sans paiement**
+   passent à `prix − remise` ; un mois réglé garde son prix et son reçu ; 0 la
+   retire ; jamais plus que le prix, jamais sur un service annuel (CHECK).
+   L'encaissement relit le montant sous son verrou : une remise posée pendant
+   qu'une fenêtre est ouverte fait refuser l'ancien montant. (D3 — « remises
+   sur la scolarité seule » — reste vrai pour les remises de dette ; celle-ci
+   est une remise de prix, par service.)
+4. **Reprendre un service arrêté** : un mois ne se facture jamais deux fois —
+   la reprise commence après le dernier mois de l'abonnement arrêté (un mois
+   choisi plus tôt est refusé, avec le mois où reprendre).
+
+Tests : `apps/api/test/transport-photocopie-remises.spec.ts` (15),
+`facturation-services.spec.ts` (mis à jour : chaque inscription porte sa
+photocopie), `packages/db/test/facturation-services.test.ts` (0047),
+`e2e/jinan-transport-remises.spec.ts`, `e2e/jinan-facturation.spec.ts`.

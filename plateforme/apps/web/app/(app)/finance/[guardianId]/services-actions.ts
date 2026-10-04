@@ -80,6 +80,32 @@ export async function exempterServiceAction(_prev: unknown, form: FormData): Pro
   }
 }
 
+/**
+ * UNE REMISE PAR MOIS SUR UN SERVICE MENSUEL (direction, ADR-0079) : les mois
+ * sans paiement passent au prix remisé ; 0 la retire. La phrase de l'API est
+ * rendue telle quelle (dépasse le prix, service annuel, arrêté…).
+ */
+export async function remiseServiceAction(_prev: unknown, form: FormData): Promise<Resultat> {
+  const remise = String(form.get('remise') ?? '').trim() || '0';
+  try {
+    const r = await apiFetch<{ remise: string; monthsChanged: number; changed: boolean }>(
+      `/finance/student-services/${String(form.get('studentServiceId') ?? '')}/remise`,
+      { method: 'POST', json: { remise } },
+    );
+    revalidatePath('/finance', 'layout');
+    const service = nom(String(form.get('service') ?? ''));
+    if (!r.changed) return { ok: `${service} : remise inchangée.` };
+    return {
+      ok:
+        Number(r.remise) > 0
+          ? `${service} : remise de ${r.remise.replace(/\.00$/, '')} MRU par mois (${r.monthsChanged} mois non réglés réévalués).`
+          : `${service} : remise retirée (${r.monthsChanged} mois non réglés au prix plein).`,
+    };
+  } catch (e) {
+    return erreur(e, "La remise n'a pas pu être enregistrée.");
+  }
+}
+
 export async function changerModeAction(_prev: unknown, form: FormData): Promise<Resultat> {
   const mode = String(form.get('studyMode') ?? '');
   if (!estModeEtude(mode)) return { error: "Choisissez le mode d'étude : 8h – 14h ou 8h – 17h." };

@@ -545,15 +545,21 @@ describe('3. les frais d’inscription, par niveau et par élève', () => {
 
     for (const { studentId } of [a, b]) {
       const abos = await abonnementsDe(studentId);
+      // + la photocopie, d'office depuis le 04/10/2026 (ADR-0079) : UN prix
+      // d'école, due au même mois que l'inscription.
       expect(abos.map((x) => [x.service, x.amount, x.start_month, x.start_year])).toEqual([
         ['inscription', '2000.00', 10, 2025],
+        ['photocopie', '1500.00', 10, 2025],
       ]);
       expect(await moisDe(abos[0]!.id)).toEqual([
         { calendar_month: 10, calendar_year: 2025, amount_due: '2000.00' },
       ]);
     }
     expect(a.r).toMatchObject({
-      services: [expect.objectContaining({ service: 'inscription', amount: '2000.00', created: true })],
+      services: [
+        expect.objectContaining({ service: 'inscription', amount: '2000.00', created: true }),
+        expect.objectContaining({ service: 'photocopie', amount: '1500.00', created: true }),
+      ],
     });
 
     // Le barème par famille (5 000 + 2 000) existe dans `configuration` : il
@@ -568,13 +574,16 @@ describe('3. les frais d’inscription, par niveau et par élève', () => {
   it('dû au premier mois dû de la scolarité (règle du 25)', async () => {
     const tard = await inscrire({ entryDate: '2025-11-28' });
     const abos = await abonnementsDe(tard.studentId);
-    expect(abos.map((x) => [x.service, x.start_month, x.start_year])).toEqual([['inscription', 12, 2025]]);
+    expect(abos.map((x) => [x.service, x.start_month, x.start_year])).toEqual([
+      ['inscription', 12, 2025],
+      ['photocopie', 12, 2025],
+    ]);
   });
 
-  it('un niveau à 0 : inscription gratuite, aucun abonnement', async () => {
+  it('un niveau à 0 : inscription gratuite, aucun abonnement « inscription » (la photocopie reste due)', async () => {
     const { studentId, r } = await inscrire({ groupId: group4 });
     expect(r.monthlyFee).toBe('3800.00');
-    expect(await abonnementsDe(studentId)).toEqual([]);
+    expect((await abonnementsDe(studentId)).map((a) => a.service)).toEqual(['photocopie']);
   });
 
   it('⚠ un niveau sans frais d’inscription définis : refus', async () => {
@@ -593,7 +602,7 @@ describe('3. les frais d’inscription, par niveau et par élève', () => {
 
   it('une gratuité de scolarité ne dispense pas des frais d’inscription (exemptables à part)', async () => {
     const { studentId } = await inscrire({ isFree: true });
-    expect((await abonnementsDe(studentId)).map((a) => a.service)).toEqual(['inscription']);
+    expect((await abonnementsDe(studentId)).map((a) => a.service)).toEqual(['inscription', 'photocopie']);
   });
 });
 
@@ -720,6 +729,7 @@ describe('4. les services souscrits à l’inscription', () => {
     expect((await abonnementsDe(r.studentId)).map((a) => [a.service, a.amount])).toEqual([
       ['cantine_complet', '1200.00'],
       ['inscription', '2000.00'],
+      ['photocopie', '1500.00'],
     ]);
   });
 
@@ -747,7 +757,7 @@ describe('4. les services souscrits à l’inscription', () => {
       enrollments.reEnrol(studentId, group6, ACTOR, DIRECTION, { studyMode: '8h-17h', services: ['piscine'] }),
     );
     expect(r.monthlyFee).toBe('4500.00');
-    expect((await abonnementsDe(studentId)).map((a) => a.service)).toEqual(['inscription', 'piscine']);
+    expect((await abonnementsDe(studentId)).map((a) => a.service)).toEqual(['inscription', 'photocopie', 'piscine']);
   });
 
   it('⚠ la réinscription en lot exige le mode, pour tous les élèves cochés', async () => {
@@ -762,7 +772,7 @@ describe('4. les services souscrits à l’inscription', () => {
     expect(r.enrolled).toBe(2);
     for (const id of [a, b]) {
       expect(await inscription(id)).toMatchObject({ study_mode: '8h-17h', monthly_fee: '4500.00' });
-      expect((await abonnementsDe(id)).map((x) => x.service)).toEqual(['inscription']);
+      expect((await abonnementsDe(id)).map((x) => x.service)).toEqual(['inscription', 'photocopie']);
     }
   });
 
@@ -806,14 +816,16 @@ describe('5. la cantine est exclusive ; l’arrêt', () => {
     );
     expect((await moisDe(docteur.id)).map((m) => m.calendar_month)).toEqual([12, 1, 2, 3, 4, 5, 6]);
 
+    // (La photocopie, d'office depuis le 04/10/2026, est déjà là : le transport
+    // éprouve désormais ces deux refus.)
     await expect(
       inS(() =>
-        abonnements.subscribe({ studentId, academicYearId: yearS, service: 'photocopie' }, ACTOR, new Date('2026-07-10T09:00:00Z')),
+        abonnements.subscribe({ studentId, academicYearId: yearS, service: 'transport' }, ACTOR, new Date('2026-07-10T09:00:00Z')),
       ),
     ).rejects.toThrow("L'année 2025-2026 est terminée : il ne reste aucun mois à facturer.");
     await expect(
       inS(() =>
-        abonnements.subscribe({ studentId, academicYearId: yearS, service: 'photocopie', startMonth: 8, startYear: 2026 }, ACTOR),
+        abonnements.subscribe({ studentId, academicYearId: yearS, service: 'transport', startMonth: 8, startYear: 2026 }, ACTOR),
       ),
     ).rejects.toThrow("Ce mois n'appartient pas à l'année 2025-2026.");
   });
@@ -838,7 +850,8 @@ describe('5. la cantine est exclusive ; l’arrêt', () => {
       abonnements.subscribe({ studentId, academicYearId: yearS, service: 'cantine_dejeuner' }, ACTOR),
     );
     expect(encore).toMatchObject({ id: dejeuner.id, created: false });
-    expect(await abonnementsDe(studentId)).toHaveLength(2);
+    // inscription, photocopie (d'office), la cantine — pas une de plus.
+    expect(await abonnementsDe(studentId)).toHaveLength(3);
   });
 
   it('⚠ l’arrêt supprime les mois futurs non payés ; changer de formule devient possible', async () => {
@@ -923,7 +936,7 @@ describe('5. la cantine est exclusive ; l’arrêt', () => {
     const insc = (await abonnementsDe(studentId)).find((a) => a.service === 'inscription')!;
     await expect(
       inS(() => abonnements.stop(insc.id, { fromMonth: 11, fromYear: 2025 }, ACTOR)),
-    ).rejects.toThrow("L'abonnement « Frais d'inscription » ne s'arrête pas : exemptez-le si l'école y renonce.");
+    ).rejects.toThrow("L'abonnement « Frais d'inscription » est obligatoire, il ne s'arrête pas : exemptez-le si l'école y renonce.");
     expect(await moisDe(insc.id)).toHaveLength(1);
   });
 });
@@ -1044,7 +1057,7 @@ describe('changer de mode en cours d’année (direction)', () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe('la page « Frais » : tarifs et prix', () => {
-  it('lit les niveaux et les six prix de l’année (défaut : l’année active)', async () => {
+  it('lit les niveaux et les sept prix de l’année (défaut : l’année active)', async () => {
     const page = await inS(() => tarifs.tarifs());
     expect(page.billingModel).toBe('services');
     expect(page.annee).toMatchObject({ id: yearS, label: '2025-2026', modifiable: true });
@@ -1056,7 +1069,7 @@ describe('la page « Frais » : tarifs et prix', () => {
     ]);
     expect(page.services.map((s) => s.code)).toEqual([...SERVICES_OPTIONNELS]);
     expect(page.services.find((s) => s.code === 'piscine')).toEqual({
-      code: 'piscine', libelle: 'Piscine', periodicite: 'mensuel', prix: '1000.00',
+      code: 'piscine', libelle: 'Piscine', periodicite: 'mensuel', obligatoire: false, prix: '1000.00',
     });
     expect(page.services.find((s) => s.code === 'photocopie')).toMatchObject({ periodicite: 'annuel', prix: '1500.00' });
   });
@@ -1096,7 +1109,8 @@ describe('la page « Frais » : tarifs et prix', () => {
     await expect(inF(() => tarifs.tarifs(yearS))).rejects.toThrow(/introuvable/);
 
     const { studentId } = await inscrire({ services: ['piscine'] });
-    expect((await inS(() => abonnements.forStudent(studentId, yearS))).length).toBe(2);
+    // inscription, photocopie (d'office), piscine.
+    expect((await inS(() => abonnements.forStudent(studentId, yearS))).length).toBe(3);
     expect(await inF(() => abonnements.forStudent(studentId, yearS))).toEqual([]);
     const piscine = (await abonnementsDe(studentId)).find((a) => a.service === 'piscine')!;
     await expect(inF(() => abonnements.stop(piscine.id, { fromMonth: 2, fromYear: 2026 }, ACTOR))).rejects.toThrow();
@@ -1210,7 +1224,7 @@ describe('les routes : gardes et formes', () => {
 
     const liste = await call(caisse, 'GET', `/finance/students/${studentId}/services?academicYearId=${yearS}`);
     expect(liste.statusCode).toBe(200);
-    expect((liste.json() as { service: string }[]).map((a) => a.service)).toEqual(['docteur', 'inscription']);
+    expect((liste.json() as { service: string }[]).map((a) => a.service)).toEqual(['docteur', 'photocopie', 'inscription']);
   });
 
   it('les formulaires d’inscription portent studyMode et services', async () => {
@@ -2075,7 +2089,8 @@ describe('le grand livre des services et la caisse (§5, §7)', () => {
     /**
      * Une famille de deux enfants, toute l'année 2025-2026 échue :
      *   A (8h – 14h, 3 000) : cantine déjeuner (800 × 9), photocopie (1 500), inscription (2 000) ;
-     *   B (8h – 17h, 4 500) : piscine (1 000 × 9, novembre payé 500), docteur EXEMPTÉ, inscription (2 000).
+     *   B (8h – 17h, 4 500) : piscine (1 000 × 9, novembre payé 500), docteur EXEMPTÉ, inscription (2 000),
+     *     et la photocopie (1 500), d'office depuis le 04/10/2026 (ADR-0079).
      */
     async function familleDeDeux(t: string) {
       const guardianId = await parent(tag(t));
@@ -2094,10 +2109,10 @@ describe('le grand livre des services et la caisse (§5, §7)', () => {
       const f = await familleDeDeux('dette');
 
       // Avant tout encaissement.
-      // A : 27 000 + 7 200 + 1 500 + 2 000 = 37 700 ; B : 40 500 + 8 500 + 0 + 2 000 = 51 000.
+      // A : 27 000 + 7 200 + 1 500 + 2 000 = 37 700 ; B : 40 500 + 8 500 + 0 + 2 000 + 1 500 = 52 500.
       const avant = await quatreChemins(f.guardianId);
-      expect(avant.seul.total).toBe('88700.00');
-      expect(avant.detail.total.toFixed(2)).toBe('88700.00');
+      expect(avant.seul.total).toBe('90200.00');
+      expect(avant.detail.total.toFixed(2)).toBe('90200.00');
 
       // Un reçu groupé : la scolarité d'octobre de A, sa cantine d'octobre, son inscription.
       const r = await inS(() =>
@@ -2122,35 +2137,35 @@ describe('le grand livre des services et la caisse (§5, §7)', () => {
       expect(ecart(avant.seul.total, c.seul.total)).toBe('5800.00');
       expect(ecart(avant.detail.total.toFixed(2), c.detail.total.toFixed(2))).toBe('5800.00');
 
-      // A : 24 000 + 6 400 + 1 500 ; B : 40 500 + 8 500 + 2 000. Total 82 900.
+      // A : 24 000 + 6 400 + 1 500 ; B : 40 500 + 8 500 + 2 000 + 1 500. Total 84 400.
       expect(c.seul).toMatchObject({
         guardianId: f.guardianId,
         annualFees: [],
-        beforeWriteOffs: '82900.00',
+        beforeWriteOffs: '84400.00',
         writtenOff: '0.00',
-        total: '82900.00',
+        total: '84400.00',
         clearsAll: false,
       });
       // « Mois impayés » = la scolarité seule (§6) ; les services à part.
       expect(c.seul.tuition).toHaveLength(17);
       expect(somme(c.seul.tuition)).toBe('64500.00');
-      expect(somme(c.seul.services)).toBe('18400.00');
+      expect(somme(c.seul.services)).toBe('19900.00');
 
       // Le même calcul par lot (Impayés d'une année) : ligne pour ligne.
       expect(c.lot).toEqual(c.seul);
 
       // Toutes années (porte de réinscription, examens, fiche, application) : les mêmes lignes.
-      expect(c.detail.total.toFixed(2)).toBe('82900.00');
-      expect(c.detail.beforeWriteOffs).toBe('82900.00');
+      expect(c.detail.total.toFixed(2)).toBe('84400.00');
+      expect(c.detail.beforeWriteOffs).toBe('84400.00');
       expect(c.detail.writtenOff).toBe('0.00');
       expect(c.detail.services).toEqual(c.seul.services);
       expect(somme(c.detail.tuition)).toBe('64500.00');
       expect(c.detail.tuition).toHaveLength(17);
-      expect((await inS(() => debts.outstandingAcrossYears(f.guardianId))).toFixed(2)).toBe('82900.00');
+      expect((await inS(() => debts.outstandingAcrossYears(f.guardianId))).toFixed(2)).toBe('84400.00');
 
       // Les Impayés : même total ; les mois comptent la scolarité seule.
-      expect(c.impayes).toMatchObject({ total: '82900.00', scolarite: '82900.00', diverses: '0.00', months: 17 });
-      expect(c.toutes).toMatchObject({ total: '82900.00', months: 17 });
+      expect(c.impayes).toMatchObject({ total: '84400.00', scolarite: '84400.00', diverses: '0.00', months: 17 });
+      expect(c.toutes).toMatchObject({ total: '84400.00', months: 17 });
 
       // Les lignes : par enfant, les services annuels d'abord, puis mois par mois.
       const lignes = (studentId: string) =>
@@ -2166,6 +2181,7 @@ describe('le grand livre des services et la caisse (§5, §7)', () => {
       ]);
       const piscine = (m: number, y: number, reste = '1000.00') => ['piscine', m, y, reste];
       expect(lignes(f.b)).toEqual([
+        ['photocopie', null, null, '1500.00'],
         ['inscription', null, null, '2000.00'],
         // Novembre : 1 000 dus, 500 payés. Le docteur, exempté, pèse 0 : absent.
         piscine(10, 2025), piscine(11, 2025, '500.00'), piscine(12, 2025), piscine(1, 2026),
@@ -2223,19 +2239,20 @@ describe('le grand livre des services et la caisse (§5, §7)', () => {
         vi.useRealTimers();
       }
       // A : scolarité nov-déc-jan 9 000, cantine nov-déc-jan 2 400, photocopie 1 500 (annuelle) ;
-      // B : scolarité oct→jan 18 000, piscine 1 000 + 500 + 1 000 + 1 000, inscription 2 000.
-      expect(c.seul.total).toBe('36400.00');
+      // B : scolarité oct→jan 18 000, piscine 1 000 + 500 + 1 000 + 1 000, inscription 2 000, photocopie 1 500.
+      expect(c.seul.total).toBe('37900.00');
       expect(somme(c.seul.tuition)).toBe('27000.00');
-      expect(somme(c.seul.services)).toBe('9400.00');
+      expect(somme(c.seul.services)).toBe('10900.00');
       expect(c.lot).toEqual(c.seul);
-      expect(c.detail.total.toFixed(2)).toBe('36400.00');
+      expect(c.detail.total.toFixed(2)).toBe('37900.00');
       expect(c.detail.services).toEqual(c.seul.services);
-      expect(c.impayes?.total).toBe('36400.00');
-      expect(c.toutes?.total).toBe('36400.00');
+      expect(c.impayes?.total).toBe('37900.00');
+      expect(c.toutes?.total).toBe('37900.00');
       // Aucune échéance mensuelle postérieure à janvier 2026.
       const mensuelles = c.seul.services.filter((l) => l.month !== null);
       expect(mensuelles.every((l) => l.year! * 12 + l.month! <= 2026 * 12 + 1)).toBe(true);
       expect(c.seul.services.filter((l) => l.month === null).map((l) => l.service)).toEqual([
+        'photocopie',
         'photocopie',
         'inscription',
       ]);
@@ -2243,24 +2260,24 @@ describe('le grand livre des services et la caisse (§5, §7)', () => {
 
     it('⚠ la remise s’applique APRÈS les services ; « annuler toute la dette » les couvre aussi', async () => {
       const guardianId = await parent(tag('remise'));
-      // 27 000 de scolarité + 9 000 de piscine + 2 000 d'inscription = 38 000.
+      // 27 000 de scolarité + 9 000 de piscine + 2 000 d'inscription + 1 500 de photocopie = 39 500.
       await inscrire({ guardianId, services: ['piscine'] });
       await inS(() =>
         debts.grantWriteOff({ guardianId, academicYearId: yearS, amount: '30000.00', reason: 'accord' }, ACTOR),
       );
 
       const c = await quatreChemins(guardianId);
-      // Remise après la somme : 38 000 − 30 000. (Avant les services, on lirait 11 000.)
-      expect(c.seul).toMatchObject({ beforeWriteOffs: '38000.00', writtenOff: '30000.00', total: '8000.00' });
+      // Remise après la somme : 39 500 − 30 000. (Avant les services, on lirait 12 500.)
+      expect(c.seul).toMatchObject({ beforeWriteOffs: '39500.00', writtenOff: '30000.00', total: '9500.00' });
       expect(c.lot).toEqual(c.seul);
-      expect(c.detail.beforeWriteOffs).toBe('38000.00');
-      expect(c.detail.total.toFixed(2)).toBe('8000.00');
-      expect(c.impayes?.total).toBe('8000.00');
-      expect(c.toutes?.total).toBe('8000.00');
+      expect(c.detail.beforeWriteOffs).toBe('39500.00');
+      expect(c.detail.total.toFixed(2)).toBe('9500.00');
+      expect(c.impayes?.total).toBe('9500.00');
+      expect(c.toutes?.total).toBe('9500.00');
 
       await inS(() => debts.grantWriteOff({ guardianId, clearsAll: true, reason: 'tout' }, ACTOR));
       const t = await quatreChemins(guardianId);
-      expect(t.seul).toMatchObject({ total: '0.00', beforeWriteOffs: '38000.00', writtenOff: '38000.00', clearsAll: true });
+      expect(t.seul).toMatchObject({ total: '0.00', beforeWriteOffs: '39500.00', writtenOff: '39500.00', clearsAll: true });
       expect(t.lot).toEqual(t.seul);
       expect(t.detail.total.toFixed(2)).toBe('0.00');
       expect(t.impayes).toBeUndefined();
@@ -2269,16 +2286,16 @@ describe('le grand livre des services et la caisse (§5, §7)', () => {
 
     it('une scolarité gratuite doit encore ses services, et les portes les voient ; une inscription annulée ne doit rien', async () => {
       const guardianId = await parent(tag('gratuit'));
-      // Scolarité gratuite ; inscription 2 000 + docteur 300 × 9 = 4 700.
+      // Scolarité gratuite ; inscription 2 000 + photocopie 1 500 + docteur 300 × 9 = 6 200.
       const { studentId } = await inscrire({ guardianId, isFree: true, services: ['docteur'] });
 
       const c = await quatreChemins(guardianId);
       expect(c.seul.tuition).toEqual([]);
-      expect(c.seul.total).toBe('4700.00');
-      expect(c.detail.total.toFixed(2)).toBe('4700.00');
-      expect(c.impayes).toMatchObject({ total: '4700.00', months: 0 });
+      expect(c.seul.total).toBe('6200.00');
+      expect(c.detail.total.toFixed(2)).toBe('6200.00');
+      expect(c.impayes).toMatchObject({ total: '6200.00', months: 0 });
       // La porte de réinscription et celle des examens lisent ce chiffre.
-      expect((await inS(() => debts.outstandingAcrossYears(guardianId))).toFixed(2)).toBe('4700.00');
+      expect((await inS(() => debts.outstandingAcrossYears(guardianId))).toFixed(2)).toBe('6200.00');
 
       await owner.query(`UPDATE enrollments SET status = 'cancelled' WHERE student_id = $1`, [studentId]);
       const d = await quatreChemins(guardianId);
@@ -2300,7 +2317,7 @@ describe('le grand livre des services et la caisse (§5, §7)', () => {
       const t = tag('ecrans');
       const guardianId = await parent(t);
       const { studentId } = await inscrire({ guardianId, groupId: gz[0]!.id, services: ['docteur'] });
-      // 27 000 + 2 700 + 2 000 = 31 700, dont 4 700 de services.
+      // 27 000 + 2 700 + 2 000 + 1 500 = 33 200, dont 6 200 de services.
 
       const http = await app.inject({
         method: 'GET',
@@ -2309,21 +2326,23 @@ describe('le grand livre des services et la caisse (§5, §7)', () => {
       });
       expect(http.statusCode, http.body).toBe(200);
       const body = http.json() as { total: string; services: { service: string; month: number | null; outstanding: string }[] };
-      expect(body.total).toBe('31700.00');
-      expect(somme(body.services)).toBe('4700.00');
-      expect(body.services[0]).toMatchObject({ service: 'inscription', month: null, outstanding: '2000.00' });
+      expect(body.total).toBe('33200.00');
+      expect(somme(body.services)).toBe('6200.00');
+      // Les annuels d'abord, dans l'ordre du catalogue : la photocopie, puis l'inscription.
+      expect(body.services[0]).toMatchObject({ service: 'photocopie', month: null, outstanding: '1500.00' });
+      expect(body.services[1]).toMatchObject({ service: 'inscription', month: null, outstanding: '2000.00' });
 
       const enrolCtl = app.get(EnrollmentController);
       const recherche = await inS(() => enrolCtl.reEnrolSearch(`Parent ${t}`));
       const fam = recherche.families.find((x) => x.guardianId === guardianId)!;
-      expect(fam.debt).toBe('31700.00');
-      expect(somme(fam.services)).toBe('4700.00');
+      expect(fam.debt).toBe('33200.00');
+      expect(somme(fam.services)).toBe('6200.00');
 
       const candidats = await inS(() => enrolCtl.reEnrolCandidates(yearS, gz[0]!.id));
       const famC = candidats.families.find((x) => x.guardianId === guardianId)!;
-      expect(famC.debt).toBe('31700.00');
+      expect(famC.debt).toBe('33200.00');
       // Le détail sous la famille fait son chiffre, services compris.
-      expect(somme(famC.lines.map((l) => ({ outstanding: l.amount })))).toBe('31700.00');
+      expect(somme(famC.lines.map((l) => ({ outstanding: l.amount })))).toBe('33200.00');
       const nom = await nomDe(studentId);
       expect(famC.lines).toEqual(
         expect.arrayContaining([
@@ -2337,12 +2356,12 @@ describe('le grand livre des services et la caisse (§5, §7)', () => {
         auth: { userId: guardianId, schoolId: S.schoolId, roles: ['parent'], permissions: [], impersonated: false },
       } as unknown as AuthenticatedRequest;
       const solde = await inS(() => parentCtl.balance(req));
-      expect(solde.total).toBe('31700.00');
+      expect(solde.total).toBe('33200.00');
       const services = solde.services as { outstanding: string; school: { slug: string } }[];
-      expect(somme(services)).toBe('4700.00');
+      expect(somme(services)).toBe('6200.00');
       expect(services[0]!.school.slug).toBe(S.slug);
-      expect(solde.parEcole[0]).toMatchObject({ total: '31700.00' });
-      expect(somme((solde.parEcole[0] as unknown as { services: { outstanding: string }[] }).services)).toBe('4700.00');
+      expect(solde.parEcole[0]).toMatchObject({ total: '33200.00' });
+      expect(somme((solde.parEcole[0] as unknown as { services: { outstanding: string }[] }).services)).toBe('6200.00');
     });
 
     it('une école « famille » : `services: []` sur les quatre chemins, et ses chiffres d’aujourd’hui', async () => {

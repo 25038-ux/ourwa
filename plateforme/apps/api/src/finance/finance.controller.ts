@@ -161,9 +161,9 @@ export class FinanceController {
         fraisInscription: z.boolean().optional(),
         fraisPhotocopie: z.boolean().optional(),
         // École « services » (ADR-0073, §7) : les échéances de service cochées —
-        // un service annuel sans mois. Au plus soixante : trois mensuels actifs
-        // (une cantine, la piscine, le docteur) sur douze mois et deux annuels
-        // font 38 lignes ; la marge couvre une formule arrêtée puis reprise.
+        // un service annuel sans mois. Au plus soixante : quatre mensuels actifs
+        // (une cantine, la piscine, le docteur, le transport) sur douze mois et
+        // deux annuels font 50 lignes ; la marge couvre une formule arrêtée puis reprise.
         services: z
           .array(
             z.object({

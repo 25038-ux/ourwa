@@ -470,6 +470,7 @@ testées. Seule la suspension ne l'est pas.
 | 12i | IP et domaine de production de Jinan en un seul endroit | **Fait le 2026-09-29.** `deploy/jinan/configurer-production.sh`, `production.env`. ADR-0075. **En attente de l'IP et du domaine réels.** |
 | 12k | NNI et RIM de l'élève facultatifs | **Fait le 2026-09-30**, décision du propriétaire (écart assumé avec El Ourwa, toutes écoles). 0044 ; absent = NULL ; le registre des exclus ne confond pas les « sans numéro ». ADR-0077. |
 | 12l | Niveaux classés par cycle (Maternelle, Fondamentales, Collège, Lycée), barrière entre les cycles | **Fait le 2026-09-30**, demande de Jinan. 0045 (`maternelle`), 0046 (niveaux de Jinan classés), cycle et rang modifiables sur la page Niveaux, rubriques par cycle dans les listes de classes (écoles « services »). ADR-0078. |
+| 12m | Transport (mensuel, coché), photocopie obligatoire (d'office, prix d'école), remises par mois sur les services mensuels ; ajouter / arrêter un service après l'inscription | **Fait le 2026-10-04**, demande de Jinan. 0047. ADR-0079. |
 | 27, 28 | Interface web en arabe, avec RTL | L'application **parent** est bilingue (fr/ar, RTL) ; l'interface **web** du personnel est en français seul. El Ourwa a les deux. |
 | 31 | Couche de cache | Phase 0, jamais commencée. Rien ne la réclame pour l'instant. |
 | 100 | Le total arabe du fondamental | **Tranché le 2026-09-11 : rien à porter.** `total_ar` vide sur 5 792 lignes, jamais lu. |

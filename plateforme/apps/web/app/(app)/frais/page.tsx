@@ -32,7 +32,7 @@ const STATUT: Record<string, { texte: string; classe: string }> = {
  *
  * Pour l'année du sélecteur de l'en-tête (défaut : l'année active) : les
  * tarifs de chaque niveau — 8h – 14h, 8h – 17h, frais d'inscription — et les
- * six prix des services. Chaque cellule s'enregistre seule (le motif de
+ * prix des services (le transport, au choix ; la photocopie, obligatoire). Chaque cellule s'enregistre seule (le motif de
  * « Gérer les niveaux »). Une année close se lit et ne se modifie plus.
  *
  * ⚠ UNE ÉCOLE « FAMILLE » (El Mourad, Nour, Rissala, Salam) N'A PAS CETTE PAGE :
@@ -194,7 +194,15 @@ export default async function FraisPage() {
                       <td data-label="Service">
                         <strong>{libelle}</strong>
                       </td>
-                      <td data-label="Facturation">{s.periodicite === 'mensuel' ? 'Chaque mois' : 'Une fois par an'}</td>
+                      <td data-label="Facturation">
+                        {s.periodicite === 'mensuel' ? 'Chaque mois' : 'Une fois par an'}
+                        {/* La photocopie (ADR-0079) : d'office, comme les frais d'inscription. */}
+                        {s.obligatoire ? (
+                          <span className="badge badge-warning" style={{ marginLeft: '.4rem' }}>obligatoire, à chaque inscription</span>
+                        ) : (
+                          <span className="text-muted" style={{ marginLeft: '.4rem', fontSize: '.8rem' }}>(au choix)</span>
+                        )}
+                      </td>
                       <td data-label="Prix">
                         {modifiable ? (
                           <PrixServiceCellule

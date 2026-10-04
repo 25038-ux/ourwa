@@ -6,6 +6,9 @@ import {
   SERVICES,
   SERVICES_CANTINE,
   SERVICES_OPTIONNELS,
+  SERVICES_COCHABLES,
+  SERVICES_D_OFFICE,
+  estServiceCochable,
   SERVICE_CODES,
   SOURCES_SERVICES,
   comparerEcheancesService,
@@ -75,13 +78,14 @@ describe('le catalogue des services (§4)', () => {
     delete process.env.FEE_PHOTOCOPY_LABEL;
   });
 
-  it('compte sept services, dans l’ordre de la spécification', () => {
+  it('compte huit services — le transport ajouté le 04/10/2026 (ADR-0079)', () => {
     expect(SERVICE_CODES).toEqual([
       'cantine_petit_dejeuner',
       'cantine_dejeuner',
       'cantine_complet',
       'piscine',
       'docteur',
+      'transport',
       'photocopie',
       'inscription',
     ]);
@@ -95,12 +99,13 @@ describe('le catalogue des services (§4)', () => {
       ['cantine_complet', 'Cantine — petit déjeuner + déjeuner'],
       ['piscine', 'Piscine'],
       ['docteur', 'Docteur'],
+      ['transport', 'Transport'],
       ['photocopie', 'Frais de photocopie'],
       ['inscription', "Frais d'inscription"],
     ]);
   });
 
-  it('mensuels : les cantines, la piscine, le docteur ; annuels : photocopie et inscription', () => {
+  it('mensuels : les cantines, la piscine, le docteur, le transport ; annuels : photocopie et inscription', () => {
     const periodicite = Object.fromEntries(SERVICES.map((s) => [s.code, s.periodicite]));
     expect(periodicite).toEqual({
       cantine_petit_dejeuner: 'mensuel',
@@ -108,6 +113,7 @@ describe('le catalogue des services (§4)', () => {
       cantine_complet: 'mensuel',
       piscine: 'mensuel',
       docteur: 'mensuel',
+      transport: 'mensuel',
       photocopie: 'annuel',
       inscription: 'annuel',
     });
@@ -116,29 +122,47 @@ describe('le catalogue des services (§4)', () => {
   it('⚠ les trois cantines forment UNE famille (exclusives), les autres la leur', () => {
     expect(SERVICES_CANTINE).toEqual(['cantine_petit_dejeuner', 'cantine_dejeuner', 'cantine_complet']);
     for (const c of SERVICES_CANTINE) expect(familleService(c)).toBe('cantine');
-    for (const c of ['piscine', 'docteur', 'photocopie', 'inscription'] as const) {
+    for (const c of ['piscine', 'docteur', 'transport', 'photocopie', 'inscription'] as const) {
       expect(familleService(c)).toBe(c);
     }
   });
 
-  it('⚠ l’inscription seule est obligatoire, et son prix est celui du niveau', () => {
-    expect(SERVICES.filter((s) => !s.optionnel).map((s) => s.code)).toEqual(['inscription']);
+  it('⚠ l’inscription et la photocopie sont obligatoires (04/10/2026) ; l’inscription seule a le prix du niveau', () => {
+    expect(SERVICES.filter((s) => !s.optionnel).map((s) => s.code)).toEqual(['photocopie', 'inscription']);
+    expect(SERVICES.filter((s) => !s.arretable).map((s) => s.code)).toEqual(['photocopie', 'inscription']);
     expect(SERVICES.filter((s) => s.prixPar === 'niveau').map((s) => s.code)).toEqual(['inscription']);
+    // La page « Frais » : tout ce qui a un prix d'école, la photocopie comprise
+    // — UN prix pour tous les niveaux.
     expect(SERVICES_OPTIONNELS).toEqual([
       'cantine_petit_dejeuner',
       'cantine_dejeuner',
       'cantine_complet',
       'piscine',
       'docteur',
+      'transport',
       'photocopie',
     ]);
+    // Ce qu'une famille coche.
+    expect(SERVICES_COCHABLES).toEqual([
+      'cantine_petit_dejeuner',
+      'cantine_dejeuner',
+      'cantine_complet',
+      'piscine',
+      'docteur',
+      'transport',
+    ]);
+    expect(SERVICES_D_OFFICE).toEqual(['photocopie']);
     expect(estServiceOptionnel('inscription')).toBe(false);
     expect(estServiceOptionnel('piscine')).toBe(true);
+    expect(estServiceOptionnel('photocopie')).toBe(true);
+    expect(estServiceCochable('photocopie')).toBe(false);
+    expect(estServiceCochable('transport')).toBe(true);
+    expect(estServiceCochable('inscription')).toBe(false);
   });
 
   it('reconnaît ses codes et rien d’autre', () => {
     for (const c of SERVICE_CODES) expect(estServiceCode(c)).toBe(true);
-    for (const v of ['transport', 'cantine', '', null, undefined, 3]) {
+    for (const v of ['bus', 'cantine', '', null, undefined, 3]) {
       expect(estServiceCode(v)).toBe(false);
       expect(estServiceOptionnel(v)).toBe(false);
     }
@@ -146,7 +170,7 @@ describe('le catalogue des services (§4)', () => {
 
   it('refuse bruyamment un code inconnu plutôt que de rendre undefined', () => {
     expect(definitionService('piscine').libelle).toBe('Piscine');
-    expect(() => definitionService('transport' as never)).toThrow(/transport/);
+    expect(() => definitionService('bus' as never)).toThrow(/bus/);
   });
 
   it('⚠ la photocopie porte le nom de l’école, lu à l’affichage (FEE_PHOTOCOPY_LABEL)', () => {
@@ -174,6 +198,7 @@ describe('les moyens encaissés par service (§5, §10)', () => {
       'service_cantine',
       'service_piscine',
       'service_docteur',
+      'service_transport',
       'service_photocopie',
       'service_inscription',
     ]);
@@ -182,6 +207,7 @@ describe('les moyens encaissés par service (§5, §10)', () => {
     expect(sourceTypeService('cantine_complet')).toBe('service_cantine');
     expect(sourceTypeService('piscine')).toBe('service_piscine');
     expect(sourceTypeService('docteur')).toBe('service_docteur');
+    expect(sourceTypeService('transport')).toBe('service_transport');
     expect(sourceTypeService('photocopie')).toBe('service_photocopie');
     expect(sourceTypeService('inscription')).toBe('service_inscription');
   });
@@ -198,6 +224,7 @@ describe('les moyens encaissés par service (§5, §10)', () => {
   it('se lisent dans les rapports sous les libellés de la spécification', () => {
     expect(libelleSourceService('service_cantine')).toBe('Cantine');
     expect(libelleSourceService('service_piscine')).toBe('Piscine');
+    expect(libelleSourceService('service_transport')).toBe('Transport');
     expect(libelleSourceService('service_docteur')).toBe('Docteur');
     expect(libelleSourceService('service_photocopie')).toBe('Frais de photocopie');
     expect(libelleSourceService('service_photocopie', 'Frais Graytna')).toBe('Frais Graytna');
@@ -206,7 +233,7 @@ describe('les moyens encaissés par service (§5, §10)', () => {
 
   it('reconnaît ses source_type et rien d’autre', () => {
     for (const s of SOURCES_SERVICES) expect(estSourceService(s)).toBe(true);
-    for (const v of ['paiement', 'frais_annuel', 'service_transport', '', null]) {
+    for (const v of ['paiement', 'frais_annuel', 'service_bus', '', null]) {
       expect(estSourceService(v)).toBe(false);
     }
   });

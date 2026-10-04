@@ -32,6 +32,8 @@ export interface PrixService {
   code: ServiceOptionnel;
   libelle: string;
   periodicite: Periodicite;
+  /** Créé d'office à chaque (ré)inscription — la photocopie (ADR-0079) ; sinon coché. */
+  obligatoire: boolean;
   prix: string | null;
 }
 
@@ -48,7 +50,7 @@ export interface PageTarifs {
   };
   /** Dans l'ordre des niveaux (cycle, ordre, nom). */
   niveaux: TarifNiveau[];
-  /** Les six services optionnels, dans l'ordre du catalogue (`SERVICES_OPTIONNELS`). */
+  /** Les services au prix de l'école (transport et photocopie compris), dans l'ordre du catalogue. */
   services: PrixService[];
 }
 
@@ -146,6 +148,13 @@ export async function catalogueFacturation(
     niveaux: Object.fromEntries(
       tarifs.niveaux.map((n) => [n.id, { nom: n.nom, tarif8h14: n.tarif8h14, tarif8h17: n.tarif8h17, fraisInscription: n.fraisInscription }]),
     ),
-    services: tarifs.services.map((s) => ({ code: s.code, libelle: s.libelle, periodicite: s.periodicite, prix: s.prix })),
+    services: tarifs.services.map((s) => ({
+      code: s.code,
+      libelle: s.libelle,
+      periodicite: s.periodicite,
+      // Une API d'avant 0047 ne le dit pas : la photocopie était cochée.
+      obligatoire: s.obligatoire ?? false,
+      prix: s.prix,
+    })),
   };
 }

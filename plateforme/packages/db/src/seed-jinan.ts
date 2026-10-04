@@ -59,6 +59,8 @@ const PRIX = {
   cantine_complet: 2000,
   piscine: 1000,
   docteur: 500,
+  // 04/10/2026 (ADR-0079) : le transport, mensuel ; la photocopie, désormais d'office.
+  transport: 1200,
   photocopie: 700,
 } as const;
 
@@ -98,7 +100,7 @@ const FAMILIES = [
   },
 ] as const;
 
-const MENSUELS = new Set(['cantine_petit_dejeuner', 'cantine_dejeuner', 'cantine_complet', 'piscine', 'docteur']);
+const MENSUELS = new Set(['cantine_petit_dejeuner', 'cantine_dejeuner', 'cantine_complet', 'piscine', 'docteur', 'transport']);
 
 /** Supprime l'école de développement et ses comptes, dans l'ordre que les clés NO ACTION exigent. */
 async function effacer(db: pg.Client): Promise<void> {

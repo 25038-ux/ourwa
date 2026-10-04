@@ -55,19 +55,29 @@ export function libelleMode(mode: ModeEtude | null | undefined): string {
 
 // ── Les services (§4) ───────────────────────────────────────────────────────
 
-/** Les sept codes, dans l'ordre de la spécification — celui de l'affichage. */
+/**
+ * Les huit codes, dans l'ordre de l'affichage. `transport` (mensuel, coché) et
+ * la photocopie devenue obligatoire : 04/10/2026, migration 0047, ADR-0079.
+ */
 export const SERVICE_CODES = [
   'cantine_petit_dejeuner',
   'cantine_dejeuner',
   'cantine_complet',
   'piscine',
   'docteur',
+  'transport',
   'photocopie',
   'inscription',
 ] as const;
 export type ServiceCode = (typeof SERVICE_CODES)[number];
 
-/** Ce qu'une famille peut cocher ; `inscription` est ajoutée d'office. */
+/**
+ * Un service au PRIX DE L'ÉCOLE (`service_prices`, par année) — tout sauf
+ * l'inscription, dont le prix est celui du niveau. Il se fixe sur la page
+ * « Frais » et se souscrit depuis la fiche. (Le nom est resté : jusqu'au
+ * 04/10/2026 ils étaient tous optionnels ; la photocopie est désormais
+ * d'office — voir `SERVICES_COCHABLES`.)
+ */
 export type ServiceOptionnel = Exclude<ServiceCode, 'inscription'>;
 
 export const SERVICES_CANTINE = ['cantine_petit_dejeuner', 'cantine_dejeuner', 'cantine_complet'] as const;
@@ -78,7 +88,7 @@ export type ServiceCantine = (typeof SERVICES_CANTINE)[number];
  * Un seul abonnement ACTIF par élève, par année et par famille : les trois
  * cantines sont donc exclusives (changer de formule = arrêter, puis souscrire).
  */
-export type FamilleService = 'cantine' | 'piscine' | 'docteur' | 'photocopie' | 'inscription';
+export type FamilleService = 'cantine' | 'piscine' | 'docteur' | 'transport' | 'photocopie' | 'inscription';
 
 /**
  * `tender_lines.source_type` des moyens encaissés pour un service : un par
@@ -89,6 +99,7 @@ export const SOURCES_SERVICES = [
   'service_cantine',
   'service_piscine',
   'service_docteur',
+  'service_transport',
   'service_photocopie',
   'service_inscription',
 ] as const;
@@ -106,8 +117,16 @@ export interface DefinitionService {
   periodicite: Periodicite;
   famille: FamilleService;
   sourceType: SourceService;
-  /** Faux pour la seule `inscription`, créée d'office à chaque (ré)inscription. */
+  /**
+   * Coché ou non par la famille. Faux pour l'inscription et (04/10/2026) la
+   * photocopie : créées d'office à chaque (ré)inscription.
+   */
   optionnel: boolean;
+  /**
+   * S'arrête en cours d'année. Faux pour les services d'office (inscription,
+   * photocopie) : ils s'exemptent, ils ne s'arrêtent pas.
+   */
+  arretable: boolean;
   /** `ecole` : `service_prices`, par année ; `niveau` : `levels.student_enrolment_fee`. */
   prixPar: 'ecole' | 'niveau';
 }
@@ -126,23 +145,29 @@ function definir(d: Omit<DefinitionService, 'libelle'> & { libelle: string }): D
 export const SERVICES: readonly DefinitionService[] = Object.freeze([
   definir({
     code: 'cantine_petit_dejeuner', libelle: `${CANTINE}petit déjeuner`, formule: 'petit déjeuner',
-    periodicite: 'mensuel', famille: 'cantine', sourceType: 'service_cantine', optionnel: true, prixPar: 'ecole',
+    periodicite: 'mensuel', famille: 'cantine', sourceType: 'service_cantine', optionnel: true, arretable: true, prixPar: 'ecole',
   }),
   definir({
     code: 'cantine_dejeuner', libelle: `${CANTINE}déjeuner`, formule: 'déjeuner',
-    periodicite: 'mensuel', famille: 'cantine', sourceType: 'service_cantine', optionnel: true, prixPar: 'ecole',
+    periodicite: 'mensuel', famille: 'cantine', sourceType: 'service_cantine', optionnel: true, arretable: true, prixPar: 'ecole',
   }),
   definir({
     code: 'cantine_complet', libelle: `${CANTINE}petit déjeuner + déjeuner`, formule: 'petit déjeuner + déjeuner',
-    periodicite: 'mensuel', famille: 'cantine', sourceType: 'service_cantine', optionnel: true, prixPar: 'ecole',
+    periodicite: 'mensuel', famille: 'cantine', sourceType: 'service_cantine', optionnel: true, arretable: true, prixPar: 'ecole',
   }),
   definir({
     code: 'piscine', libelle: 'Piscine', formule: null,
-    periodicite: 'mensuel', famille: 'piscine', sourceType: 'service_piscine', optionnel: true, prixPar: 'ecole',
+    periodicite: 'mensuel', famille: 'piscine', sourceType: 'service_piscine', optionnel: true, arretable: true, prixPar: 'ecole',
   }),
   definir({
     code: 'docteur', libelle: 'Docteur', formule: null,
-    periodicite: 'mensuel', famille: 'docteur', sourceType: 'service_docteur', optionnel: true, prixPar: 'ecole',
+    periodicite: 'mensuel', famille: 'docteur', sourceType: 'service_docteur', optionnel: true, arretable: true, prixPar: 'ecole',
+  }),
+  // 04/10/2026 (ADR-0079) : facturé chaque mois, coché à l'inscription comme
+  // la piscine, ajouté ou arrêté ensuite depuis la fiche.
+  definir({
+    code: 'transport', libelle: 'Transport', formule: null,
+    periodicite: 'mensuel', famille: 'transport', sourceType: 'service_transport', optionnel: true, arretable: true, prixPar: 'ecole',
   }),
   // Le libellé est un accesseur : `libelleFraisPhotocopie()` lit l'environnement
   // au moment de la lecture, jamais au chargement du module.
@@ -155,18 +180,32 @@ export const SERVICES: readonly DefinitionService[] = Object.freeze([
     periodicite: 'annuel' as const,
     famille: 'photocopie' as const,
     sourceType: 'service_photocopie' as const,
-    optionnel: true,
+    // 04/10/2026 (ADR-0079) : obligatoire, comme les frais d'inscription — un
+    // prix pour toute l'école (pas par niveau), créée d'office à chaque
+    // (ré)inscription, exemptable, jamais arrêtée.
+    optionnel: false,
+    arretable: false,
     prixPar: 'ecole' as const,
   }),
   definir({
     code: 'inscription', libelle: "Frais d'inscription", formule: null,
-    periodicite: 'annuel', famille: 'inscription', sourceType: 'service_inscription', optionnel: false, prixPar: 'niveau',
+    periodicite: 'annuel', famille: 'inscription', sourceType: 'service_inscription', optionnel: false, arretable: false, prixPar: 'niveau',
   }),
 ]);
 
-/** Les six services qu'une famille coche (§8) — tous sauf l'inscription. */
+/** Les services au prix de l'école, dans l'ordre du catalogue : la page « Frais ». */
 export const SERVICES_OPTIONNELS: readonly ServiceOptionnel[] = Object.freeze(
+  SERVICES.filter((s) => s.prixPar === 'ecole').map((s) => s.code as ServiceOptionnel),
+);
+
+/** Ce qu'une famille COCHE à l'inscription : cantines, piscine, docteur, transport. */
+export const SERVICES_COCHABLES: readonly ServiceOptionnel[] = Object.freeze(
   SERVICES.filter((s) => s.optionnel).map((s) => s.code as ServiceOptionnel),
+);
+
+/** Au prix de l'école ET créés d'office à chaque (ré)inscription : la photocopie. */
+export const SERVICES_D_OFFICE: readonly ServiceOptionnel[] = Object.freeze(
+  SERVICES.filter((s) => !s.optionnel && s.prixPar === 'ecole').map((s) => s.code as ServiceOptionnel),
 );
 
 export function estServiceCode(v: unknown): v is ServiceCode {
@@ -175,6 +214,10 @@ export function estServiceCode(v: unknown): v is ServiceCode {
 
 export function estServiceOptionnel(v: unknown): v is ServiceOptionnel {
   return estServiceCode(v) && v !== 'inscription';
+}
+
+export function estServiceCochable(v: unknown): v is ServiceOptionnel {
+  return estServiceCode(v) && definitionService(v).optionnel;
 }
 
 /**
@@ -241,6 +284,7 @@ const LIBELLES_SOURCE: Readonly<Record<Exclude<SourceService, 'service_photocopi
   service_cantine: 'Cantine',
   service_piscine: 'Piscine',
   service_docteur: 'Docteur',
+  service_transport: 'Transport',
   service_inscription: "Frais d'inscription (élève)",
 });
 

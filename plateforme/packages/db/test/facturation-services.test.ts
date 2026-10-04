@@ -266,7 +266,7 @@ describe('les prix des services (§4)', () => {
   });
 
   it('n’a pas de prix d’inscription (il est par niveau) ni de service inconnu', async () => {
-    for (const service of ['inscription', 'transport']) {
+    for (const service of ['inscription', 'bus']) {
       await expect(
         J((tx) =>
           tx.query(
@@ -330,7 +330,7 @@ describe('les abonnements (§4)', () => {
   });
 
   it('refuse un service inconnu, un montant négatif, un mois hors calendrier', async () => {
-    await expect(J((tx) => abonner(tx, eleve2, 'transport'))).rejects.toThrow(/check constraint/i);
+    await expect(J((tx) => abonner(tx, eleve2, 'bus'))).rejects.toThrow(/check constraint/i);
     await expect(J((tx) => abonner(tx, eleve, 'docteur', '-1'))).rejects.toThrow(/check constraint/i);
     await expect(
       J((tx) =>
@@ -596,5 +596,22 @@ describe('supprimer une école reste possible (0025 : NO ACTION, pas RESTRICT)',
       const r = await owner.query<{ n: number }>(`SELECT count(*)::int AS n FROM ${t} WHERE school_id = $1`, [ecole]);
       expect(r.rows[0]!.n, t).toBe(0);
     }
+  });
+});
+
+describe('0047 — le transport, les remises', () => {
+  it('le transport est un service connu de la base (prix et abonnement)', async () => {
+    const { rows } = await owner.query<{ c: string }>(
+      `SELECT pg_get_constraintdef(oid) AS c FROM pg_constraint WHERE conname IN ('service_prices_service_check', 'student_services_service_check')`,
+    );
+    expect(rows).toHaveLength(2);
+    for (const r of rows) expect(r.c).toContain("'transport'");
+  });
+
+  it('⚠ une remise : jamais négative, jamais plus que le prix, jamais sur un service annuel', async () => {
+    const { rows } = await owner.query<{ conname: string }>(
+      `SELECT conname FROM pg_constraint WHERE conrelid = 'student_services'::regclass AND contype = 'c' AND conname LIKE 'student_services_remise%' ORDER BY conname`,
+    );
+    expect(rows.map((r) => r.conname)).toEqual(['student_services_remise_bornee', 'student_services_remise_mensuelle']);
   });
 });
