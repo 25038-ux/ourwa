@@ -8,6 +8,49 @@ every session, even short or unproductive ones.
 
 
 
+## 0.7.9+19 — JINAN : TRANSPORT, PHOTOCOPIE OBLIGATOIRE, REMISES ; LA MISE À JOUR RÉPÉTÉE — 2026-10-04
+
+**Demande du propriétaire :** le transport (mensuel, coché comme les autres
+services), la photocopie au même prix pour tous les niveaux et obligatoire
+comme les frais d'inscription, des remises sur les services mensuels, ajouter
+ou arrêter un service après l'inscription ; « give me the script to deploy,
+test it on your side and make sure it doesn't fail » ; un projet Firebase et
+l'APK.
+
+- **Fait** (ADR-0079, migration **0047**, addendum de
+  `docs/specs/jinan-facturation.md`) : transport ; photocopie d'office (prix
+  non défini → inscription refusée ; 0 → rien ; ne s'arrête pas ; aucun
+  rattrapage des élèves déjà inscrits) ; remise par mois (direction, mois
+  sans paiement seulement). Ajouter / arrêter un service existait déjà sur la
+  fiche du correspondant (« + Ajouter un service », « Arrêter ») ; vérifié.
+- **Deux défauts fermés en chemin** : l'encaissement relit désormais le
+  montant dû sous verrou (une remise fenêtre ouverte faisait encaisser
+  l'ancien prix) ; reprendre un service arrêté ne refacture plus un mois.
+- **Vérifié** : API 1043/1043, base 84/84, shared 121/121, `tsc` ; navigateur
+  `jinan-facturation` + `jinan-transport-remises` 19/19.
+- **La mise à jour RÉPÉTÉE dans Docker, ici** (dockerd du bac à sable ; images
+  par le miroir mirror.gcr.io, Docker Hub refusant « 429 » ; une image de base
+  locale qui ne fait qu'ajouter le mandataire et son certificat — le
+  Dockerfile et docker-compose.yml du dépôt, inchangés) :
+  1. la ligne de l'installation (`installer-serveur.sh`, téléchargé de GitHub)
+     a installé le commit 79c99db — celui du serveur — : en ligne en ~7 min ;
+  2. des données comme en production par l'API de cette version : année
+     2026-2027, trois niveaux, prix, deux familles avec services, un reçu
+     JIN-2026-00001 ;
+  3. LA MÊME LIGNE, après le push de 6d09bc8 : sauvegarde, code remplacé
+     (.env gardé), construction, migration 0047, API saine, prix et niveaux
+     affichés, aucun mot de passe réaffiché ;
+  4. vérification par HTTP : abonnements et paiements d'avant identiques ;
+     transport coché, photocopie d'office, remise de 200 (9 mois à 1 000),
+     remise refusée sur un annuel, encaissement au prix remisé (JIN-2026-00002),
+     photocopie non arrêtable, cantine arrêtée, transport ajouté à un élève
+     d'avant la mise à jour ; site web 200.
+- **Firebase** : non créé — il faut le compte Google du propriétaire. Le plan
+  reste celui du fichier de marque : le projet `el-mourad` existant, une
+  application Android `mr.jinan.parent` de plus ; l'APK livré interroge le
+  serveur (« sondage »).
+- APK 0.7.9+19 (clé d'essai) et `.aab` non signé : `dist/` (non commités).
+
 ## LES NIVEAUX PAR CYCLE (MATERNELLE → LYCÉE) — 2026-09-30 (soir)
 
 **Demande du propriétaire :** classer les niveaux de Jinan en Maternelle (TPS,
