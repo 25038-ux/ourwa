@@ -201,7 +201,7 @@ class _Hero extends StatelessWidget {
                 child: Text(
                   lang == 'ar' ? 'FR' : 'العربية',
                   style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 13),
+                      fontWeight: FontWeight.w700, fontSize: 13, fontFamilyFallback: ['Noto Sans Arabic']),
                 ),
               ),
             ],
@@ -229,7 +229,8 @@ class _Hero extends StatelessWidget {
               height: 1.15,
               fontWeight: FontWeight.w700,
               fontStyle: FontStyle.italic,
-              color: Color(0xFFA5F3FC),
+              // L'or de « Jardin » (04/10/2026), à la place du cyan clair.
+              color: Ocean.or,
             ),
           ),
 
