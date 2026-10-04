@@ -26,6 +26,7 @@
 # et interroge au lieu de recevoir) :
 #   FIREBASE_API_KEY  FIREBASE_APP_ID  FIREBASE_PROJECT_ID  FIREBASE_SENDER_ID
 #   FIREBASE_VAPID_KEY (web seulement)
+#   FIREBASE_IOS_APP_ID, FIREBASE_IOS_API_KEY (iOS seulement ; sans eux, l'iPhone interroge le serveur)
 # Et l'adresse du serveur : API_URL (obligatoire pour une version publiée),
 # WEB_URL (celle du site, pour les pages légales ; déduite d'API_URL sinon).
 
@@ -83,7 +84,9 @@ dart_defines() {
   [ -n "${WEB_URL:-}" ] && d+=(--dart-define=WEB_URL="$WEB_URL")
   [ -n "${BRAND_NAME:-}" ] && d+=(--dart-define=BRAND_NAME="$BRAND_NAME")
   [ -n "${BRAND_NAME_AR:-}" ] && d+=(--dart-define=BRAND_NAME_AR="$BRAND_NAME_AR")
-  for v in FIREBASE_API_KEY FIREBASE_APP_ID FIREBASE_PROJECT_ID FIREBASE_SENDER_ID FIREBASE_VAPID_KEY; do
+  # FIREBASE_IOS_* : l'application iOS déclarée à part dans Firebase (sans elle,
+  # l'iPhone n'initialise pas Firebase — jamais avec l'ID Android ; push.dart).
+  for v in FIREBASE_API_KEY FIREBASE_APP_ID FIREBASE_PROJECT_ID FIREBASE_SENDER_ID FIREBASE_VAPID_KEY FIREBASE_IOS_APP_ID FIREBASE_IOS_API_KEY; do
     [ -n "${!v:-}" ] && d+=(--dart-define="$v=${!v}")
   done
   # Rien a definir : ne rien imprimer. Une ligne vide deviendrait un argument

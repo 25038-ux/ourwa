@@ -140,3 +140,24 @@ set +a; tools/packager.sh apk`.
 familles : elle ne se partage qu'avec les serveurs. Pour la révoquer :
 console → Paramètres du projet → Comptes de service → *Gérer les
 autorisations* → clés du compte `firebase-adminsdk-fbsvc`.
+
+## Fait le 04/10/2026 — Jinan dans le même projet
+
+Le propriétaire a ajouté l'application Android de Jinan au projet
+`el-mourad` :
+
+| | |
+|---|---|
+| Application Android Jinan | `mr.jinan.parent` — `1:721820198526:android:76a37c1a083d25811d9a2f` |
+| Clé API | celle du **projet** (la même qu'El Mourad) — la console ne l'affiche pas sous l'application : il n'y a qu'une clé Android, créée par Firebase pour tout le projet |
+| Valeurs de l'application | `deploy/brands/jinan.env` (pas des secrets : elles sont compilées dans l'APK) |
+| Clé du serveur | `/opt/jinan/deploy/jinan/secrets/fcm-service-account.json` sur le serveur seulement — `install.sh` la vérifie et l'affiche (« clé Firebase du projet « el-mourad » ») ; `https://api.ecole-jinan.com/health` dit alors `"push":"firebase"` |
+
+Application 0.8.1+21 : la première version de Jinan construite avec Firebase.
+
+⚠ **iOS ne reçoit jamais l'ID Android.** Le projet iOS est construit avec les
+mêmes `--dart-define` que l'APK ; Firebase iOS refuse au démarrage un ID
+`…:android:…`, et l'application peut se fermer. `push.dart` ne passe donc à
+l'iPhone que `FIREBASE_IOS_APP_ID` (une application **iOS** déclarée dans
+Firebase, avec la clé APNs) ; sans elle, l'iPhone interroge le serveur comme
+avant (`test/push_plateforme_test.dart`).

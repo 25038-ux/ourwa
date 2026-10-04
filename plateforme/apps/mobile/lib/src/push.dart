@@ -37,11 +37,33 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// réessaie la déclaration à chaque sondage tant qu'elle n'a pas abouti (le
 /// premier essai part souvent avant que le réseau ne soit prêt).
 class Push {
-  static const _apiKey = String.fromEnvironment('FIREBASE_API_KEY');
-  static const _appId = String.fromEnvironment('FIREBASE_APP_ID');
+  static const _apiKeyAndroid = String.fromEnvironment('FIREBASE_API_KEY');
+  static const _appIdAndroid = String.fromEnvironment('FIREBASE_APP_ID');
+  static const _apiKeyIos = String.fromEnvironment('FIREBASE_IOS_API_KEY');
+  static const _appIdIos = String.fromEnvironment('FIREBASE_IOS_APP_ID');
   static const _projectId = String.fromEnvironment('FIREBASE_PROJECT_ID');
   static const _senderId = String.fromEnvironment('FIREBASE_SENDER_ID');
   static const _vapid = String.fromEnvironment('FIREBASE_VAPID_KEY');
+
+  /// L'ID d'application Firebase POUR CETTE PLATEFORME, ou vide.
+  ///
+  /// ⚠ UN iPHONE NE REÇOIT JAMAIS L'ID ANDROID (04/10/2026, Jinan). Le projet
+  /// iOS est construit avec les mêmes --dart-define que l'APK ; Firebase iOS
+  /// refuse au démarrage un ID « 1:…:android:… » — et ce refus-là n'est pas
+  /// une exception Dart qu'on rattrape : l'application peut se fermer. Sans
+  /// ID iOS à lui (FIREBASE_IOS_APP_ID, l'application iOS déclarée dans
+  /// Firebase, avec sa clé APNs), l'iPhone interroge le serveur.
+  @visibleForTesting
+  static String idPour({required bool web, required TargetPlatform plateforme, required String android, required String ios}) {
+    if (web) return android;
+    if (plateforme == TargetPlatform.iOS || plateforme == TargetPlatform.macOS) return ios;
+    return android;
+  }
+
+  static bool get _surIos => !kIsWeb && (defaultTargetPlatform == TargetPlatform.iOS || defaultTargetPlatform == TargetPlatform.macOS);
+  static String get _appId =>
+      idPour(web: kIsWeb, plateforme: defaultTargetPlatform, android: _appIdAndroid, ios: _appIdIos);
+  static String get _apiKey => _surIos && _apiKeyIos.isNotEmpty ? _apiKeyIos : _apiKeyAndroid;
 
   static bool get configure =>
       _apiKey.isNotEmpty && _appId.isNotEmpty && _projectId.isNotEmpty && _senderId.isNotEmpty;
@@ -105,7 +127,7 @@ class Push {
     if (!configure) return;
     try {
       await Firebase.initializeApp(
-        options: const FirebaseOptions(
+        options: FirebaseOptions(
           apiKey: _apiKey,
           appId: _appId,
           projectId: _projectId,
