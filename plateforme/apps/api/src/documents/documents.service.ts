@@ -419,11 +419,18 @@ export class DocumentsService {
    * d'avant présentée comme la courante).
    */
   async pourFamille(guardianId: string) {
+    const { schoolId } = currentTenant();
+    // L'application n'offre « Documents » qu'aux familles d'une école « services ».
+    const actif = await this.db.query(async (tx) => {
+      const { rows } = await tx.query<{ billing_model: string }>('SELECT billing_model FROM schools WHERE id = $1', [schoolId]);
+      return rows[0]?.billing_model === 'services';
+    });
     const annee = await this.years.activeForParent();
-    if (!annee) return { annee: null, enfants: [] as EnfantDocuments[] };
+    if (!annee) return { actif, annee: null, enfants: [] as EnfantDocuments[] };
     const enfants = await this.db.query((tx) => this.enfantsAvecPieces(tx, guardianId, annee.id));
     // Ce que l'école seule a à savoir (qui a déposé) ne part pas vers le téléphone.
     return {
+      actif,
       annee: { id: annee.id, label: annee.label },
       enfants: enfants.map((e) => ({
         ...e,

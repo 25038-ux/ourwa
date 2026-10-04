@@ -292,9 +292,9 @@ class _CarteFichierState extends State<_CarteFichier> {
     final futur = _octets ??= widget.api.bytes('/attachments/${widget.id}');
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => _VisionneuseFichier(
+        builder: (_) => VisionneuseFichier(
           nom: widget.nom,
-          estImage: _estImage,
+          mime: widget.mime,
           octets: futur,
         ),
       ),
@@ -333,7 +333,7 @@ class _CarteFichierState extends State<_CarteFichier> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.picture_as_pdf_outlined, size: 30, color: Ocean.c600),
+                    Icon(iconeFichier(widget.mime), size: 30, color: Ocean.c600),
                     const SizedBox(height: 6),
                     Text(
                       widget.nom,
@@ -354,32 +354,60 @@ class _CarteFichierState extends State<_CarteFichier> {
   }
 }
 
-/// Sa visionneuse — le `data-lightbox` de sa grille, en plein écran.
-class _VisionneuseFichier extends StatelessWidget {
-  const _VisionneuseFichier({
+/// L'icône d'un fichier selon son type : PDF, image, ou document de bureau
+/// (Word, Excel, PowerPoint — admis dans les exercices depuis le 04/10/2026).
+IconData iconeFichier(String mime) {
+  if (mime.startsWith('image/')) return Icons.image_outlined;
+  if (mime == 'application/pdf') return Icons.picture_as_pdf_outlined;
+  if (mime.contains('sheet') || mime.contains('excel')) return Icons.table_chart_outlined;
+  if (mime.contains('presentation') || mime.contains('powerpoint')) return Icons.slideshow_outlined;
+  return Icons.description_outlined;
+}
+
+/// Sa visionneuse — le `data-lightbox` de sa grille, en plein écran. Une
+/// image s'affiche ici ; un PDF ou un document Word est remis à l'application
+/// du téléphone qui sait l'ouvrir, AVEC SON VRAI TYPE (« application/pdf »
+/// codé en dur envoyait une fiche Word au lecteur PDF, qui la refusait).
+class VisionneuseFichier extends StatelessWidget {
+  const VisionneuseFichier({
+    super.key,
     required this.nom,
-    required this.estImage,
+    required this.mime,
     required this.octets,
   });
 
   final String nom;
-  final bool estImage;
+  final String mime;
   final Future<Uint8List> octets;
+
+  bool get _estImage => mime.startsWith('image/');
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
+      backgroundColor: const Color(0xFF0B1F1A),
       appBar: AppBar(
-        backgroundColor: Colors.black87,
+        backgroundColor: const Color(0xFF0B1F1A),
         foregroundColor: Colors.white,
         title: Text(nom, style: const TextStyle(fontSize: 15)),
+        actions: [
+          FutureBuilder<Uint8List>(
+            future: octets,
+            builder: (context, snap) => snap.hasData
+                ? IconButton(
+                    tooltip: 'Ouvrir / partager',
+                    icon: const Icon(Icons.ios_share_rounded),
+                    onPressed: () => ouvrirDansNavigateur(snap.data!, nom, mime),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
       ),
       body: FutureBuilder<Uint8List>(
         future: octets,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
-            return const Squelette(lignes: 5, hauteur: 72);
+            return const Center(child: CircularProgressIndicator(color: Colors.white70));
           }
           if (snap.hasError || !snap.hasData) {
             return const Center(
@@ -392,22 +420,19 @@ class _VisionneuseFichier extends StatelessWidget {
               ),
             );
           }
-          if (estImage) {
+          if (_estImage) {
             return InteractiveViewer(
               maxScale: 5,
               child: Center(child: Image.memory(snap.data!)),
             );
           }
-          // Un PDF ne se rend pas ici. On le remet au navigateur, qui sait le
-          // faire : les octets sont déjà là, il ne repart donc pas les chercher
-          // sans jeton.
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.picture_as_pdf_outlined, size: 64, color: Colors.white70),
+                  Icon(iconeFichier(mime), size: 64, color: Colors.white70),
                   const SizedBox(height: 16),
                   Text(
                     nom,
@@ -416,7 +441,7 @@ class _VisionneuseFichier extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   FilledButton.icon(
-                    onPressed: () => ouvrirDansNavigateur(snap.data!, nom, 'application/pdf'),
+                    onPressed: () => ouvrirDansNavigateur(snap.data!, nom, mime),
                     icon: const Icon(Icons.open_in_new),
                     label: const Text('Ouvrir'),
                   ),

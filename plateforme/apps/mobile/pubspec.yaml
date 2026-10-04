@@ -1,7 +1,7 @@
 name: elourwa_parent
 description: El Ourwa — espace parents / فضاء الأولياء
 publish_to: none
-version: 0.7.9+19
+version: 0.8.0+20
 
 environment:
   sdk: ">=3.5.0 <4.0.0"

@@ -210,6 +210,8 @@ describe('chaque route de lecture répond', () => {
 
   it('documents (ADR-0080) — les pièces de chaque enfant, même vides', async () => {
     const out = await inTenant(() => parent.documentsFamille(r()));
+    // École « famille » : la route répond, l'application ne montre pas l'entrée.
+    expect(out.actif).toBe(false);
     expect(out.enfants).toHaveLength(1);
     expect(out.enfants[0]!.pieces.map((p) => p.piece)).toEqual(['inscription', 'photocopie']);
   });

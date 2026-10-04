@@ -1202,6 +1202,8 @@ export class ParentController {
     const parts = await this.dansChaqueEcole(request, () => this.documents.pourFamille(request.auth!.userId));
     const avecAnnee = parts.filter((p) => p.valeur.annee !== null);
     return {
+      // Une école de la famille facture par service (Jinan) : l'application montre « Documents ».
+      actif: parts.some((p) => p.valeur.actif),
       annee: avecAnnee[0]?.valeur.annee ?? null,
       enfants: parts.flatMap((p) => p.valeur.enfants.map((e) => ({ ...e, school: etiquette(p.ecole) }))),
     };

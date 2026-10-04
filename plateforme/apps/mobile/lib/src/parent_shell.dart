@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'sonnerie.dart';
@@ -7,6 +8,8 @@ import 'bandeau_notification.dart';
 import 'push.dart';
 import 'api.dart';
 import 'dashboard_screen.dart';
+import 'documents_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'i18n.dart';
 import 'messages_screen.dart';
 import 'notifications_poller.dart';
@@ -72,6 +75,27 @@ class _ParentShellState extends State<ParentShell> {
   NotificationsPoller? _poller;
   bool _premierSondageFait = false;
 
+  /// « Documents » dans le menu latéral : seulement pour une famille d'une école
+  /// qui facture par service (Jinan, ADR-0080). Le dernier verdict est gardé
+  /// sur le téléphone pour que l'entrée soit là dès l'ouverture.
+  bool _documentsActifs = false;
+  final GlobalKey<ScaffoldState> _echafaudage = GlobalKey<ScaffoldState>();
+
+  Future<void> _verifierDocuments() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final avant = prefs.getBool('documents_actifs') ?? false;
+      if (avant && mounted) setState(() => _documentsActifs = true);
+      final r = await widget.api.get('/parent/documents');
+      final actif = r['actif'] == true;
+      await prefs.setBool('documents_actifs', actif);
+      await prefs.setString(DocumentsScreen.cleCache, jsonEncode(r));
+      if (mounted && actif != _documentsActifs) setState(() => _documentsActifs = actif);
+    } catch (_) {
+      // Hors ligne : on garde ce qu'on savait.
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -84,6 +108,7 @@ class _ParentShellState extends State<ParentShell> {
       // dont on ne sait rien — la même règle que ci-dessous.
       onError: () {},
     )..demarrer();
+    unawaited(_verifierDocuments());
   }
 
   /// Une méthode, comparée par `==` : quand la coquille est remplacée (clé
@@ -204,13 +229,15 @@ class _ParentShellState extends State<ParentShell> {
 
     // ⚠ ITS FIVE, IN ITS ORDER. Exercices before Absences, which is not the
     // desktop order and is deliberate: on a phone the middle slot is the
-    // easiest to reach with a thumb.
-    final destinations = <({String key, IconData icon})>[
-      (key: 'accueil', icon: Icons.home_outlined),
-      (key: 'resultats', icon: Icons.bar_chart_outlined),
-      (key: 'exercices', icon: Icons.menu_book_outlined),
-      (key: 'absences', icon: Icons.calendar_today_outlined),
-      (key: 'messages', icon: Icons.chat_bubble_outline),
+    // easiest to reach with a thumb. Tout le reste — Documents, Remarques,
+    // Notifications, Profil, la langue, la sortie — vit dans le menu latéral
+    // (« Jardin », 04/10/2026), au lieu d'un menu caché derrière un avatar.
+    final destinations = <({String key, IconData icon, IconData selected})>[
+      (key: 'accueil', icon: Icons.home_outlined, selected: Icons.home_rounded),
+      (key: 'resultats', icon: Icons.insights_outlined, selected: Icons.insights_rounded),
+      (key: 'exercices', icon: Icons.menu_book_outlined, selected: Icons.menu_book_rounded),
+      (key: 'absences', icon: Icons.event_busy_outlined, selected: Icons.event_busy_rounded),
+      (key: 'messages', icon: Icons.chat_bubble_outline_rounded, selected: Icons.chat_bubble_rounded),
     ];
 
     final pages = <Widget>[
@@ -228,71 +255,117 @@ class _ParentShellState extends State<ParentShell> {
     ];
 
     return Scaffold(
+      key: _echafaudage,
       extendBody: true,
+      backgroundColor: Ocean.ivoire,
+      drawer: _MenuLateral(
+        lang: lang,
+        index: _index,
+        unread: _unread,
+        unreadNotifs: _unreadNotifs,
+        documentsActifs: _documentsActifs,
+        destinations: [for (final d in destinations) (key: d.key, icon: d.icon)],
+        onSection: (i) {
+          Navigator.of(context).pop();
+          setState(() => _index = i);
+        },
+        onDocuments: () {
+          Navigator.of(context).pop();
+          _open(DocumentsScreen(api: widget.api, lang: lang), 'documents');
+        },
+        onRemarques: () {
+          Navigator.of(context).pop();
+          _open(RemarquesTab(api: widget.api, lang: lang), 'remarques');
+        },
+        onNotifications: () {
+          Navigator.of(context).pop();
+          _ouvrirNotifications();
+        },
+        onProfil: () {
+          Navigator.of(context).pop();
+          _open(
+            ProfilTab(
+              api: widget.api,
+              lang: lang,
+              onSignedOut: widget.onSignedOut,
+              onLocaleChanged: widget.onLocaleChanged,
+            ),
+            'profil',
+          );
+        },
+        onToggleLanguage: () {
+          Navigator.of(context).pop();
+          widget.onLocaleChanged(arabic ? const Locale('fr') : const Locale('ar'));
+        },
+        onSignOut: () {
+          Navigator.of(context).pop();
+          widget.onSignedOut();
+        },
+      ),
       body: Container(
         decoration: const BoxDecoration(gradient: Ocean.backdrop),
-        child: SafeArea(
-          bottom: false,
-          child: Column(
-            children: [
-              _TopBar(
-                lang: lang,
-                unread: _unread,
-                unreadNotifs: _unreadNotifs,
-                onNotifications: () => _ouvrirNotifications(),
-                onToggleLanguage: () => widget.onLocaleChanged(
-                  arabic ? const Locale('fr') : const Locale('ar'),
-                ),
-                onRemarques: () => _open(RemarquesTab(api: widget.api, lang: lang), 'remarques'),
-                onProfil: () => _open(
-                  ProfilTab(
-                    api: widget.api,
-                    lang: lang,
-                    onSignedOut: widget.onSignedOut,
-                    onLocaleChanged: widget.onLocaleChanged,
-                  ),
-                  'profil',
-                ),
-                onSignOut: widget.onSignedOut,
-              ),
-              Expanded(
-                child: ContenuLarge(
-                  child: AnimatedSwitcher(
-                    duration: Ocean.med,
-                    switchInCurve: Ocean.ease,
-                    transitionBuilder: (child, anim) => FadeTransition(
-                      opacity: anim,
-                      child: SlideTransition(
-                        position: Tween(begin: const Offset(0, .02), end: Offset.zero).animate(anim),
-                        child: child,
-                      ),
+        child: Column(
+          children: [
+            _TopBar(
+              lang: lang,
+              titre: t(destinations[_index].key, lang),
+              unreadNotifs: _unreadNotifs,
+              onMenu: () => _echafaudage.currentState?.openDrawer(),
+              onNotifications: () => _ouvrirNotifications(),
+            ),
+            Expanded(
+              child: ContenuLarge(
+                child: AnimatedSwitcher(
+                  duration: Ocean.med,
+                  switchInCurve: Ocean.ease,
+                  transitionBuilder: (child, anim) => FadeTransition(
+                    opacity: anim,
+                    child: SlideTransition(
+                      position: Tween(begin: const Offset(0, .02), end: Offset.zero).animate(anim),
+                      child: child,
                     ),
-                    child: KeyedSubtree(key: ValueKey(_index), child: pages[_index]),
                   ),
+                  child: KeyedSubtree(key: ValueKey(_index), child: pages[_index]),
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(Ocean.rLg),
+            border: Border.all(color: Ocean.ligne),
+            boxShadow: Ocean.shadowLg,
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: NavigationBar(
+            selectedIndex: _index,
+            onDestinationSelected: (i) {
+              HapticFeedback.selectionClick();
+              setState(() => _index = i);
+              // Ouvrir Messages remet le compteur à jour tout de suite, sans
+              // attendre le prochain tour du sondage.
+              if (destinations[i].key == 'messages') _poller?.reveiller();
+            },
+            destinations: [
+              for (final d in destinations)
+                NavigationDestination(
+                  icon: d.key == 'messages' && _unread > 0
+                      ? Badge(label: Text('$_unread'), child: Icon(d.icon))
+                      : Icon(d.icon),
+                  selectedIcon: d.key == 'messages' && _unread > 0
+                      ? Badge(label: Text('$_unread'), child: Icon(d.selected))
+                      : Icon(d.selected),
+                  label: t(d.key, lang),
+                ),
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) {
-          HapticFeedback.selectionClick();
-          setState(() => _index = i);
-          // Ouvrir Messages remet le compteur à jour tout de suite, sans
-          // attendre le prochain tour du sondage.
-          if (destinations[i].key == 'messages') _poller?.reveiller();
-        },
-        destinations: [
-          for (final d in destinations)
-            NavigationDestination(
-              icon: d.key == 'messages' && _unread > 0
-                  ? Badge(label: Text('$_unread'), child: Icon(d.icon))
-                  : Icon(d.icon),
-              label: t(d.key, lang),
-            ),
-        ],
       ),
     );
   }
@@ -320,6 +393,7 @@ class _ParentShellState extends State<ParentShell> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => Scaffold(
+          backgroundColor: Ocean.ivoire,
           appBar: AppBar(title: Text(t(titleKey, widget.locale.languageCode))),
           body: Container(
             decoration: const BoxDecoration(gradient: Ocean.backdrop),
@@ -331,114 +405,184 @@ class _ParentShellState extends State<ParentShell> {
   }
 }
 
-/// Its floating header card — `.parent-top`.
-///
-/// A white pill sitting on the cyan wash, carrying the mark, the notification
-/// bell with its unread count, and the way out. The language toggle is here
-/// because a parent who cannot read the interface cannot navigate to a settings
-/// page to fix that.
+/// L'EN-TÊTE « JARDIN » — un bandeau émeraude aux coins bas arrondis : le
+/// menu latéral à l'ouverture de ligne, la marque et la section courante, la
+/// cloche avec son compte. (Il remplace la pilule blanche de « Glass Ocean »,
+/// dont le menu derrière l'avatar cachait quatre sections.)
 class _TopBar extends StatelessWidget {
   const _TopBar({
     required this.lang,
+    required this.titre,
+    required this.unreadNotifs,
+    required this.onMenu,
+    required this.onNotifications,
+  });
+
+  final String lang;
+  final String titre;
+  final int unreadNotifs;
+  final VoidCallback onMenu;
+  final VoidCallback onNotifications;
+
+  @override
+  Widget build(BuildContext context) {
+    final haut = MediaQuery.paddingOf(context).top;
+    return Container(
+      padding: EdgeInsetsDirectional.fromSTEB(8, haut + 8, 8, 14),
+      decoration: const BoxDecoration(
+        gradient: Ocean.entete,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(Ocean.rLg)),
+        boxShadow: Ocean.shadow,
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            tooltip: t('menu', lang),
+            onPressed: onMenu,
+            icon: const Icon(Icons.menu_rounded, color: Colors.white),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  Marque.selon(lang),
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Colors.white.withValues(alpha: .78), fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: .4),
+                ),
+                Text(
+                  titre,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontFamily: 'Fraunces', color: Colors.white, fontSize: 21, fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: t('notifications', lang),
+            onPressed: onNotifications,
+            style: IconButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: .14)),
+            icon: Badge(
+              isLabelVisible: unreadNotifs > 0,
+              label: Text('$unreadNotifs'),
+              backgroundColor: Ocean.or,
+              textColor: Ocean.ink900,
+              child: const Icon(Icons.notifications_none_rounded, color: Colors.white),
+            ),
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
+    );
+  }
+}
+
+/// LE MENU LATÉRAL — « documents button in the sidebar » : toutes les
+/// sections de l'espace, dans l'ordre de la barre du bas, puis Documents,
+/// Remarques, Notifications, Profil, la langue et la sortie.
+class _MenuLateral extends StatelessWidget {
+  const _MenuLateral({
+    required this.lang,
+    required this.index,
     required this.unread,
     required this.unreadNotifs,
-    required this.onNotifications,
-    required this.onToggleLanguage,
+    required this.documentsActifs,
+    required this.destinations,
+    required this.onSection,
+    required this.onDocuments,
     required this.onRemarques,
+    required this.onNotifications,
     required this.onProfil,
+    required this.onToggleLanguage,
     required this.onSignOut,
   });
 
   final String lang;
+  final int index;
   final int unread;
   final int unreadNotifs;
-  final VoidCallback onNotifications;
-  final VoidCallback onToggleLanguage;
+  final bool documentsActifs;
+  final List<({String key, IconData icon})> destinations;
+  final ValueChanged<int> onSection;
+  final VoidCallback onDocuments;
   final VoidCallback onRemarques;
+  final VoidCallback onNotifications;
   final VoidCallback onProfil;
+  final VoidCallback onToggleLanguage;
   final VoidCallback onSignOut;
 
-  /// ⚠ SIX CONTRÔLES SUR UNE LIGNE NE TIENNENT PAS SUR UN PETIT TÉLÉPHONE.
-  /// La barre garde la marque, la cloche (avec son compte) et un menu ; la
-  /// langue, les remarques, le profil et la déconnexion vivent dans ce menu —
-  /// et dans le profil, où elles étaient déjà.
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.92),
-          borderRadius: BorderRadius.circular(Ocean.rLg),
-          boxShadow: Ocean.shadow,
+    Widget entree(IconData icone, String libelle, VoidCallback onTap, {bool actif = false, int compte = 0, Color? couleur}) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+        child: Material(
+          color: actif ? Ocean.c100 : Colors.transparent,
+          borderRadius: BorderRadius.circular(Ocean.rSm),
+          child: ListTile(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Ocean.rSm)),
+            leading: Icon(icone, color: couleur ?? (actif ? Ocean.c700 : Ocean.ink500)),
+            title: Text(
+              libelle,
+              style: TextStyle(fontWeight: actif ? FontWeight.w700 : FontWeight.w600, color: couleur ?? (actif ? Ocean.c800 : Ocean.ink900)),
+            ),
+            trailing: compte > 0 ? Pastille(texte: '$compte', couleur: Ocean.orFonce) : null,
+            onTap: onTap,
+          ),
         ),
-        child: Row(
+      );
+    }
+
+    return Drawer(
+      width: 300,
+      child: SafeArea(
+        child: ListView(
+          padding: EdgeInsets.zero,
           children: [
             Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Ocean.c400, Ocean.c600]),
-                borderRadius: BorderRadius.circular(Ocean.rSm),
-              ),
-              child: const Icon(Icons.school_outlined, size: 21, color: Colors.white),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                Marque.selon(lang),
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontFamily: 'Fraunces',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 17,
-                  color: Ocean.ink900,
-                ),
-              ),
-            ),
-            IconButton(
-              tooltip: t('notifications', lang),
-              onPressed: onNotifications,
-              style: IconButton.styleFrom(backgroundColor: Ocean.c50, shape: const CircleBorder()),
-              icon: Badge(
-                isLabelVisible: unreadNotifs > 0,
-                label: Text('$unreadNotifs'),
-                backgroundColor: Ocean.danger,
-                child: const Icon(Icons.notifications_none_rounded, color: Ocean.ink700),
+              margin: const EdgeInsets.fromLTRB(10, 10, 10, 12),
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(gradient: Ocean.entete, borderRadius: BorderRadius.circular(Ocean.rMd)),
+              child: Row(
+                children: [
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: .16), borderRadius: BorderRadius.circular(Ocean.rSm)),
+                    child: const Icon(Icons.local_florist_rounded, color: Ocean.or, size: 26),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          Marque.selon(lang),
+                          style: const TextStyle(fontFamily: 'Fraunces', color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700),
+                        ),
+                        Text(
+                          lang == 'ar' ? 'فضاء الأولياء' : 'Espace parents',
+                          style: TextStyle(color: Colors.white.withValues(alpha: .8), fontSize: 12.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 4),
-            PopupMenuButton<String>(
-              tooltip: t('profil', lang),
-              position: PopupMenuPosition.under,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Ocean.rMd)),
-              onSelected: (v) {
-                switch (v) {
-                  case 'profil':
-                    onProfil();
-                  case 'remarques':
-                    onRemarques();
-                  case 'langue':
-                    onToggleLanguage();
-                  case 'deconnexion':
-                    onSignOut();
-                }
-              },
-              itemBuilder: (_) => [
-                PopupMenuItem(value: 'profil', child: ListTile(dense: true, leading: const Icon(Icons.person_outline), title: Text(t('profil', lang)))),
-                PopupMenuItem(value: 'remarques', child: ListTile(dense: true, leading: const Icon(Icons.rate_review_outlined), title: Text(t('remarques', lang)))),
-                PopupMenuItem(value: 'langue', child: ListTile(dense: true, leading: const Icon(Icons.translate), title: Text(lang == 'ar' ? 'Français' : 'العربية'))),
-                const PopupMenuDivider(),
-                PopupMenuItem(value: 'deconnexion', child: ListTile(dense: true, leading: const Icon(Icons.logout, color: Ocean.danger), title: Text(t('deconnexion', lang), style: const TextStyle(color: Ocean.danger)))),
-              ],
-              child: Container(
-                width: 38,
-                height: 38,
-                decoration: const BoxDecoration(color: Ocean.c100, shape: BoxShape.circle),
-                child: const Icon(Icons.person_rounded, color: Ocean.c700, size: 22),
-              ),
-            ),
+            for (final (i, d) in destinations.indexed)
+              entree(d.icon, t(d.key, lang), () => onSection(i), actif: i == index, compte: d.key == 'messages' ? unread : 0),
+            const Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8), child: Divider()),
+            if (documentsActifs) entree(Icons.folder_shared_outlined, t('documents', lang), onDocuments, couleur: Ocean.c700),
+            entree(Icons.rate_review_outlined, t('remarques', lang), onRemarques),
+            entree(Icons.notifications_none_rounded, t('notifications', lang), onNotifications, compte: unreadNotifs),
+            entree(Icons.person_outline_rounded, t('profil', lang), onProfil),
+            const Padding(padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8), child: Divider()),
+            entree(Icons.translate_rounded, t('langue_changer', lang), onToggleLanguage),
+            entree(Icons.logout_rounded, t('deconnexion', lang), onSignOut, couleur: Ocean.danger),
+            const SizedBox(height: 16),
           ],
         ),
       ),

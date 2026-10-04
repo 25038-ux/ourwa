@@ -1,83 +1,97 @@
 import 'package:flutter/material.dart';
 
-/// El Ourwa's parent design system — "Glass Ocean".
+/// LE DESIGN DE L'APPLICATION DES FAMILLES — « Jardin » (04/10/2026).
 ///
-/// Its own name, from the top of `assets/css/parent.css`: glassmorphism over an
-/// ocean-blue ramp, mobile-first. It is deliberately nothing like the direction
-/// screens, which are cream and terracotta ("Organic") — the two audiences never
-/// see each other's, and a parent should not feel they have wandered into the
-/// office.
+/// Il remplace « Glass Ocean » (le verre dépoli sur rampe cyan d'El Ourwa) à
+/// la demande du propriétaire de Jinan : « Change the ui of the app and make
+/// it better (not the same ui) ». Jinan — جنان — ce sont les jardins : un vert
+/// émeraude profond, un or chaud pour ce qui demande l'attention, un ivoire
+/// pour le sol, des cartes PLEINES (le verre se lisait mal au soleil, sur un
+/// écran bon marché).
 ///
-/// The values are its values. Only the ones the app actually renders are carried
-/// over; the rest of its 1 325 lines are web layout that Flutter expresses
-/// differently.
+/// ⚠ LE NOM DE LA CLASSE EST RESTÉ `Ocean`, et ses noms de teintes aussi
+/// (`c50` … `c950`, `ink*`) : cent quarante écrans et widgets les lisent. Les
+/// VALEURS ont changé — c'est ce qui fait changer toute l'application d'un
+/// coup, sans qu'un écran oublié reste bleu.
 class Ocean {
   const Ocean._();
 
-  // ── The ramp ──────────────────────────────────────────────────────────────
-  static const c50 = Color(0xFFECFEFF);
-  static const c100 = Color(0xFFCFFAFE);
-  static const c200 = Color(0xFFA5F3FC);
-  static const c300 = Color(0xFF67E8F9);
-  static const c400 = Color(0xFF22D3EE);
+  // ── La rampe émeraude ─────────────────────────────────────────────────────
+  static const c50 = Color(0xFFEEF8F3);
+  static const c100 = Color(0xFFD5EFE3);
+  static const c200 = Color(0xFFABDDC8);
+  static const c300 = Color(0xFF79C6A8);
+  static const c400 = Color(0xFF45A884);
 
-  /// The principal accent, as its own comment marks it.
-  static const c500 = Color(0xFF06B6D4);
-  static const c600 = Color(0xFF0891B2);
-  static const c700 = Color(0xFF0E7490);
-  static const c800 = Color(0xFF155E75);
-  static const c900 = Color(0xFF164E63);
-  static const c950 = Color(0xFF0A2540);
+  /// L'accent principal.
+  static const c500 = Color(0xFF1F8A65);
+  static const c600 = Color(0xFF157252);
+  static const c700 = Color(0xFF0F5C43);
+  static const c800 = Color(0xFF0B4734);
+  static const c900 = Color(0xFF083527);
+  static const c950 = Color(0xFF04241A);
 
-  // ── Ink ───────────────────────────────────────────────────────────────────
-  static const ink900 = Color(0xFF0A2540);
-  static const ink700 = Color(0xFF1E3A52);
-  static const ink500 = Color(0xFF506680);
-  static const ink300 = Color(0xFF94A8BE);
+  // ── L'or, et le sable ─────────────────────────────────────────────────────
+  static const or = Color(0xFFE0B04F);
+  static const orFonce = Color(0xFFA8741A);
+  static const sable = Color(0xFFF6EBD3);
 
-  // ── Semantic ──────────────────────────────────────────────────────────────
-  static const success = Color(0xFF10B981);
-  static const warning = Color(0xFFF59E0B);
-  static const danger = Color(0xFFEF4444);
+  // ── L'encre (un noir vert, jamais un gris froid) ──────────────────────────
+  static const ink900 = Color(0xFF12261E);
+  static const ink700 = Color(0xFF2D4339);
+  static const ink500 = Color(0xFF5E7268);
+  static const ink300 = Color(0xFF9AAAA2);
+
+  // ── Sémantique ────────────────────────────────────────────────────────────
+  static const success = Color(0xFF16A34A);
+  static const warning = Color(0xFFD97706);
+  static const danger = Color(0xFFDC2626);
   static const info = c500;
 
-  // ── Glass surfaces ────────────────────────────────────────────────────────
-  static const glass = Color(0x8CFFFFFF); // rgba(255,255,255,.55)
-  static const glassStrong = Color(0xC7FFFFFF); // .78
-  static const glassDeep = Color(0x52FFFFFF); // .32
-  static const glassBorder = Color(0x99FFFFFF); // .60
+  // ── Surfaces : pleines, posées sur l'ivoire ───────────────────────────────
+  static const ivoire = Color(0xFFFBF8F1);
+  static const ligne = Color(0xFFE9E3D5);
+  static const glass = Colors.white;
+  static const glassStrong = Colors.white;
+  static const glassDeep = Color(0xB3FFFFFF);
+  static const glassBorder = ligne;
 
-  /// Its `--glass-shadow`: tinted with the ocean rather than grey, because a
-  /// neutral shadow over these blues reads as dirt.
+  /// Des ombres teintées de vert, courtes : une carte se pose, elle ne flotte pas.
   static const List<BoxShadow> shadow = [
-    BoxShadow(color: Color(0x1F0891B2), blurRadius: 32, offset: Offset(0, 8)),
-    BoxShadow(color: Color(0x0A0A2540), blurRadius: 8, offset: Offset(0, 2)),
+    BoxShadow(color: Color(0x14083527), blurRadius: 18, offset: Offset(0, 6)),
+    BoxShadow(color: Color(0x0A083527), blurRadius: 4, offset: Offset(0, 1)),
   ];
 
   static const List<BoxShadow> shadowLg = [
-    BoxShadow(color: Color(0x2E0891B2), blurRadius: 64, offset: Offset(0, 24)),
-    BoxShadow(color: Color(0x0F0A2540), blurRadius: 24, offset: Offset(0, 8)),
+    BoxShadow(color: Color(0x1F083527), blurRadius: 40, offset: Offset(0, 16)),
+    BoxShadow(color: Color(0x0F083527), blurRadius: 12, offset: Offset(0, 4)),
   ];
 
-  // ── Radii ─────────────────────────────────────────────────────────────────
-  static const rSm = 10.0;
-  static const rMd = 16.0;
+  // ── Rayons ────────────────────────────────────────────────────────────────
+  static const rSm = 12.0;
+  static const rMd = 18.0;
   static const rLg = 24.0;
   static const rXl = 32.0;
   static const rFull = 999.0;
 
-  /// Its `--ease`, and the three durations it names.
   static const ease = Cubic(0.22, 1, 0.36, 1);
   static const fast = Duration(milliseconds: 180);
   static const med = Duration(milliseconds: 320);
   static const slow = Duration(milliseconds: 520);
 
-  /// The page ground: a wash from the palest ocean into white.
+  /// Le sol des pages : l'ivoire, à peine plus chaud en bas.
   static const Gradient backdrop = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [c50, Color(0xFFF7FDFE), Colors.white],
-    stops: [0, 0.45, 1],
+    colors: [ivoire, Color(0xFFF7F2E7)],
+  );
+
+  /// L'en-tête : l'émeraude, du profond au clair.
+  static const Gradient entete = LinearGradient(
+    begin: AlignmentDirectional.topStart,
+    end: AlignmentDirectional.bottomEnd,
+    colors: [c800, c600, c500],
+    stops: [0, .55, 1],
   );
 }
 
@@ -92,12 +106,13 @@ ThemeData oceanTheme({required bool arabic}) {
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
       seedColor: Ocean.c500,
-      primary: Ocean.c500,
-      secondary: Ocean.c700,
+      primary: Ocean.c600,
+      secondary: Ocean.orFonce,
+      tertiary: Ocean.or,
       surface: Colors.white,
       error: Ocean.danger,
     ),
-    scaffoldBackgroundColor: Ocean.c50,
+    scaffoldBackgroundColor: Ocean.ivoire,
   );
 
   // Une échelle typographique posée une fois (tailles, graisses, interlignes),
@@ -132,8 +147,9 @@ ThemeData oceanTheme({required bool arabic}) {
     splashFactory: InkSparkle.splashFactory,
     listTileTheme: const ListTileThemeData(
       iconColor: Ocean.c600,
-      titleTextStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Ocean.ink900, fontFamily: 'Plus Jakarta Sans'),
-      subtitleTextStyle: TextStyle(fontSize: 12.5, color: Ocean.ink500, fontFamily: 'Plus Jakarta Sans'),
+      // ⚠ Le repli arabe ici aussi : sans lui, « العربية » s'affichait en carrés.
+      titleTextStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Ocean.ink900, fontFamily: 'Plus Jakarta Sans', fontFamilyFallback: ['Noto Sans Arabic']),
+      subtitleTextStyle: TextStyle(fontSize: 12.5, color: Ocean.ink500, fontFamily: 'Plus Jakarta Sans', fontFamilyFallback: ['Noto Sans Arabic']),
     ),
     chipTheme: ChipThemeData(
       backgroundColor: Ocean.c50,
@@ -177,21 +193,21 @@ ThemeData oceanTheme({required bool arabic}) {
       foregroundColor: Ocean.ink900,
     ),
     cardTheme: CardThemeData(
-      color: Ocean.glassStrong,
+      color: Colors.white,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Ocean.rMd),
-        side: const BorderSide(color: Ocean.glassBorder),
+        side: const BorderSide(color: Ocean.ligne),
       ),
       margin: EdgeInsets.zero,
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: Ocean.c500,
+        backgroundColor: Ocean.c600,
         foregroundColor: Colors.white,
-        // Its controls are pills.
+        // Des boutons francs, aux coins adoucis — plus des pilules.
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(Ocean.rFull),
+          borderRadius: BorderRadius.circular(Ocean.rSm),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
@@ -199,27 +215,28 @@ ThemeData oceanTheme({required bool arabic}) {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white.withValues(alpha: 0.8),
+      fillColor: Colors.white,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(Ocean.rSm),
         borderSide: const BorderSide(color: Ocean.glassBorder),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(Ocean.rSm),
-        borderSide: const BorderSide(color: Ocean.c100),
+        borderSide: const BorderSide(color: Ocean.ligne),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(Ocean.rSm),
-        borderSide: const BorderSide(color: Ocean.c500, width: 2),
+        borderSide: const BorderSide(color: Ocean.c600, width: 2),
       ),
       labelStyle: const TextStyle(color: Ocean.ink500),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      backgroundColor: Colors.white.withValues(alpha: 0.94),
+      backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       indicatorColor: Ocean.c100,
+      indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Ocean.rSm)),
       elevation: 0,
-      height: 68,
+      height: 66,
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       labelTextStyle: WidgetStateProperty.resolveWith(
         (s) => TextStyle(
@@ -232,11 +249,18 @@ ThemeData oceanTheme({required bool arabic}) {
         (s) => IconThemeData(color: s.contains(WidgetState.selected) ? Ocean.c700 : Ocean.ink500, size: 24),
       ),
     ),
-    dividerTheme: const DividerThemeData(color: Ocean.c100, thickness: 1),
+    dividerTheme: const DividerThemeData(color: Ocean.ligne, thickness: 1),
+    drawerTheme: const DrawerThemeData(
+      backgroundColor: Ocean.ivoire,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadiusDirectional.only(topEnd: Radius.circular(Ocean.rLg), bottomEnd: Radius.circular(Ocean.rLg)),
+      ),
+    ),
   );
 }
 
-/// A glass panel — its `.g-card`.
+/// Une carte pleine (« Jardin ») — l'ancien panneau de verre garde son nom.
 class GlassCard extends StatelessWidget {
   const GlassCard({super.key, required this.child, this.padding, this.strong = true});
 
@@ -245,18 +269,71 @@ class GlassCard extends StatelessWidget {
   final bool strong;
 
   @override
+  Widget build(BuildContext context) => Carte(padding: padding, child: child);
+}
+
+/// LA CARTE : blanche, bordée d'un trait chaud, une ombre courte.
+class Carte extends StatelessWidget {
+  const Carte({super.key, required this.child, this.padding, this.couleur = Colors.white});
+
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+  final Color couleur;
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       padding: padding ?? const EdgeInsets.all(16),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: strong ? Ocean.glassStrong : Ocean.glass,
+        color: couleur,
         borderRadius: BorderRadius.circular(Ocean.rMd),
-        border: Border.all(color: Ocean.glassBorder),
+        border: Border.all(color: Ocean.ligne),
         boxShadow: Ocean.shadow,
       ),
       child: child,
     );
   }
+}
+
+/// Une pastille : un mot court sur un fond teinté de sa couleur.
+class Pastille extends StatelessWidget {
+  const Pastille({super.key, required this.texte, this.couleur = Ocean.c600});
+  final String texte;
+  final Color couleur;
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: couleur.withValues(alpha: .12),
+          borderRadius: BorderRadius.circular(Ocean.rFull),
+        ),
+        child: Text(texte, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: couleur)),
+      );
+}
+
+/// Un bandeau d'information dans la page (hors ligne, avertissement).
+class Bandeau extends StatelessWidget {
+  const Bandeau({super.key, required this.icone, required this.texte, this.couleur = Ocean.orFonce});
+  final IconData icone;
+  final String texte;
+  final Color couleur;
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Ocean.sable,
+          borderRadius: BorderRadius.circular(Ocean.rSm),
+          border: Border.all(color: Ocean.or.withValues(alpha: .5)),
+        ),
+        child: Row(
+          children: [
+            Icon(icone, size: 18, color: couleur),
+            const SizedBox(width: 10),
+            Expanded(child: Text(texte, style: TextStyle(fontSize: 12.5, color: couleur, fontWeight: FontWeight.w600))),
+          ],
+        ),
+      );
 }
 
 /// LE CONTENU RESTE LISIBLE SUR TOUTES LES TAILLES : sur une tablette ou un
@@ -296,8 +373,12 @@ class EtatVide extends StatelessWidget {
             Container(
               width: 72,
               height: 72,
-              decoration: const BoxDecoration(color: Ocean.c100, shape: BoxShape.circle),
-              child: Icon(icone, size: 34, color: Ocean.c700),
+              decoration: BoxDecoration(
+                color: Ocean.sable,
+                shape: BoxShape.circle,
+                border: Border.all(color: Ocean.or.withValues(alpha: .45), width: 1.5),
+              ),
+              child: Icon(icone, size: 34, color: Ocean.orFonce),
             ),
             const SizedBox(height: 16),
             Text(titre, textAlign: TextAlign.center, style: th.titleLarge),
@@ -341,7 +422,7 @@ class _SqueletteState extends State<Squelette> with SingleTickerProviderStateMix
           opacity: Tween(begin: 0.45, end: 0.9).animate(CurvedAnimation(parent: _c, curve: Curves.easeInOut)),
           child: Container(
             height: widget.hauteur,
-            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.7), borderRadius: BorderRadius.circular(Ocean.rMd)),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(Ocean.rMd), border: Border.all(color: Ocean.ligne)),
           ),
         ),
       );
@@ -371,7 +452,7 @@ class AvatarInitiales extends StatelessWidget {
   Widget build(BuildContext context) {
     final parts = nom.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
     final initiales = parts.take(2).map((p) => p.characters.first.toUpperCase()).join();
-    final teintes = [Ocean.c600, Ocean.c700, const Color(0xFF7C3AED), const Color(0xFFDB2777), const Color(0xFF0F766E), const Color(0xFFB45309)];
+    final teintes = [Ocean.c600, Ocean.c800, const Color(0xFFA8741A), const Color(0xFF9D4A6B), const Color(0xFF2F6B8A), const Color(0xFF6B5B95)];
     final couleur = teintes[nom.codeUnits.fold<int>(0, (a, b) => a + b) % teintes.length];
     return Container(
       width: taille,

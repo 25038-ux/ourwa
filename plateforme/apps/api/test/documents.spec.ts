@@ -194,6 +194,7 @@ describe('déposer, voir, remplacer, supprimer — l’école', () => {
 describe('la famille : voir seulement, et seulement les siens', () => {
   it('GET /parent/documents : ses enfants, leurs pièces, sans le nom de qui a déposé', async () => {
     const r = await ici(() => parent.documentsFamille(req(famille)));
+    expect(r.actif).toBe(true);
     expect(r.annee?.label).toBe('2026-2027');
     expect(r.enfants.map((e) => e.prenom).sort()).toEqual(['Ahmed', 'Fatima']);
     const ahmedPieces = r.enfants.find((e) => e.prenom === 'Ahmed')!.pieces;
