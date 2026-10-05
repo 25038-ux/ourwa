@@ -43,7 +43,7 @@ fi
 # assumed. The attachment count is the number that matters: it is what
 # verify-backup.sh compares against the files actually present.
 ATTACHMENTS="$(psql "$DATABASE_ADMIN_URL" -tAc \
-  'SELECT count(*) FROM attachments' 2>/dev/null || echo 'unknown')"
+  'SELECT (SELECT count(*) FROM attachments) + (SELECT count(*) FROM student_documents)' 2>/dev/null || echo 'unknown')"
 FILES="$(find "$WORK/uploads" -type f ! -name '.empty' | wc -l | tr -d ' ')"
 
 cat > "$WORK/MANIFEST" <<EOF

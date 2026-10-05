@@ -60,7 +60,11 @@ else
 fi
 
 # 3. Ce que l'archive affirme d'elle-même, pour qu'une restauration se vérifie.
-LIGNES="$(docker compose exec -T db psql -U postgres -d elmourad -tAc 'SELECT count(*) FROM attachments' 2>/dev/null | tr -d '[:space:]' || true)"
+# ⚠ Les pièces jointes ET les documents signés (0048) : les deux vivent dans
+# /data/uploads. Ne compter que les pièces jointes faisait dire « les lignes et
+# les fichiers ne correspondent pas » à chaque sauvegarde dès le premier
+# document signé (vu en répétition, 05/10/2026) — une fausse alerte.
+LIGNES="$(docker compose exec -T db psql -U postgres -d elmourad -tAc 'SELECT (SELECT count(*) FROM attachments) + (SELECT count(*) FROM student_documents)' 2>/dev/null | tr -d '[:space:]' || true)"
 [ -n "$LIGNES" ] || LIGNES=inconnu
 FICHIERS="$(tar -tzf "$TRAVAIL/uploads.tar.gz" | grep -vc '/$' || true)"
 cat > "$TRAVAIL/MANIFEST" <<EOF
