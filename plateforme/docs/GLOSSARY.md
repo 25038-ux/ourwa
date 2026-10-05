@@ -404,3 +404,14 @@ même écran chez lui, et l'écran dit laquelle est laquelle.
 - **Jardin** — le design de l'application des familles depuis 0.8.0+20
   (émeraude, or, ivoire, cartes pleines, menu latéral) ; il remplace « Glass
   Ocean ». ADR-0080.
+- **Renouvellement unique** — le site (middleware) ne présente un jeton de
+  renouvellement à l'API qu'une fois ; les requêtes simultanées du même
+  navigateur en partagent le résultat (60 s). L'API révoque toujours un jeton
+  réutilisé (règle 13). ADR-0081.
+- **Serveur injoignable** — `/auth/me` sans réponse : ce n'est PAS une session
+  expirée ; la page affiche « le serveur ne répond pas » et revient seule
+  (`ServeurInjoignable`, `/api/sante`). ADR-0081.
+- **Paramètre invalide** — une valeur de l'adresse que Postgres ne lit pas
+  (22P02, 22007, 22008, 22003) : 400, jamais 500 (`ParametreInvalideFilter`). ADR-0081.
+- **nulSiIntrouvable** — « introuvable » sur une réponse définitive (404, 400,
+  403) ; un échec passager va à la page d'erreur. ADR-0081.

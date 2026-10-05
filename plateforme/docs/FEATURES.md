@@ -474,6 +474,8 @@ testées. Seule la suspension ne l'est pas.
 | 12n | Documents signés : une pièce par document (inscription, comportements sociaux, chaque service souscrit — pas la photocopie), par élève et par année ; l'école dépose / voit / remplace / supprime (page « Documents », recherche par nom ou numéro) ; la famille lit dans l'application | **Fait le 2026-10-04**, demande de Jinan. 0048, 0049. ADR-0080. |
 | 12o | Exercices : documents Word / Excel / PowerPoint / OpenDocument / RTF, 10 Mo par fichier, envois > 10 Mo (middleware) ; comptes du personnel (réinitialiser / désactiver un compte sans fiche) ; délais d'API (boutons bloqués) | **Fait le 2026-10-04**. ADR-0080. |
 | 12p | Application des familles 0.8.0+20 : design « Jardin », menu latéral, écran Documents | **Fait le 2026-10-04**. ADR-0080. |
+| 12q | Application des familles 0.8.1+21 : Firebase (notifications instantanées) pour Jinan ; l'iPhone ne reçoit jamais l'ID Android | **Fait le 2026-10-05**. docs/FIREBASE.md. |
+| 12r | Session : un seul renouvellement par jeton côté site (plus de déconnexion après une pause) ; « le serveur ne répond pas » sur place, retour automatique ; « Paramètre invalide » (400) au lieu de 500 ; « introuvable » seulement sur une réponse définitive | **Fait le 2026-10-05**. ADR-0081. |
 | 27, 28 | Interface web en arabe, avec RTL | L'application **parent** est bilingue (fr/ar, RTL) ; l'interface **web** du personnel est en français seul. El Ourwa a les deux. |
 | 31 | Couche de cache | Phase 0, jamais commencée. Rien ne la réclame pour l'instant. |
 | 100 | Le total arabe du fondamental | **Tranché le 2026-09-11 : rien à porter.** `total_ar` vide sur 5 792 lignes, jamais lu. |

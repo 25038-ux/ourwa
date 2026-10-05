@@ -3921,3 +3921,58 @@ latéral** (toutes les sections, dont Documents) ; barre du bas flottante. La
 classe `Ocean` garde son nom et ses noms de teintes (cent quarante usages) :
 ses VALEURS ont changé, ce qui change toute l'application d'un coup. Toutes
 les enseignes le reçoivent à leur prochaine construction.
+
+## ADR-0081 — Un renouvellement par jeton ; « le serveur ne répond pas » sur place ; « Paramètre invalide » ; « introuvable » quand c'est vrai
+
+*05/10/2026. Signalé par le propriétaire (photo d'une autre session de travail,
+dont les corrections n'avaient jamais été poussées) : déconnexion après un
+quart d'heure d'inactivité, « session expirée » quand le serveur ne répond
+pas, « Internal server error » sur une adresse mal formée, reçus
+« introuvables ».*
+
+**Décision — un renouvellement par jeton, côté SITE ; la règle de l'API ne
+bouge pas.** Après la pause, le premier geste envoie plusieurs requêtes avec
+le même cookie de renouvellement ; le middleware présentait le jeton à l'API
+pour chacune, la deuxième était une réutilisation, et l'API révoquait toute la
+famille (règle 13) — reproduit : quatre requêtes simultanées → « session
+expirée ». Une autre session avait choisi de **tolérer** à l'API la
+réutilisation d'un jeton pendant 30 s ; ce n'est PAS ce qui est fait ici. Le
+middleware ne présente un jeton qu'**une fois** : les requêtes qui arrivent
+avec le même jeton depuis le même navigateur (clé = empreinte de jeton +
+adresse + User-Agent) attendent le renouvellement en cours et en reçoivent le
+résultat, puis pendant 60 s (une requête partie avec l'ancien cookie avant
+que le nouveau n'arrive). L'API voit chaque jeton une seule fois et révoque
+toujours un jeton réutilisé — un autre appareil qui présente un jeton échangé
+n'a pas la même clé et va à l'API (test « depuis un autre appareil »). En
+mémoire du serveur web : un seul processus par école (Docker). Une API
+injoignable ou un 429 ne sont pas retenus (la requête suivante réessaie) ;
+429 n'efface plus les cookies.
+
+**Décision — l'API injoignable n'est pas une session expirée.** La coquille
+`(app)/layout.tsx` renvoyait à la connexion (« session expirée ») dès que
+`/auth/me` ne répondait pas. Elle affiche maintenant, à la place de la page,
+« Le serveur ne répond pas pour le moment » ; la page demande au site
+(`/api/sante`) toutes les 5 s si l'API est revenue et se recharge seule
+(10 minutes au plus ; bouton « Réessayer maintenant »). `requireSession()`
+lève `ServeurInjoignable` (503) au lieu de rediriger ; les routes du site la
+rendent en 503. La page d'erreur `(app)/error.tsx` demande aussi
+`/api/sante` (le message d'une erreur serveur est masqué en production) et
+son « Réessayer » redemande la page au serveur (`router.refresh()` ; `reset()`
+seul réaffichait l'erreur).
+
+**Décision — « Paramètre invalide » (API).** Un filtre global
+(`ParametreInvalideFilter`) rend 400 « Paramètre invalide : une date, un
+nombre ou un identifiant de l'adresse ne se lit pas. » pour les erreurs
+Postgres 22P02, 22007, 22008, 22003, et journalise l'erreur SQL (une valeur
+illisible produite par notre code reste visible). C'est un filet ; chaque
+route garde sa validation. Les erreurs de Zod gardent leur message par champ.
+Trouvé par un balayage de toutes les routes avec des valeurs mal formées.
+
+**Décision — « introuvable » seulement sur une réponse définitive (404, 400, 403).** Les pages de reçu
+(paiement, annuel, groupé, cours du soir, professeur du soir, salaire,
+dépense, remboursement, avance), les bulletins, le tableau de bord et
+« Envoyer un exercice » du professeur, le groupe du soir chargeaient avec
+`.catch(() => null)` et disaient « introuvable » pour tout échec.
+`.catch(nulSiIntrouvable)` : 404 / 400 / 403 → « introuvable » comme avant ;
+un échec passager (délai, API en redémarrage, 5xx) → la page d'erreur, qui dit
+ce qu'il en est et réessaie.
