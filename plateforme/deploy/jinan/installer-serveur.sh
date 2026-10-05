@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
 # INSTALLER JINAN — À LANCER SUR LE SERVEUR, EN ROOT, EN UNE LIGNE.
 #
-#   curl -fsSL -o /root/installer-jinan.sh https://raw.githubusercontent.com/25038-ux/ourwa/refs/heads/claude/jinan-web-completion-6wv8c0/plateforme/deploy/jinan/installer-serveur.sh && bash /root/installer-jinan.sh
+#   curl -fSL -o /root/installer-jinan.sh https://raw.githubusercontent.com/25038-ux/ourwa/refs/heads/claude/jinan-web-completion-6wv8c0/plateforme/deploy/jinan/installer-serveur.sh && bash /root/installer-jinan.sh
+#
+# (`-fSL`, pas `-fsSL` : un téléchargement raté le DIT. Avec `-s`, curl se
+# taisait et rien ne se passait — « the update script didn't work at all ».)
+# Déjà téléchargé une fois ? `bash /root/installer-jinan.sh` suffit : c'est lui
+# qui télécharge la dernière version du code.
+#
+# TOUT EST JOURNALISÉ dans /root/installer-jinan.log. En cas d'échec : l'étape
+# est nommée, le site continue sur la version précédente, et
+# `tail -40 /root/installer-jinan.log` dit pourquoi.
 #
 # (Téléchargé PUIS lancé, pas `curl | bash` : apt ou docker pourraient lire
 # l'entrée standard et avaler la suite du script.)
@@ -26,13 +35,64 @@ COURRIEL="${ADMIN_EMAIL:-infoheavenly24@gmail.com}"
 DIR="${JINAN_DIR:-/opt/jinan}"
 
 ok()    { printf '\033[32m[OK] %s\033[0m\n' "$*"; }
+warn()  { printf '\033[33m[!]  %s\033[0m\n' "$*"; }
 fail()  { printf '\033[31m[X]  %s\033[0m\n' "$*" >&2; exit 2; }
-etape() { printf '\n\033[1m== %s ==\033[0m\n' "$*"; }
+ETAPE="démarrage"
+etape() { ETAPE="$*"; printf '\n\033[1m== %s ==\033[0m\n' "$*"; }
+
+# Le journal : tout ce qui s'affiche y va aussi (5 Mo au plus, l'ancien gardé).
+JOURNAL_MAJ=/root/installer-jinan.log
+if [ -w /root ]; then
+  [ -f "$JOURNAL_MAJ" ] && [ "$(stat -c %s "$JOURNAL_MAJ" 2>/dev/null || echo 0)" -gt 5000000 ] && mv -f "$JOURNAL_MAJ" "$JOURNAL_MAJ.1"
+  exec > >(tee -a "$JOURNAL_MAJ") 2>&1
+  printf '\n──── %s ────\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+fi
+TMP=""
+# ⚠ UN ÉCHEC DIT OÙ, ET CE QUI TOURNE ENCORE. Avant : le script s'arrêtait
+# sur la ligne fautive, sans un mot de plus.
+fin() {
+  local code=$?
+  [ -n "$TMP" ] && rm -rf "$TMP"
+  if [ "$code" -ne 0 ]; then
+    printf '\n\033[31m[X]  Arrêt pendant « %s » (code %s).\033[0m\n' "$ETAPE" "$code"
+    echo "     Le site continue de tourner sur la version précédente (rien n'est redémarré avant la fin de la construction)."
+    echo "     Pourquoi : tail -40 $JOURNAL_MAJ   (photo ou copie de ces lignes)"
+  fi
+}
+trap fin EXIT
+
+espace_libre_go() { { df -BG --output=avail "$1" 2>/dev/null | tail -1 | tr -dc '0-9'; } || true; }
 
 [ "$(id -u)" -eq 0 ] || fail "Lancez en root (sudo -i, puis la commande)."
 if [ "$(hostname -I 2>/dev/null | tr ' ' '\n' | grep -c '^187\.7\.18\.252$')" -gt 0 ]; then
   fail "Ceci est le serveur d'El Mourad : Jinan a son propre VPS."
 fi
+
+etape "0/4 Disque et mémoire"
+# ⚠ CHAQUE MISE À JOUR LAISSAIT ~2 Go (l'ancienne image, le cache de
+# construction) et rien ne les retirait : au bout de quelques mises à jour,
+# le disque d'un petit VPS est plein et la construction échoue. Sous le seuil,
+# on retire ce qui ne sert plus — jamais une image en service, jamais un
+# volume (la base, les fichiers) — puis on vérifie.
+MIN_GO="${JINAN_ESPACE_MIN_GO:-6}"
+CIBLE=/var/lib/docker; [ -d "$CIBLE" ] || CIBLE=/
+LIBRE="$(espace_libre_go "$CIBLE")"
+if [ -n "$LIBRE" ] && [ "$LIBRE" -lt "$MIN_GO" ] && command -v docker >/dev/null; then
+  warn "Seulement ${LIBRE} Go libres : nettoyage des anciennes images Docker et du cache de construction…"
+  docker image prune -f >/dev/null 2>&1 || true
+  docker builder prune -af >/dev/null 2>&1 || true
+  journalctl --vacuum-size=200M >/dev/null 2>&1 || true
+  apt-get clean >/dev/null 2>&1 || true
+  LIBRE="$(espace_libre_go "$CIBLE")"
+fi
+if [ -n "$LIBRE" ] && [ "$LIBRE" -lt "$MIN_GO" ]; then
+  df -h / "$CIBLE" 2>/dev/null | sed 's/^/     /'
+  du -sh /root/sauvegardes-jinan /opt/jinan.avant-* 2>/dev/null | sed 's/^/     /' || true
+  fail "Disque presque plein : ${LIBRE} Go libres, il en faut ${MIN_GO}. Les sauvegardes et les anciens dossiers ci-dessus peuvent être déplacés hors du serveur."
+fi
+MEM_MO="$( { free -m 2>/dev/null | awk '/^Mem:/ {print $2}'; } || true)"
+SWAP_MO="$( { free -m 2>/dev/null | awk '/^Swap:/ {print $2}'; } || true)"
+ok "disque : ${LIBRE:-?} Go libres ; mémoire : ${MEM_MO:-?} Mo + échange ${SWAP_MO:-?} Mo"
 
 etape "1/4 Outils"
 export DEBIAN_FRONTEND=noninteractive
@@ -43,14 +103,14 @@ ok "curl, tar, rsync"
 
 etape "2/4 Le code ($DEPOT, $BRANCHE)"
 TMP="$(mktemp -d)"
-trap 'rm -rf "$TMP"' EXIT
 # Le commit exact d'abord, puis son archive : ce qui est installé est nommé.
 SHA="$(curl -fsSL --retry 3 -H 'Accept: application/vnd.github.sha' "https://api.github.com/repos/$DEPOT/commits/$BRANCHE" 2>/dev/null || true)"
 if [[ "$SHA" =~ ^[0-9a-f]{40}$ ]]; then REF="$SHA"; else REF="refs/heads/$BRANCHE"; SHA="(dernier de $BRANCHE)"; fi
-curl -fsSL --retry 3 -o "$TMP/src.tgz" "https://codeload.github.com/$DEPOT/tar.gz/$REF" \
+curl -fSL --retry 3 -o "$TMP/src.tgz" "https://codeload.github.com/$DEPOT/tar.gz/$REF" \
   || fail "Téléchargement impossible depuis GitHub (réseau du serveur ?)."
 mkdir -p "$TMP/x"
-tar -xzf "$TMP/src.tgz" -C "$TMP/x"
+tar -xzf "$TMP/src.tgz" -C "$TMP/x" || fail "Archive illisible (téléchargement interrompu ? disque plein ?) : relancez."
+
 SRC="$(find "$TMP/x" -mindepth 2 -maxdepth 2 -type d -name plateforme | head -n1)"
 [ -n "$SRC" ] && [ -f "$SRC/deploy/jinan/install.sh" ] || fail "Archive inattendue : plateforme/deploy/jinan/install.sh absent."
 printf 'Construit le %s depuis %s\n' "$(date -u +%Y-%m-%dT%H:%MZ)" "$SHA" > "$SRC/VERSION.txt"
@@ -62,7 +122,7 @@ if [ -f "$DIR/deploy/jinan/.env" ]; then
   # base tourne, puis le code remplacé en gardant .env et secrets/.
   # (grep sans -q : sous pipefail, -q ferait échouer le tube en silence.)
   if (cd "$DIR/deploy/jinan" && docker compose ps --status running --services 2>/dev/null | grep -x db >/dev/null); then
-    (cd "$DIR/deploy/jinan" && bash ./sauvegarde.sh < /dev/null) || fail "La sauvegarde a échoué : rien n'a été remplacé."
+    (cd "$DIR/deploy/jinan" && bash ./sauvegarde.sh < /dev/null) || fail "La sauvegarde a échoué (voir ci-dessus) : rien n'a été remplacé, le site tourne comme avant."
     ok "sauvegarde : /root/sauvegardes-jinan"
   fi
   rsync -a --delete --exclude '/deploy/jinan/.env' --exclude '/deploy/jinan/secrets/' "$SRC/" "$DIR/"

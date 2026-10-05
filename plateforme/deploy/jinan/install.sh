@@ -120,8 +120,11 @@ else
   vert "échange (swap) déjà présent"
 fi
 
-"${APT[@]}" update
-"${APT[@]}" install -y ca-certificates curl gnupg openssl unattended-upgrades >/dev/null
+# Une mise à jour n'a pas besoin d'apt (Docker est déjà là) : un dépôt de
+# paquets injoignable ne doit pas arrêter la mise à jour du site.
+"${APT[@]}" update || jaune "apt-get update a échoué (sans gravité si Docker est déjà installé)"
+"${APT[@]}" install -y ca-certificates curl gnupg openssl unattended-upgrades >/dev/null \
+  || jaune "paquets système non mis à jour (sans gravité si Docker est déjà installé)"
 if [ ! -f /etc/apt/apt.conf.d/20auto-upgrades ]; then
   printf 'APT::Periodic::Update-Package-Lists "1";\nAPT::Periodic::Unattended-Upgrade "1";\n' \
     > /etc/apt/apt.conf.d/20auto-upgrades
@@ -357,7 +360,13 @@ fi
 
 # ═════════════════════════════════════════════════════════════════════════════
 titre "4. Construction et démarrage (10 à 20 minutes la première fois)"
-docker compose build --quiet
+# ⚠ Une construction ratée ne redémarre rien : le site continue sur les
+# images précédentes. Le dire, au lieu d'un arrêt muet sur cette ligne.
+if ! docker compose build --quiet; then
+  rouge "La construction des images a échoué (message ci-dessus). Rien n'a été redémarré : le site continue sur la version précédente."
+  rouge "Causes habituelles : disque plein (df -h), mémoire (free -m), réseau (téléchargement des paquets)."
+  exit 3
+fi
 docker compose up -d db
 docker compose run --rm -T api pnpm db:migrate
 docker compose exec -T db psql -U postgres -d jinan -v ON_ERROR_STOP=1 \
@@ -384,6 +393,11 @@ MDP=()
 # 8h – 17h, frais d'inscription par élève, services optionnels — ADR-0073). Posé à
 # la création de l'école, jamais changé ensuite ; bootstrap-school est idempotent.
 docker compose up -d --remove-orphans
+# Ce que cette construction a remplacé ne sert plus : l'image précédente et le
+# cache de plus d'une semaine (~2 Go par mise à jour, jamais retirés jusque-là —
+# le disque d'un petit VPS finissait plein). Jamais un volume.
+docker image prune -f >/dev/null 2>&1 || true
+docker builder prune -f --filter until=168h >/dev/null 2>&1 || true
 
 printf "Attente de l’API"
 SANTE=""

@@ -45,11 +45,19 @@ jour refusent ce serveur.
 
 Connecté au VPS en root (`ssh root@209.74.66.223`, ou la console de Namecheap) :
 
-    curl -fsSL -o /root/installer-jinan.sh https://raw.githubusercontent.com/25038-ux/ourwa/refs/heads/claude/jinan-web-completion-6wv8c0/plateforme/deploy/jinan/installer-serveur.sh && bash /root/installer-jinan.sh
+    curl -fSL -o /root/installer-jinan.sh https://raw.githubusercontent.com/25038-ux/ourwa/refs/heads/claude/jinan-web-completion-6wv8c0/plateforme/deploy/jinan/installer-serveur.sh && bash /root/installer-jinan.sh
 
 Rien à envoyer depuis le PC : le serveur télécharge le code de GitHub, le pose
 dans `/opt/jinan`, lance `install.sh` et affiche le mot de passe provisoire.
 Relancer est sans danger (déjà installé : sauvegarde, `.env` gardé).
+Le fichier est déjà sur le serveur ? `bash /root/installer-jinan.sh` suffit
+(c'est lui qui télécharge la dernière version du code).
+
+Tout est écrit dans `/root/installer-jinan.log`. Si quelque chose échoue,
+l'étape est nommée, le site continue sur la version précédente, et
+`tail -40 /root/installer-jinan.log` dit pourquoi. Le disque est vérifié au
+début (6 Go libres au moins ; sinon les anciennes images Docker et le cache de
+construction sont retirés d'abord — jamais la base ni les fichiers).
 
 ## 1 bis. Installer depuis le PC (PowerShell)
 
