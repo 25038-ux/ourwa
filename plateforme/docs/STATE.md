@@ -8,6 +8,31 @@ every session, even short or unproductive ones.
 
 
 
+## « THE UPDATE SCRIPT DIDN'T WORK AT ALL » — 2026-10-05 (midi)
+
+Le propriétaire a lancé la ligne de mise à jour : rien n'a changé. Constaté
+depuis l'extérieur : le site tourne, sain (`"push":"firebase"`, 0049), mais
+c'est la construction du 04/10 23:15 (`/api/sante` → 404, feuilles
+`?v=20261004T231536`). Sa sortie d'écran n'est pas connue. Ce qui pouvait
+arrêter la mise à jour sans un mot, et qui est corrigé (`installer-serveur.sh`,
+`install.sh`, commit 824ee3a) :
+
+- **Disque** : chaque mise à jour laissait ~2 Go (image précédente, cache de
+  construction), jamais retirés — la répétition en portait 5,4 Go d'images et
+  3,9 Go de cache. Étape 0 : 6 Go libres exigés ; en dessous, images
+  inutilisées et cache retirés (jamais un volume), puis arrêt clair s'il en
+  manque encore ; après chaque construction réussie, nettoyage.
+- **curl -fsSL** : `-s` taisait un téléchargement raté (rien ne s'affichait).
+  `-fSL` partout dans les guides.
+- **apt-get update** en échec arrêtait une simple mise à jour : avertissement.
+- **Arrêt muet** : l'étape est nommée, « le site continue sur la version
+  précédente », et tout est dans `/root/installer-jinan.log`.
+- Vu en répétition : raw.githubusercontent.com garde la branche en cache
+  quelques minutes — l'ancien installateur reste correct (il télécharge le
+  dernier code lui-même).
+- Répété : disque « plein » simulé (`JINAN_ESPACE_MIN_GO=100000`) → nettoyage
+  (8 → 12 Go), arrêt nommé, site intact ; puis mise à jour normale complète.
+
 ## LES QUATRE DÉFAUTS DE LA PHOTO, ET LE BALAYAGE — 2026-10-05 (matin)
 
 **Demande du propriétaire** (photo d'une autre session de travail, sur son
