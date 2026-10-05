@@ -96,6 +96,91 @@ async function renewSession(request: NextRequest, headers: Headers): Promise<Ren
   if (!refresh) return { kind: 'none' };
   if (!needsRefresh(access, Math.floor(Date.now() / 1000))) return { kind: 'none' };
 
+  const identite = clientIdentityHeaders(request.headers);
+  const issue = await renouvelerUneFois(refresh, slug, identite);
+  if (issue.kind === 'none') return { kind: 'none' };
+  if (issue.kind === 'dead') return { kind: 'dead', slug };
+
+  // ⚠ Put the new token on THIS request too, or the page that follows renders
+  // with the token we just replaced and fails anyway.
+  const jar = request.cookies
+    .getAll()
+    .map((c) =>
+      c.name === cookieName(slug, 'access')
+        ? `${c.name}=${issue.access}`
+        : c.name === cookieName(slug, 'refresh')
+          ? `${c.name}=${issue.refresh}`
+          : `${c.name}=${c.value}`,
+    );
+  headers.set('cookie', jar.join('; '));
+
+  return { kind: 'renewed', slug, access: issue.access, refresh: issue.refresh };
+}
+
+type Issue = { kind: 'none' } | { kind: 'dead' } | { kind: 'ok'; access: string; refresh: string };
+
+/**
+ * ⚠ UN SEUL RENOUVELLEMENT PAR JETON, MÊME QUAND LE NAVIGATEUR EN DEMANDE
+ * PLUSIEURS (05/10/2026 — « déconnecté après un quart d'heure sans rien
+ * faire », les reçus et les pages « qui ne chargent pas »).
+ *
+ * Le jeton d'accès vit quinze minutes. Après une pause, le premier clic
+ * n'envoie pas UNE requête : la page, ses données différées, l'ouverture d'un
+ * reçu dans un onglet, un `router.refresh()` au retour sur l'onglet — toutes
+ * partent avec le MÊME cookie de renouvellement. Chacune passait ici et le
+ * présentait à l'API ; la première recevait un jeton neuf, les suivantes
+ * présentaient un jeton déjà utilisé — exactement ce à quoi ressemble un vol
+ * — et l'API révoquait toute la famille de jetons (règle 13). Résultat : la
+ * personne était renvoyée à la connexion au premier geste après la pause.
+ * Reproduit le 05/10 : quatre requêtes simultanées → « session expirée ».
+ *
+ * La règle de l'API ne bouge PAS : un jeton déjà utilisé, présenté à l'API,
+ * révoque toujours tout. C'est le site qui ne le présente qu'une fois : les
+ * requêtes qui arrivent avec le même jeton, depuis le même navigateur (même
+ * adresse, même User-Agent — la clé les contient), attendent le premier
+ * renouvellement et en reçoivent le résultat, pendant qu'il est en cours et
+ * pendant {@link GRACE_MS} après (la réponse qui portait le nouveau cookie
+ * peut arriver après une requête partie avec l'ancien). Un autre appareil qui
+ * présenterait ce jeton n'a pas la même clé : il va à l'API, qui révoque.
+ *
+ * En mémoire du serveur web (un seul processus par école) ; les jetons y
+ * restent au plus {@link GRACE_MS}, sous une clé hachée.
+ */
+const GRACE_MS = 60_000;
+const renouvellements = new Map<string, { fin: number; issue: Promise<Issue> }>();
+
+async function renouvelerUneFois(
+  refresh: string,
+  slug: string | null,
+  identite: Record<string, string>,
+): Promise<Issue> {
+  const maintenant = Date.now();
+  for (const [k, v] of renouvellements) if (v.fin <= maintenant) renouvellements.delete(k);
+
+  const cle = await empreinte(`${slug ?? ''}|${refresh}|${identite['X-Client-IP'] ?? ''}|${identite['X-Client-User-Agent'] ?? ''}`);
+  const deja = renouvellements.get(cle);
+  if (deja) return deja.issue;
+
+  const entree = { fin: Number.POSITIVE_INFINITY, issue: demanderRenouvellement(refresh, slug, identite) };
+  renouvellements.set(cle, entree);
+  void entree.issue.then((issue) => {
+    // Une API injoignable n'est pas retenue : la requête suivante réessaie.
+    if (issue.kind === 'none') renouvellements.delete(cle);
+    else entree.fin = Date.now() + GRACE_MS;
+  });
+  return entree.issue;
+}
+
+async function empreinte(texte: string): Promise<string> {
+  const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texte));
+  return Buffer.from(h).toString('hex');
+}
+
+async function demanderRenouvellement(
+  refresh: string,
+  slug: string | null,
+  identite: Record<string, string>,
+): Promise<Issue> {
   let response: Response;
   try {
     response = await fetch(`${API}/auth/refresh`, {
@@ -105,7 +190,7 @@ async function renewSession(request: NextRequest, headers: Headers): Promise<Ren
         ...(slug ? { 'X-School-Slug': slug } : {}),
         // La même identité qu'à la connexion, sinon l'empreinte de session
         // ne correspond plus et la famille de jetons est révoquée.
-        ...clientIdentityHeaders(request.headers),
+        ...identite,
       },
       body: JSON.stringify({ refreshToken: refresh }),
       cache: 'no-store',
@@ -120,29 +205,20 @@ async function renewSession(request: NextRequest, headers: Headers): Promise<Ren
   if (!response.ok) {
     // Spent, revoked, or the family was invalidated by a reuse. Clearing the
     // cookies sends the user to the login page once instead of looping through
-    // a session that can never work again.
-    return response.status >= 400 && response.status < 500
-      ? { kind: 'dead', slug }
+    // a session that can never work again. ⚠ 429 (trop de demandes) n'est PAS
+    // une session morte : la garder, la prochaine requête réessaiera.
+    return response.status >= 400 && response.status < 500 && response.status !== 429
+      ? { kind: 'dead' }
       : { kind: 'none' };
   }
 
-  const body = (await response.json()) as { accessToken?: string; refreshToken?: string };
-  if (!body.accessToken || !body.refreshToken) return { kind: 'none' };
-
-  // ⚠ Put the new token on THIS request too, or the page that follows renders
-  // with the token we just replaced and fails anyway.
-  const jar = request.cookies
-    .getAll()
-    .map((c) =>
-      c.name === cookieName(slug, 'access')
-        ? `${c.name}=${body.accessToken}`
-        : c.name === cookieName(slug, 'refresh')
-          ? `${c.name}=${body.refreshToken}`
-          : `${c.name}=${c.value}`,
-    );
-  headers.set('cookie', jar.join('; '));
-
-  return { kind: 'renewed', slug, access: body.accessToken, refresh: body.refreshToken };
+  try {
+    const body = (await response.json()) as { accessToken?: string; refreshToken?: string };
+    if (!body.accessToken || !body.refreshToken) return { kind: 'none' };
+    return { kind: 'ok', access: body.accessToken, refresh: body.refreshToken };
+  } catch {
+    return { kind: 'none' };
+  }
 }
 
 function applyRenewal(response: NextResponse, request: NextRequest, renewal: Renewal): void {
