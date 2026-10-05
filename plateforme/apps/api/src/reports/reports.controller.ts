@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ReportsService } from './reports.service.js';
 import { RequirePermission, type AuthenticatedRequest } from '../auth/permissions.guard.js';
 import { AcademicYearService } from '../academic/academic-year.service.js';
+import { dateIso } from '../common/dates.js';
 
 const month = z.coerce.number().int().min(1).max(12);
 const year = z.coerce.number().int().min(2000).max(2100);
@@ -60,7 +61,7 @@ export class ReportsController {
     @Query('year') y?: string,
   ) {
     return this.reports.transactions({
-      day: day ? z.string().regex(/^\d{4}-\d{2}-\d{2}$/).parse(day) : undefined,
+      day: day ? dateIso.parse(day) : undefined,
       month: m ? month.parse(m) : undefined,
       year: y ? year.parse(y) : undefined,
     });
@@ -70,7 +71,7 @@ export class ReportsController {
   @Get('jour')
   @RequirePermission('finance.consulter', 'finance.rapport')
   jour(@Query('jour') jour: string) {
-    return this.reports.revenusDuJour(z.string().regex(/^\d{4}-\d{2}-\d{2}$/).parse(jour));
+    return this.reports.revenusDuJour(dateIso.parse(jour));
   }
 
   /** « Payé aux professeurs / au staff » du mois. */

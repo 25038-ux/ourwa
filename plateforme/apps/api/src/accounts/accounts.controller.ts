@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Inject, Param, Post, Query, Req } from '
 import { z } from 'zod';
 import { AccountsService, ASSIGNABLE_ROLES } from './accounts.service.js';
 import { RequirePermission, RequireRole, type AuthenticatedRequest } from '../auth/permissions.guard.js';
+import { estDateIso } from '../common/dates.js';
 
 const uuid = z.string().uuid();
 const money = z.string().regex(/^\d+(\.\d{1,2})?$/, 'Amount must be a decimal string');
@@ -52,7 +53,8 @@ export class AccountsController {
     return this.accounts.listParents({
       q,
       cursor,
-      limit: limit ? Number(limit) : undefined,
+      // « abc » partait en NaN jusqu'à la requête SQL (500) : un entier, ou rien.
+      limit: /^\d{1,4}$/.test(limit ?? '') ? Number(limit) : undefined,
     });
   }
 
@@ -292,9 +294,7 @@ export class AccountsController {
   @Get('connection-history')
   @RequirePermission('journal.consulter')
   connectionHistory(@Query('jour') jour?: string, @Query('tab') tab?: string) {
-    const day = /^\d{4}-\d{2}-\d{2}$/.test(jour ?? '')
-      ? jour!
-      : new Date().toISOString().slice(0, 10);
+    const day = estDateIso(jour) ? jour : new Date().toISOString().slice(0, 10);
     return this.accounts.connectionHistory({
       day,
       tab: tab === 'parent' ? 'parent' : 'staff',

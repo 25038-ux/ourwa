@@ -6,9 +6,10 @@ import {
   type AuthenticatedRequest,
 } from '../auth/permissions.guard.js';
 import { PersonnelAbsencesService } from './personnel-absences.service.js';
+import { estDateIso } from '../common/dates.js';
 
 const uuid = z.string().uuid();
-const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date attendue : AAAA-MM-JJ.');
+const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date attendue : AAAA-MM-JJ.').refine(estDateIso, 'Cette date n’existe pas.');
 const heure = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Heure attendue : HH:MM.');
 const motif = z.string().trim().max(255).optional().nullable();
 

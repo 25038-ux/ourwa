@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottleGuard } from './throttle.guard.js';
 import { ZodExceptionFilter } from './common/zod-exception.filter.js';
+import { ParametreInvalideFilter } from './common/parametre-invalide.filter.js';
 import { DbService } from './db/db.service.js';
 import { TenantService } from './tenant/tenant.service.js';
 import { TenantInterceptor } from './tenant/tenant.interceptor.js';
@@ -193,6 +194,9 @@ import { MailWorker } from './mail/mail.worker.js';
     // `.parse()` failure in the API became an opaque 500 and the message was
     // lost — see the filter's own comment.
     { provide: APP_FILTER, useClass: ZodExceptionFilter },
+    // Une date, un nombre ou un identifiant illisible dans l'adresse : 400
+    // « Paramètre invalide » au lieu de 500 — voir le commentaire du filtre.
+    { provide: APP_FILTER, useClass: ParametreInvalideFilter },
   ],
 })
 export class AppModule {}

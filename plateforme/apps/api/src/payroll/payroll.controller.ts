@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Inject, Param, Post, Query, Req } from '@nestjs/common';
 import { z } from 'zod';
 import { PayrollService } from './payroll.service.js';
+import { estDateIso } from '../common/dates.js';
 import {
   RequirePermission,
   RequireRole,
@@ -218,7 +219,7 @@ export class PayrollController {
     const now = new Date();
     return this.payroll.withdrawalReport({
       kind,
-      date: /^\d{4}-\d{2}-\d{2}$/.test(date ?? '') ? date : now.toISOString().slice(0, 10),
+      date: estDateIso(date) ? date : now.toISOString().slice(0, 10),
       month: mois ? month.parse(mois) : now.getMonth() + 1,
       year: annee ? year.parse(annee) : now.getFullYear(),
     });
