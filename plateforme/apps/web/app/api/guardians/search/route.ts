@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { apiFetch, requireSession, can } from '@/lib/session';
+import { apiFetch, requireSession, can, ServeurInjoignable } from '@/lib/session';
 
 /**
  * The correspondent search, proxied.
@@ -15,7 +15,13 @@ import { apiFetch, requireSession, can } from '@/lib/session';
  * that only forwards is a hole with a nice name.
  */
 export async function GET(request: Request) {
-  const { user } = await requireSession();
+  let user;
+  try {
+    ({ user } = await requireSession());
+  } catch (e) {
+    if (e instanceof ServeurInjoignable) return NextResponse.json({ error: e.message }, { status: 503 });
+    throw e;
+  }
 
   if (!can(user, 'scolarite.inscrire', 'scolarite.reinscrire', 'messagerie.envoyer')) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { apiFetch, requireSession, can } from '@/lib/session';
+import { apiFetch, requireSession, can, nulSiIntrouvable } from '@/lib/session';
 import { currentSchool } from '@/lib/tenant';
 import { MOIS_NOMS } from '@/lib/mois';
 import { RecuDocument, RecuToolbar, dateHeure } from '@/components/recu-document';
@@ -48,7 +48,7 @@ export default async function RecuPage({ params }: { params: Promise<{ paymentId
     );
   }
 
-  const r = await apiFetch<Receipt & { receiptId?: string | null }>(`/finance/receipt/${paymentId}`).catch(() => null);
+  const r = await apiFetch<Receipt & { receiptId?: string | null }>(`/finance/receipt/${paymentId}`).catch(nulSiIntrouvable);
   // Un mois encaissé dans un reçu groupé (0040) : c'est ce reçu-là qui vaut.
   if (r?.receiptId) redirect(`/finance/recu/groupe/${r.receiptId}`);
   if (!r) {

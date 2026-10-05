@@ -1,4 +1,4 @@
-import { apiFetch, requireSession } from '@/lib/session';
+import { apiFetch, requireSession, nulSiIntrouvable } from '@/lib/session';
 import { anneeAffichee } from '@/lib/annee';
 import { PageHeader } from '@/components/page-header';
 import { mru } from '@/components/hub';
@@ -54,7 +54,7 @@ export default async function ProfDashboard() {
   const annee = await anneeAffichee();
   const tb = await apiFetch<TableauBord | null>(
     `/teacher/tableau-bord${annee ? `?academicYearId=${annee.id}` : ''}`,
-  ).catch(() => null);
+  ).catch(nulSiIntrouvable);
 
   // Son `die('Erreur : profil professeur introuvable.')`.
   if (!tb) {

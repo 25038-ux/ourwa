@@ -1679,7 +1679,14 @@ export async function recordExpenseAction(_prev: unknown, form: FormData) {
     };
   }
 
-  const { user } = await requireSession();
+  let user;
+  try {
+    ({ user } = await requireSession());
+  } catch (error) {
+    // L'API injoignable : le dire ici. Une session finie : le renvoi à la connexion passe.
+    if (error instanceof ApiError) return { error: error.message };
+    throw error;
+  }
   try {
     if (user.roles.includes('comptable')) {
       await apiFetch('/requests', {

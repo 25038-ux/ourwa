@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
-import { readSession } from '@/lib/session';
+import { apiInjoignable, readSession } from '@/lib/session';
+import { ServeurInjoignable } from '@/components/serveur-injoignable';
 import { currentSchool } from '@/lib/tenant';
 import { Sidebar } from '@/components/sidebar';
 import { FormValidation } from '@/components/form-validation';
@@ -22,6 +23,17 @@ import { LOGO_MARQUE } from '@/lib/brand-logo';
  */
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await readSession();
+  // ⚠ L'API NE RÉPOND PAS ≠ SESSION EXPIRÉE (05/10/2026). La coquille
+  // renvoyait à la connexion avec « Votre session a expirée » au moindre
+  // redémarrage de l'API — cookies intacts, page perdue. Elle reste sur place
+  // et revient d'elle-même.
+  if (!session && apiInjoignable()) {
+    return (
+      <main className="main-content" id="main-content" style={{ maxWidth: '48rem', margin: '2rem auto', padding: '0 1rem' }}>
+        <ServeurInjoignable />
+      </main>
+    );
+  }
   if (!session) redirect('/login?erreur=session_expiree');
   const { user } = session;
 

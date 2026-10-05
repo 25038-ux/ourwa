@@ -1,4 +1,4 @@
-import { apiFetch, requireSession } from '@/lib/session';
+import { apiFetch, requireSession, nulSiIntrouvable } from '@/lib/session';
 import { currentSchool } from '@/lib/tenant';
 import { anneeAffichee, type Annee } from '@/lib/annee';
 import { PrintButton } from '@/components/print-button';
@@ -50,7 +50,7 @@ export default async function BulletinPage({
 
   const reponse = await apiFetch<Reponse>(
     `/grades/report-card/${studentId}?term=${trimestre}${annee ? `&academicYearId=${annee.id}` : ''}`,
-  ).catch(() => null);
+  ).catch(nulSiIntrouvable);
 
   if (!reponse?.student) {
     return <p className="text-muted">Étudiant introuvable.</p>;

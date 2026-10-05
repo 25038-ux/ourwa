@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { apiFetch, requireSession } from '@/lib/session';
+import { apiFetch, requireSession, nulSiIntrouvable } from '@/lib/session';
 import { anneeAffichee, type Annee } from '@/lib/annee';
 import { PageHeader } from '@/components/page-header';
 import { currentSchool } from '@/lib/tenant';
@@ -55,7 +55,7 @@ export default async function ClassBulletinsPage({
   const anneeNotes = /^\d{4}$/.test(sp.annee_notes ?? '') ? Number(sp.annee_notes) : (vue?.start_year ?? new Date().getFullYear());
   const annee = annees.find((a) => a.start_year === anneeNotes) ?? vue;
 
-  const data = await apiFetch<ClassCards>(`/grades/class/${groupId}?term=${trimestre}${annee ? `&academicYearId=${annee.id}` : ''}`).catch(() => null);
+  const data = await apiFetch<ClassCards>(`/grades/class/${groupId}?term=${trimestre}${annee ? `&academicYearId=${annee.id}` : ''}`).catch(nulSiIntrouvable);
   if (!data) return <p className="text-muted">Groupe introuvable.</p>;
 
   const libelle = `${data.level ?? ''} / ${data.group ?? ''}`;

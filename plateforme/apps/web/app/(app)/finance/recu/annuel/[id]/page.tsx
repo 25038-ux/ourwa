@@ -1,4 +1,4 @@
-import { apiFetch, requireSession, can } from '@/lib/session';
+import { apiFetch, requireSession, can, nulSiIntrouvable } from '@/lib/session';
 import { currentSchool } from '@/lib/tenant';
 import { RecuDocument, RecuToolbar, dateHeure } from '@/components/recu-document';
 import { LIBELLE_FRAIS_PHOTOCOPIE, MARQUE } from '@/lib/brand';
@@ -35,7 +35,7 @@ export default async function RecuAnnuelPage({ params }: { params: Promise<{ id:
     );
   }
 
-  const r = await apiFetch<AnnualReceipt>(`/finance/receipt/annual/${id}`).catch(() => null);
+  const r = await apiFetch<AnnualReceipt>(`/finance/receipt/annual/${id}`).catch(nulSiIntrouvable);
   if (!r) {
     return (
       <div className="form-card">

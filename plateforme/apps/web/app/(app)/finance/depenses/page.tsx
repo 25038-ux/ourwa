@@ -1,4 +1,4 @@
-import { apiFetch, requireSession } from '@/lib/session';
+import { apiFetch, requireSession, nulSiIntrouvable } from '@/lib/session';
 import { currentSchool } from '@/lib/tenant';
 import { PageHeader } from '@/components/page-header';
 import { HubNav, mru } from '@/components/hub';
@@ -56,7 +56,7 @@ export default async function DepensesPage({
 
   const printBon = /^[0-9a-f-]{36}$/.test(params.print_bon ?? '') ? params.print_bon! : null;
   const bon = printBon
-    ? await apiFetch<Bon>(`/expenses/${printBon}/receipt`).catch(() => null)
+    ? await apiFetch<Bon>(`/expenses/${printBon}/receipt`).catch(nulSiIntrouvable)
     : null;
 
   if (bon) {

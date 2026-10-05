@@ -1,4 +1,4 @@
-import { apiFetch, requireSession } from '@/lib/session';
+import { apiFetch, requireSession, nulSiIntrouvable } from '@/lib/session';
 import { anneeAffichee } from '@/lib/annee';
 import { currentSchool } from '@/lib/tenant';
 import { PageHeader } from '@/components/page-header';
@@ -77,7 +77,7 @@ export default async function StaffPaymentPage({
     ? params.print_recu_salaire!
     : null;
   const recu = printRecu
-    ? await apiFetch<RecuSalaire>(`/payroll/salaries/${printRecu}/receipt`).catch(() => null)
+    ? await apiFetch<RecuSalaire>(`/payroll/salaries/${printRecu}/receipt`).catch(nulSiIntrouvable)
     : null;
   const ecole = (await currentSchool())?.name ?? MARQUE.nom;
 

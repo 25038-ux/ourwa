@@ -1,4 +1,4 @@
-import { apiFetchBrut, can, requireSession } from '@/lib/session';
+import { apiFetchBrut, can, requireSession, ServeurInjoignable } from '@/lib/session';
 
 /**
  * « VOIR » UN DOCUMENT SIGNÉ — relayé, parce que le navigateur ne détient
@@ -8,7 +8,13 @@ import { apiFetchBrut, can, requireSession } from '@/lib/session';
  */
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { user } = await requireSession();
+  let user;
+  try {
+    ({ user } = await requireSession());
+  } catch (e) {
+    if (e instanceof ServeurInjoignable) return new Response(e.message, { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+    throw e;
+  }
   if (!can(user, 'documents.gerer')) return new Response('Non autorisé.', { status: 403 });
   if (!/^[0-9a-f-]{36}$/i.test(id)) return new Response('Document introuvable.', { status: 404 });
 

@@ -1,4 +1,4 @@
-import { apiFetch, requireSession } from '@/lib/session';
+import { apiFetch, requireSession, nulSiIntrouvable } from '@/lib/session';
 import { anneeAffichee } from '@/lib/annee';
 import { PageHeader } from '@/components/page-header';
 import { MessagePage } from '@/components/message-page';
@@ -36,7 +36,7 @@ export default async function ProfExercicePage() {
   const annee = await anneeAffichee();
   const tb = await apiFetch<{ enseignements: Enseignement[] } | null>(
     `/teacher/tableau-bord${annee ? `?academicYearId=${annee.id}` : ''}`,
-  ).catch(() => null);
+  ).catch(nulSiIntrouvable);
   // Son ordre : `g.nom, m.nom`.
   const enseignements = [...(tb?.enseignements ?? [])].sort(
     (a, b) => a.groupe_nom.localeCompare(b.groupe_nom) || a.matiere_nom.localeCompare(b.matiere_nom),

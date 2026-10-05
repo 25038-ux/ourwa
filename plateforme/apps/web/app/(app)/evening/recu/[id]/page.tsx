@@ -1,4 +1,4 @@
-import { apiFetch, requireSession, can } from '@/lib/session';
+import { apiFetch, requireSession, can, nulSiIntrouvable } from '@/lib/session';
 import { currentSchool } from '@/lib/tenant';
 import { MOIS_NOMS } from '@/lib/mois';
 import { RecuDocument, RecuToolbar, dateHeure } from '@/components/recu-document';
@@ -32,7 +32,7 @@ export default async function RecuCoursDuSoirPage({ params }: { params: Promise<
   if (!can(user, 'finance.consulter', 'finance.encaisser')) {
     return <div className="form-card"><p className="text-muted">Cette page demande <code>finance.consulter</code> ou <code>finance.encaisser</code>.</p></div>;
   }
-  const r = await apiFetch<Recu>(`/evening/payments/${id}/receipt`).catch(() => null);
+  const r = await apiFetch<Recu>(`/evening/payments/${id}/receipt`).catch(nulSiIntrouvable);
   if (!r) return <div className="form-card"><p className="text-muted">Reçu introuvable.</p></div>;
   const ecole = (await currentSchool())?.name ?? MARQUE.nom;
 

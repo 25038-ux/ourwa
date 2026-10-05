@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { can, requireSession } from '@/lib/session';
+import { can, requireSession, ServeurInjoignable } from '@/lib/session';
 import { deposerDocument, supprimerDocument } from '@/lib/documents';
 
 /**
@@ -17,7 +17,13 @@ export async function POST(request: Request) {
   if (origine && hote && new URL(origine).host !== hote) {
     return NextResponse.json({ error: 'Origine refusée.' }, { status: 403 });
   }
-  const { user } = await requireSession();
+  let user;
+  try {
+    ({ user } = await requireSession());
+  } catch (e) {
+    if (e instanceof ServeurInjoignable) return NextResponse.json({ error: e.message }, { status: 503 });
+    throw e;
+  }
   if (!can(user, 'documents.gerer')) {
     return NextResponse.json({ error: 'Cette action demande le droit de gérer les documents.' }, { status: 403 });
   }

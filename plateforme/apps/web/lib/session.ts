@@ -86,6 +86,15 @@ export const readSession = cache(async function readSession(): Promise<
 /** Par requête (React `cache`) : `readSession()` a-t-elle échoué parce que l'API ne répond pas ? */
 const etatApi = cache((): { injoignable: boolean } => ({ injoignable: false }));
 
+/**
+ * Après `readSession()` : vrai si elle a rendu `null` parce que l'API n'a pas
+ * répondu — PAS parce que la session est finie. La coquille affiche alors
+ * « le serveur ne répond pas » sur place au lieu de renvoyer à la connexion.
+ */
+export function apiInjoignable(): boolean {
+  return etatApi().injoignable;
+}
+
 export async function writeSession(
   slug: string | null,
   accessToken: string,
@@ -132,7 +141,10 @@ export async function clearSession(slug: string | null): Promise<void> {
  */
 export async function requireSession(): Promise<{ accessToken: string; user: SessionUser }> {
   const session = await readSession();
-  if (!session && etatApi().injoignable) redirect('/login?erreur=api_injoignable');
+  // ⚠ PAS DE RENVOI À LA CONNEXION quand l'API ne répond pas (05/10/2026) :
+  // la session n'est pas finie, et la page (son adresse, son reçu) se perdait.
+  // La page affiche « le serveur ne répond pas » sur place et revient seule.
+  if (!session && etatApi().injoignable) throw new ServeurInjoignable();
   // Son `require_role()` sans session : `?erreur=session_expiree`.
   if (!session) redirect('/login?erreur=session_expiree');
   return session;
@@ -186,6 +198,33 @@ export class ApiError extends Error {
     readonly status: number,
   ) {
     super(message);
+  }
+}
+
+/**
+ * ⚠ « INTROUVABLE » SEULEMENT QUAND C'EST VRAI (05/10/2026). Les pages de
+ * reçu chargeaient avec `.catch(() => null)` puis disaient « Reçu
+ * introuvable » — pour un reçu absent, mais aussi pour une API lente, en
+ * redémarrage, ou un jeton à renouveler : la caissière croyait le paiement
+ * perdu. `.catch(nulSiIntrouvable)` : une réponse DÉFINITIVE — 404, 400 (un
+ * lien mal formé), 403 (pas pour vous) — → null, la page dit « introuvable »
+ * comme avant ; un échec PASSAGER (délai, API en redémarrage, 5xx) remonte à
+ * `(app)/error.tsx`, qui dit « le serveur ne répond pas » et réessaie.
+ */
+export function nulSiIntrouvable(e: unknown): null {
+  if (e instanceof ApiError && (e.status === 404 || e.status === 400 || e.status === 403)) return null;
+  throw e;
+}
+
+/**
+ * L'API ne répond pas : levée par `requireSession()` au lieu d'un renvoi à la
+ * connexion. Une page l'affiche sur place (`(app)/error.tsx`), une route la
+ * rend en 503.
+ */
+export class ServeurInjoignable extends ApiError {
+  constructor() {
+    super('Le serveur ne répond pas pour le moment. Votre session reste ouverte : réessayez dans un instant.', 503);
+    this.name = 'ServeurInjoignable';
   }
 }
 

@@ -1,4 +1,4 @@
-import { apiFetch, requireSession } from '@/lib/session';
+import { apiFetch, requireSession, nulSiIntrouvable } from '@/lib/session';
 import { currentSchool } from '@/lib/tenant';
 import { PageHeader } from '@/components/page-header';
 import { HubNav, mru } from '@/components/hub';
@@ -119,7 +119,7 @@ export default async function DettesPage({
   if (uuid.test(params.print_recu_remb ?? '')) {
     const r = await apiFetch<RecuRemb>(
       `/finance/misc-debt-repayments/${params.print_recu_remb}/receipt`,
-    ).catch(() => null);
+    ).catch(nulSiIntrouvable);
     if (r) {
       return (
         <>
@@ -192,7 +192,7 @@ export default async function DettesPage({
   if (uuid.test(params.print_recu_avance ?? '')) {
     const r = await apiFetch<RecuAvance>(
       `/payroll/loan-repayments/${params.print_recu_avance}/receipt`,
-    ).catch(() => null);
+    ).catch(nulSiIntrouvable);
     if (r) {
       return (
         <>
@@ -238,7 +238,7 @@ export default async function DettesPage({
 
   // Profil d'une dette ? — son bloc `elseif ($dette)`.
   const dette = uuid.test(params.dette_id ?? '')
-    ? await apiFetch<ProfilDette>(`/finance/misc-debts/${params.dette_id}`).catch(() => null)
+    ? await apiFetch<ProfilDette>(`/finance/misc-debts/${params.dette_id}`).catch(nulSiIntrouvable)
     : null;
   if (dette) {
     const reste = Number(dette.remaining);

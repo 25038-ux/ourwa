@@ -1,4 +1,4 @@
-import { apiFetch, requireSession, can, peutAdministrerLaDette } from '@/lib/session';
+import { apiFetch, requireSession, can, peutAdministrerLaDette, nulSiIntrouvable } from '@/lib/session';
 import { anneeAffichee } from '@/lib/annee';
 import { PageHeader } from '@/components/page-header';
 import { HubNav, mru } from '@/components/hub';
@@ -86,7 +86,7 @@ export default async function EveningPage({
   const anneeCourante = anneeDemandee >= 2020 && anneeDemandee <= 2100 ? anneeDemandee : anneeDefaut;
 
   const [detail, teachings, creneaux, dayTeachers, externals, moyens, students] = await Promise.all([
-    apiFetch<Detail>(`/evening/groups/${groupeId}/detail?year=${anneeCourante}`).catch(() => null),
+    apiFetch<Detail>(`/evening/groups/${groupeId}/detail?year=${anneeCourante}`).catch(nulSiIntrouvable),
     apiFetch<EveningTeaching[]>(`/evening/groups/${groupeId}/teachings`).catch(() => [] as EveningTeaching[]),
     apiFetch<EveningSlot[]>(`/evening/groups/${groupeId}/timetable`).catch(() => [] as EveningSlot[]),
     apiFetch<{ id: string; first_name: string; last_name: string }[]>('/teachers').catch(() => []),
