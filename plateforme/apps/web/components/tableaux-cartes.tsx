@@ -75,18 +75,29 @@ export function TableauxEnCartes() {
      * « 1 Issue » sur une page sur deux. Après `load` et une pause, React a
      * repris la page ; ensuite l'observateur suit les rendus côté client.
      */
+    /*
+     * ⚠ EN PRODUCTION, TOUT DE SUITE (05/10/2026). React ne compare les
+     * attributs à l'hydratation qu'en développement : l'attente ne sert qu'à
+     * faire taire le bandeau de développement. En production elle laissait,
+     * sur téléphone, le tableau large déborder le temps du chargement complet
+     * (polices, images) puis sauter en cartes. `data-cartes-pretes` sur
+     * <html> dit que le premier marquage est fait (les tests l'attendent).
+     */
     let observateur: MutationObserver | null = null;
     let minuterie = 0;
-    const demarrer = () => {
-      minuterie = window.setTimeout(() => {
-        marquer();
-        observateur = new MutationObserver(() => {
-          if (!prevu) prevu = window.requestAnimationFrame(marquer);
-        });
-        observateur.observe(racine, { childList: true, subtree: true });
-      }, 300);
+    const lancer = () => {
+      marquer();
+      document.documentElement.setAttribute('data-cartes-pretes', '1');
+      observateur = new MutationObserver(() => {
+        if (!prevu) prevu = window.requestAnimationFrame(marquer);
+      });
+      observateur.observe(racine, { childList: true, subtree: true });
     };
-    if (document.readyState === 'complete') demarrer();
+    const demarrer = () => {
+      minuterie = window.setTimeout(lancer, 300);
+    };
+    if (process.env.NODE_ENV === 'production') lancer();
+    else if (document.readyState === 'complete') demarrer();
     else window.addEventListener('load', demarrer, { once: true });
     return () => {
       window.removeEventListener('load', demarrer);

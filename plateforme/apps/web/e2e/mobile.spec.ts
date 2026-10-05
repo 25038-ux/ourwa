@@ -45,12 +45,26 @@ async function mesurer(page: import('@playwright/test').Page): Promise<{ scrollW
       }
       return false;
     };
+    // Un élément ROGNÉ par un parent (overflow caché, clip-path) qui, lui,
+    // tient dans l'écran : invisible au-delà du bord. C'est l'en-tête d'un
+    // tableau en cartes, gardé pour les lecteurs d'écran dans une boîte d'un
+    // pixel (responsive.css) — ses cellules « dépassent » sans rien montrer.
+    const rogne = (el: Element): boolean => {
+      let p: Element | null = el.parentElement;
+      while (p && p !== document.body) {
+        const s = getComputedStyle(p);
+        const coupe = s.overflowX === 'hidden' || s.overflowX === 'clip' || (s.clipPath && s.clipPath !== 'none');
+        if (coupe && p.getBoundingClientRect().right <= limite) return true;
+        p = p.parentElement;
+      }
+      return false;
+    };
     for (const el of Array.from(document.body.querySelectorAll<HTMLElement>('*'))) {
       const s = getComputedStyle(el);
       if (s.position === 'fixed' || s.display === 'none' || s.visibility === 'hidden') continue;
       const r = el.getBoundingClientRect();
       if (r.width === 0) continue;
-      if (r.right > limite && !dansDefilant(el)) {
+      if (r.right > limite && !dansDefilant(el) && !rogne(el)) {
         out.push({
           tag: el.tagName.toLowerCase(),
           classe: String(el.className || '').slice(0, 60),
@@ -69,6 +83,14 @@ for (const chemin of PAGES) {
   test(`${chemin} tient dans 375 px`, async ({ page }) => {
     const reponse = await page.goto(`http://nour.localhost:3000${chemin}`, { waitUntil: 'networkidle' });
     expect(reponse?.status(), chemin).toBeLessThan(500);
+    // Les listes passent en cartes après l'hydratation (`TableauxEnCartes`) :
+    // mesurer AVANT, c'était mesurer un tableau qui allait changer (instable
+    // sous charge). La page de connexion n'a pas de coquille, donc pas de signal.
+    if (chemin !== '/login') {
+      // En développement le marquage attend l'événement `load` (polices
+      // distantes comprises) : sans signal au bout de 30 s, on mesure quand même.
+      await page.waitForSelector('html[data-cartes-pretes]', { state: 'attached', timeout: 30_000 }).catch(() => undefined);
+    }
     const m = await mesurer(page);
     const detail = m.debordements.map((d) => `${d.tag}.${d.classe} droite=${d.droite} largeur=${d.largeur} « ${d.texte} »`).join('\n');
     expect(m.scrollWidth, `${chemin} : le document déborde (${m.scrollWidth} > ${m.clientWidth})\n${detail}`).toBeLessThanOrEqual(m.clientWidth + 1);
