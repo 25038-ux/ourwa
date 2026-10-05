@@ -8,6 +8,60 @@ every session, even short or unproductive ones.
 
 
 
+## LES QUATRE DÉFAUTS DE LA PHOTO, ET LE BALAYAGE — 2026-10-05 (matin)
+
+**Demande du propriétaire** (photo d'une autre session de travail, sur son
+PC, dont le commit `7ee6072` n'a jamais été poussé) : « Fix these bugs and
+run a full bug sweep and give me the correct install script. » — déconnexion
+après ~15 min d'inactivité ; « session expirée » quand le serveur ne répond
+pas ; « Internal server error » sur une adresse mal formée ; reçus
+« introuvables » sur un échec passager. Détail : **ADR-0081**.
+
+- **Déconnexion après la pause** — reproduit (quatre requêtes simultanées →
+  famille de jetons révoquée → « session expirée »). Corrigé CÔTÉ SITE : le
+  middleware ne présente un jeton qu'une fois par navigateur et partage le
+  résultat 60 s. La règle 13 de l'API ne change pas (l'autre session
+  l'avait assouplie de 30 s ; pas ici). `e2e/session-renouvellement.spec.ts`
+  (3 tests, dont « depuis un autre appareil : tout est révoqué ») — le
+  premier échoue sur l'ancien code, passe sur le nouveau.
+- **Serveur injoignable** — la coquille renvoyait à la connexion. Elle
+  affiche « Le serveur ne répond pas » sur place et revient seule. Vérifié à
+  la main : API arrêtée → message sur `/documents`, URL gardée ; API
+  relancée → la page revient d'elle-même, toujours connecté.
+- **Paramètre invalide** — balayage de toutes les routes (1 878 requêtes,
+  chaque paramètre mal formé seul) : 4 routes répondaient 500
+  (`/reports/jour`, `/reports/transactions`, `/accounts/parents?limit=`,
+  `/accounts/connection-history`). Corrigées à la source + filtre global
+  400. Après : 0 réponse 500. `test/parametre-invalide.spec.ts`.
+- **« Introuvable »** — reçus, bulletins, pages du professeur, groupe du
+  soir : seulement sur 404/400/403 ; sinon la page d'erreur (qui réessaie).
+- **Trouvé en chemin** : « Réessayer » de la page d'erreur ne redemandait
+  pas la page (bouton « mort ») ; sur téléphone, les listes ne passaient en
+  cartes qu'après le chargement complet + 300 ms (débordement visible puis
+  saut) — immédiat en production ; le test des 375 px mesurait la mise en
+  page d'AVANT les cartes.
+- **Vérifié** : API 1075/1075 (+ les nouveaux), base 90/90, shared 127/127,
+  Flutter 66/66 + analyze, `tsc` API et site ; navigateur, suite complète :
+  169 réussis, 2 échecs expliqués (une réinscription sur des données de
+  développement déjà réinscrites la veille — réensemencée, passe ; la mesure
+  des 375 px — corrigée, 43/44 + 1 réussi à la reprise), 48 ignorés par
+  conception ; puis les groupes touchés : 70 réussis.
+- **Mise à jour RÉPÉTÉE dans Docker** (la copie de production, 0.8.0+20 avec
+  données) avec la ligne `installer-serveur.sh` exacte : 0.8.1+21 (commit
+  8fd54a1), sauvegarde, aucune migration (0049), API saine ; anciennes
+  données identiques (3 élèves : abonnements, mois, paiements ; reçus) ;
+  documents de bout en bout. Sur la construction de PRODUCTION : six
+  requêtes simultanées → un seul renouvellement, la session tient, une
+  requête en retard reçoit le même jeton ; l'ancien jeton depuis un autre
+  appareil → tout est révoqué et le renouvellement suivant du titulaire est
+  refusé ; API arrêtée → « Le serveur ne répond pas » sur place puis la page
+  Finance revient, toujours connecté ; `/reports/jour?jour=2026-02-31` → 400.
+- **Trouvé en répétition** : la sauvegarde ne comptait que les pièces jointes
+  (`attachments`) contre tous les fichiers de `/data/uploads` — dès le premier
+  document signé, chaque sauvegarde disait « les lignes et les fichiers ne
+  correspondent pas » (fausse alerte). Elle compte aussi `student_documents`
+  (Jinan, El Mourad, `scripts/backup.sh`) ; vérifié : « 1 lignes, 1 fichiers ».
+
 ## 0.8.1+21 — JINAN : FIREBASE DANS L'APPLICATION — 2026-10-05
 
 - Le propriétaire a ajouté `mr.jinan.parent` au projet Firebase `el-mourad`
