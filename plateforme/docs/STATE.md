@@ -8,6 +8,25 @@ every session, even short or unproductive ones.
 
 
 
+## 0.8.1+21 — JINAN : FIREBASE DANS L'APPLICATION — 2026-10-05
+
+- Le propriétaire a ajouté `mr.jinan.parent` au projet Firebase `el-mourad`
+  (ID `1:721820198526:android:76a37c1a083d25811d9a2f`) et posé la clé de
+  service sur le serveur : `/health` → migration 0049, `"push":"firebase"`.
+- Application 0.8.1+21 : les valeurs FIREBASE_* dans `deploy/brands/jinan.env`
+  (clé API = celle du projet, la console n'en montre pas par application) ;
+  `push.dart` ne donne jamais l'ID Android à l'iPhone (Firebase iOS refuse au
+  démarrage) — sans FIREBASE_IOS_APP_ID, l'iPhone interroge. Flutter 66/66,
+  `analyze` propre ; ID compilé vérifié dans `libapp.so`.
+- **Livraison** au commit **59357f5** (`livraison/jinan-0.8.1+21/` : zip du
+  serveur, projet iOS, APK d'essai, `.aab` NON signé — signature d'essai
+  retirée —, captures, guides, `SHA256SUMS.txt` ; sommes vérifiées par un
+  téléchargement), retirée au commit suivant. Clé d'essai et
+  `key-jinan.properties` jamais commités ; `.aab` signé d'essai supprimé.
+- **Ensuite** : le propriétaire teste Profil → Notifications sur un téléphone,
+  signe l'`.aab` (versionCode 21) avec `signer-aab.ps1` et le publie. iOS :
+  une application iOS dans Firebase + clé APNs le jour où il y a des iPhone.
+
 ## 0.8.0+20 — JINAN : DOCUMENTS SIGNÉS, EXERCICES, COMPTES, BOUTONS BLOQUÉS, DESIGN « JARDIN » — 2026-10-04 (soir)
 
 **Demande du propriétaire** (avant de finaliser Firebase) : des documents
