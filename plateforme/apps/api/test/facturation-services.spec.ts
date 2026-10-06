@@ -293,7 +293,9 @@ beforeAll(async () => {
     `INSERT INTO service_prices (school_id, academic_year_id, service, amount) VALUES
        ($1, $2, 'cantine_petit_dejeuner', 500), ($1, $2, 'cantine_dejeuner', 800),
        ($1, $2, 'cantine_complet', 1200), ($1, $2, 'piscine', 1000),
-       ($1, $2, 'docteur', 300), ($1, $2, 'photocopie', 1500)`,
+       ($1, $2, 'docteur', 300), ($1, $2, 'photocopie', 1500),
+       -- La plateforme (0050), d'office : gratuite ici — ces tests comptent le reste.
+       ($1, $2, 'plateforme', 0)`,
     [S.schoolId, yearS],
   );
   // ⚠ Le barème des frais annuels PAR FAMILLE existe aussi chez Jinan : il ne
@@ -1817,7 +1819,7 @@ describe('le grand livre des services et la caisse (§5, §7)', () => {
       expect(await inF(() => payments.tillConsistency())).toMatchObject({ mismatched: 0, gap: '0.00' });
     });
 
-    it('HTTP : POST /finance/caisse/encaissement porte les services (au plus 60) ; le reçu se lit', async () => {
+    it('HTTP : POST /finance/caisse/encaissement porte les services (au plus 90 depuis la plateforme) ; le reçu se lit', async () => {
       const { studentId, subs } = await familleJinan('http', ['docteur']);
       const call = (method: 'GET' | 'POST', url: string, payload?: unknown) =>
         app.inject({
@@ -1826,7 +1828,7 @@ describe('le grand livre des services et la caisse (§5, §7)', () => {
           payload: payload as never,
           headers: { authorization: `Bearer ${caisseRg}`, 'x-school-slug': S.slug },
         });
-      const trop = Array.from({ length: 61 }, () => ({ studentServiceId: subs.docteur!, mois: 10, annee: 2025 }));
+      const trop = Array.from({ length: 91 }, () => ({ studentServiceId: subs.docteur!, mois: 10, annee: 2025 }));
       expect(
         (await call('POST', '/finance/caisse/encaissement', {
           studentId, mois: [], services: trop, tender: [{ paymentMethodId: especesS, amount: '300.00' }],

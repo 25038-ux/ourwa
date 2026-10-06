@@ -76,6 +76,11 @@ function duService(service: ServiceOptionnel): string {
       return 'du docteur';
     case 'transport':
       return 'du transport';
+    // 06/10/2026 (ADR-0082) : le nom entre guillemets, comme la photocopie.
+    case 'plateforme':
+      return 'de « Frais de plateforme »';
+    case 'fourniture':
+      return 'de « Frais de fourniture »';
     case 'photocopie':
       return `de « ${libelleFraisPhotocopie()} »`;
   }

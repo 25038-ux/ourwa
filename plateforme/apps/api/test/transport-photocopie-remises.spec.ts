@@ -121,6 +121,8 @@ beforeAll(async () => {
   abonnements = moduleRef.get(StudentServicesService);
   collection = moduleRef.get(CollectionService);
   debts = moduleRef.get(DebtService);
+  // La plateforme (0050), d'office : gratuite ici — ces tests comptent la photocopie.
+  await prix({ plateforme: '0' });
 });
 
 afterAll(async () => {

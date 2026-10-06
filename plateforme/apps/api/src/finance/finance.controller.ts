@@ -161,9 +161,12 @@ export class FinanceController {
         fraisInscription: z.boolean().optional(),
         fraisPhotocopie: z.boolean().optional(),
         // École « services » (ADR-0073, §7) : les échéances de service cochées —
-        // un service annuel sans mois. Au plus soixante : quatre mensuels actifs
-        // (une cantine, la piscine, le docteur, le transport) sur douze mois et
-        // deux annuels font 50 lignes ; la marge couvre une formule arrêtée puis reprise.
+        // un service annuel sans mois. Au plus quatre-vingt-dix : cinq mensuels
+        // actifs (une cantine, la piscine, le docteur, le transport, la
+        // plateforme — 0050) sur douze mois et trois annuels (fournitures,
+        // photocopie, inscription) font 63 lignes ; la marge couvre une formule
+        // arrêtée puis reprise. (Soixante avant la plateforme : une année
+        // entière de tous les services aurait été refusée.)
         services: z
           .array(
             z.object({
@@ -172,7 +175,7 @@ export class FinanceController {
               annee: z.coerce.number().int().min(2000).max(2100).optional(),
             }),
           )
-          .max(60)
+          .max(90)
           .optional(),
         tender: z.array(z.object({ paymentMethodId: uuid, amount: money, reference: z.string().trim().max(60).optional().nullable() })).min(1).max(20),
       })

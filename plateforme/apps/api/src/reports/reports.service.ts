@@ -3,6 +3,7 @@ import { Decimal } from 'decimal.js';
 import {
   SOURCES_SERVICES,
   definitionService,
+  estSourceService,
   libelleFraisPhotocopie,
   libelleService,
   libelleSourceService,
@@ -954,6 +955,8 @@ export const SOURCE_LABELS: Record<string, string> = {
   service_piscine: libelleSourceService('service_piscine'),
   service_docteur: libelleSourceService('service_docteur'),
   service_transport: libelleSourceService('service_transport'),
+  service_plateforme: libelleSourceService('service_plateforme'),
+  service_fourniture: libelleSourceService('service_fourniture'),
   /** Le nom de l'école pour la photocopie (FEE_PHOTOCOPY_LABEL), lu à chaque lecture. */
   get service_photocopie(): string {
     return libelleSourceService('service_photocopie');
@@ -1026,16 +1029,17 @@ function describe(r: {
       return `Retrait administrateur : ${r.adm_nom ?? 'Inconnu'}`;
     // École « services » (ADR-0073, §10) : « Cantine (déjeuner) : Nom (Octobre
     // 2026) », « Piscine : Nom (Octobre 2026) » ; un service annuel sans mois.
-    case 'service_cantine':
-    case 'service_piscine':
-    case 'service_docteur':
-    case 'service_photocopie':
-    case 'service_inscription':
-      return `${quoiService(r.svc_service, r.source_type)} : ${r.svc_nom?.trim() || 'Inconnu'}` +
-        (r.svc_service && definitionService(r.svc_service).periodicite === 'mensuel'
-          ? periode(r.svc_m, r.svc_a)
-          : '');
     default:
+      // ⚠ TOUTE origine « service » (le catalogue partagé), pas une liste :
+      // le transport (0047) n'y avait pas été ajouté et s'affichait
+      // « Service_transport » dans le journal des transactions (vu le
+      // 06/10/2026 en ajoutant la plateforme et les fournitures).
+      if (estSourceService(r.source_type)) {
+        return `${quoiService(r.svc_service, r.source_type)} : ${r.svc_nom?.trim() || 'Inconnu'}` +
+          (r.svc_service && definitionService(r.svc_service).periodicite === 'mensuel'
+            ? periode(r.svc_m, r.svc_a)
+            : '');
+      }
       return r.source_type.charAt(0).toUpperCase() + r.source_type.slice(1);
   }
 }

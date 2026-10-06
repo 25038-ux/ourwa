@@ -389,7 +389,7 @@ export class StudentServicesService {
     if ((input.fromMonth === undefined) !== (input.fromYear === undefined)) {
       throw new BadRequestException("Indiquez le mois ET l'année à partir desquels arrêter.");
     }
-    const depuis =
+    let depuis =
       input.fromMonth !== undefined
         ? index(input.fromMonth, input.fromYear!)
         : index(today.getUTCMonth() + 1, today.getUTCFullYear()) + 1;
@@ -410,6 +410,18 @@ export class StudentServicesService {
       }
       if (sub.ended_at) throw new ConflictException('Cet abonnement est déjà arrêté.');
 
+      // ⚠ UN SERVICE ANNUEL AU CHOIX (les fournitures, 0050) n'a qu'UNE ligne,
+      // au mois de départ : « arrêter à partir du mois suivant » la laissait due.
+      // Le retirer, c'est retirer cette ligne — tant qu'elle n'est pas réglée.
+      const annuel = definitionService(sub.service).periodicite === 'annuel';
+      if (annuel) {
+        const { rows: debut } = await tx.query<{ m: number; y: number }>(
+          'SELECT start_month AS m, start_year AS y FROM student_services WHERE id = $1',
+          [id],
+        );
+        depuis = Math.min(depuis, index(debut[0]!.m, debut[0]!.y));
+      }
+
       const { rows: lignes } = await tx.query<{
         calendar_month: number;
         calendar_year: number;
@@ -429,6 +441,11 @@ export class StudentServicesService {
         [id, depuis],
       );
       const regles = lignes.filter((l) => money(l.paye).greaterThan(0));
+      if (regles.length > 0 && annuel) {
+        throw new BadRequestException(
+          `« ${libelleService(sub.service)} » est déjà réglé : annulez d'abord le paiement pour le retirer.`,
+        );
+      }
       if (regles.length > 0) {
         const dernier = regles[regles.length - 1]!;
         const suivant = (dernier.calendar_month % 12) + 1;

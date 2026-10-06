@@ -30,12 +30,16 @@ import { deleteStored, readStored, storeUpload, UploadRejected } from '../attach
  * un fichier Word qu'on pourrait retoucher (la base le refuse aussi).
  */
 
-/** Les services qui ont une pièce : tous, sauf la photocopie et l'inscription (pièce à part). */
-type ServicePiece = Exclude<ServiceCode, 'photocopie' | 'inscription'>;
+/**
+ * Les services qui ont une pièce : ceux que la famille CHOISIT. Pas la
+ * photocopie ni la plateforme (d'office — 0049, 0050), ni l'inscription
+ * (pièce à part).
+ */
+type ServicePiece = Exclude<ServiceCode, 'photocopie' | 'plateforme' | 'inscription'>;
 export type PieceCode = 'inscription' | 'comportement_social' | ServicePiece;
 
 const SERVICES_PIECES = SERVICE_CODES.filter(
-  (c): c is ServicePiece => c !== 'inscription' && c !== 'photocopie',
+  (c): c is ServicePiece => c !== 'inscription' && c !== 'photocopie' && c !== 'plateforme',
 );
 
 /** L'ordre des pièces à l'écran : l'inscription, les comportements sociaux, puis les services du catalogue. */
