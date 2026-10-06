@@ -171,6 +171,17 @@ if [ -n "$PRIX" ]; then
       printf '    et chaque inscription sera REFUSÉE tant qu’il manque. Posez-le dans « Frais » (0 = gratuit).\033[0m\n'
     fi
   done
+  # ADR-0082 §6 : enregistrer le prix de la plateforme dans « Frais » l'ajoute
+  # à chaque élève inscrit qui ne l'a pas, à partir du mois en cours.
+  SANS="$(cd "$DIR/deploy/jinan" && docker compose exec -T db psql -U postgres -d jinan -At \
+      -c "SELECT count(*) FROM enrollments e JOIN academic_years y ON y.id = e.academic_year_id
+           WHERE y.status = 'active' AND e.status <> 'cancelled'
+             AND NOT EXISTS (SELECT 1 FROM student_services ss WHERE ss.student_id = e.student_id
+                              AND ss.academic_year_id = e.academic_year_id AND ss.service = 'plateforme')" 2>/dev/null || true)"
+  if [[ "$SANS" =~ ^[0-9]+$ ]] && [ "$SANS" -gt 0 ]; then
+    printf '\033[33m  ⚠ %s élève(s) inscrit(s) n’ont pas les « Frais de plateforme ». Enregistrez leur prix\n' "$SANS"
+    printf '    dans « Frais » (bouton ✓) : ils leur sont ajoutés, à partir du mois en cours.\033[0m\n'
+  fi
   echo
 fi
 # Le mot de passe provisoire : à la PREMIÈRE installation seulement (le fichier

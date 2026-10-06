@@ -8,6 +8,34 @@ every session, even short or unproductive ones.
 
 
 
+## LA PLATEFORME À TOUS LES INSCRITS — 2026-10-06 (soir)
+
+**Demande du propriétaire** : « No — add the plateforme fee to every enrolled
+student automatically, and then give me the final deployment script ».
+Détail : **ADR-0082 §6** (le « pas de rattrapage » de la même ADR est
+remplacé). Aucune migration : 0050 reste la dernière.
+
+- **Fait** : enregistrer le prix de la plateforme sur « Frais »
+  (`POST /finance/tarifs/services`) appelle
+  `StudentServicesService.appliquerATousLesInscrits` : chaque élève inscrit
+  (inscription non annulée) sans abonnement plateforme le reçoit, au prix figé,
+  **à partir du mois en cours** (règle du 25 sur aujourd'hui), jamais avant son
+  propre premier mois dû ; jamais deux fois (une exemption est respectée) ;
+  rien à 0 ni sur une année terminée. Une transaction par famille sous le
+  verrou du reçu groupé ; audit par abonnement (`via: tous_les_inscrits`) et
+  par passage (`student_service_applied_to_all`). La réponse devient
+  `{ services, appliques }` ; le message de « Frais » dit « Ajoutés à N élèves
+  inscrits, à partir d'Octobre 2026 » ; la ligne de la plateforme le dit aussi.
+- **Vérifié** : API 1102/1102 (dont 4 nouveaux,
+  `plateforme-fournitures.spec.ts`), `tsc` API et site ; navigateur
+  `jinan-plateforme-pourcentages` + `jinan-facturation` : 22/22 sur une base
+  de développement réensemencée (un premier passage avait échoué sur
+  « réinscrire » : Vatimetou portait 20 dettes diverses laissées par des
+  passages précédents — pollution de la base de développement, pas ce
+  changement ; `seed:jinan` la remet à zéro).
+- **Ensuite** : le propriétaire lance la mise à jour, puis enregistre le prix
+  de la plateforme sur « Frais » : tous les inscrits la reçoivent d'un coup.
+
 ## FRAIS DE PLATEFORME, FRAIS DE FOURNITURE, POURCENTAGES PROPOSÉS — 2026-10-06
 
 **Demande du propriétaire** : « frais de fourniture (annuel et par étudiant et

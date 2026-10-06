@@ -64,7 +64,9 @@ const PRIX = {
   photocopie: 700,
   // 06/10/2026 (ADR-0082) : la plateforme, mensuelle et d'office ; les
   // fournitures, annuelles et au choix. Les familles ci-dessous ont été
-  // inscrites AVANT : pas de plateforme rétroactive (comme en production).
+  // inscrites AVANT et le prix est écrit ici directement : elles n'ont pas de
+  // plateforme. Sur le site, enregistrer ce prix sur « Frais » la leur ajoute,
+  // à partir du mois en cours (ADR-0082 §6) — rien pour 2025-2026, terminée.
   plateforme: 200,
   fourniture: 1500,
 } as const;

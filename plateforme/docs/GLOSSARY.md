@@ -418,7 +418,12 @@ même écran chez lui, et l'écran dit laquelle est laquelle.
 - **Frais de plateforme** — service `plateforme` d'une école « services » :
   mensuel, au prix de l'école, créé d'office à chaque (ré)inscription à partir
   du premier mois dû de la scolarité ; remisable, exemptable, jamais arrêté.
-  Prix non défini → inscription refusée. ADR-0082.
+  Prix non défini → inscription refusée. Enregistrer son prix sur « Frais »
+  l'ajoute aussi à chaque élève déjà inscrit qui ne l'a pas, à partir du mois
+  en cours. ADR-0082.
+- **appliquerATousLesInscrits** — le passage qui ajoute la plateforme aux
+  élèves inscrits sans elle : une transaction par famille, jamais deux fois,
+  jamais un mois passé ; audité `student_service_applied_to_all`. ADR-0082 §6.
 - **Frais de fourniture** — service `fourniture` : annuel (une ligne), au prix
   de l'école, coché à l'inscription ou ajouté depuis la fiche ; « Retirer »
   tant qu'il n'est pas réglé ; a une pièce signée. ADR-0082.

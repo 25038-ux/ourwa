@@ -4004,9 +4004,9 @@ reçus, dette, rapports, page « Frais »), comme pour le transport (0047) :
   n'est pas gratuit), comme la photocopie ; 0 = gratuit, rien d'écrit. Aucun
   prix n'est posé par la migration : la direction le saisit dans « Frais ».
   L'installateur l'annonce en fin de mise à jour.
-- **Pas de rattrapage** (comme la photocopie en 0047) : un élève inscrit avant
-  ne reçoit aucune plateforme rétroactive ; la fiche permet de l'ajouter
-  (« + Ajouter un service »).
+- ~~Pas de rattrapage~~ — **remplacé le même jour par le §6 ci-dessous** : poser
+  le prix de la plateforme l'ajoute à chaque élève déjà inscrit. (La migration
+  0050 n'écrit toujours rien ; c'est la page « Frais » qui le fait.)
 - **Retirer un service annuel** : `stop()` retirait les lignes « à partir du
   mois suivant » — la ligne unique d'un service annuel restait due. Pour un
   service annuel, la ligne part (ou le retrait est refusé si elle est réglée :
@@ -4033,3 +4033,35 @@ envoie un montant, comme avant, et le serveur garde ses contrôles.
   20 %), le prix du service (remise par mois), la dette (remise sur la dette),
   le tarif du niveau pour le mode choisi (inscription, réinscription).
 - Le motif, s'il est vide, devient « Réduction de 20 % ».
+
+**§6 — La plateforme à tous les inscrits (complément du 06/10/2026).** Le
+propriétaire : « No — add the plateforme fee to every enrolled student
+automatically ». Enregistrer le prix de la plateforme sur « Frais »
+(`POST /finance/tarifs/services` avec la clé `plateforme`) appelle
+`StudentServicesService.appliquerATousLesInscrits` :
+
+- **Qui** : chaque élève inscrit sur l'année (inscription non annulée) qui n'a
+  **aucun** abonnement plateforme — un abonnement exempté par la direction
+  compte : l'exemption n'est pas défaite.
+- **À partir de quand** : le mois en cours (la règle du 25 appliquée à
+  aujourd'hui, `moisDeDepartParDefaut`), jamais avant le premier mois dû de
+  SA scolarité (la règle du 25 sur sa date d'entrée). Un mois passé n'est
+  jamais facturé après coup. Année terminée : rien.
+- **Combien** : le prix de l'année, figé sur chaque abonnement. Reposer un
+  autre prix ne réécrit aucun abonnement pris ; prix 0 (gratuit) : rien.
+- **Jamais deux fois** : une transaction par famille, sous le verrou du reçu
+  groupé, le test d'absence refait sous le verrou ; relancer (reposer le prix)
+  ne crée rien de plus. Chaque abonnement s'audite
+  (`student_service_subscribed`, `via: tous_les_inscrits`), et le passage
+  entier une fois (`student_service_applied_to_all`).
+- **La réponse** devient `{ services, appliques }` ; `appliques` dit
+  `{ service, montant, eleves, depuis }` pour la plateforme, `null` pour un
+  autre service. Le message de « Frais » : « Frais de plateforme (2026-2027) :
+  200 MRU. Ajoutés à 312 élèves inscrits, à partir d'Octobre 2026. »
+- Pas de file BullMQ (règle 18) : l'API n'en a pas ; une école de quelques
+  centaines d'élèves, c'est une dizaine de requêtes par élève, en secondes. Si
+  l'école grandit, c'est le premier candidat.
+
+Les autres services ne changent pas : leur prix ne s'applique qu'aux nouvelles
+souscriptions. Tests : `apps/api/test/plateforme-fournitures.spec.ts`
+(« la plateforme pour tous les inscrits »).
