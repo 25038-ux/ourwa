@@ -476,6 +476,7 @@ testées. Seule la suspension ne l'est pas.
 | 12p | Application des familles 0.8.0+20 : design « Jardin », menu latéral, écran Documents | **Fait le 2026-10-04**. ADR-0080. |
 | 12q | Application des familles 0.8.1+21 : Firebase (notifications instantanées) pour Jinan ; l'iPhone ne reçoit jamais l'ID Android | **Fait le 2026-10-05**. docs/FIREBASE.md. |
 | 12r | Session : un seul renouvellement par jeton côté site (plus de déconnexion après une pause) ; « le serveur ne répond pas » sur place, retour automatique ; « Paramètre invalide » (400) au lieu de 500 ; « introuvable » seulement sur une réponse définitive | **Fait le 2026-10-05**. ADR-0081. |
+| 12s | Frais de plateforme (mensuels, obligatoires, par élève, d'office) ; frais de fourniture (annuels, au choix, par élève) ; pourcentages proposés 5 % … 50 % dans chaque fenêtre de réduction et de changement de frais | **Fait le 2026-10-06**, demande de Jinan. 0050. ADR-0082. |
 | 27, 28 | Interface web en arabe, avec RTL | L'application **parent** est bilingue (fr/ar, RTL) ; l'interface **web** du personnel est en français seul. El Ourwa a les deux. |
 | 31 | Couche de cache | Phase 0, jamais commencée. Rien ne la réclame pour l'instant. |
 | 100 | Le total arabe du fondamental | **Tranché le 2026-09-11 : rien à porter.** `total_ar` vide sur 5 792 lignes, jamais lu. |

@@ -163,10 +163,14 @@ PRIX="$(cd "$DIR/deploy/jinan" && docker compose exec -T db psql -U postgres -d 
 if [ -n "$PRIX" ]; then
   echo "  Prix des services de l'année active (année · service · MRU) — page « Frais » :"
   printf '%s\n' "$PRIX" | sed 's/^/    /'
-  if ! printf '%s\n' "$PRIX" | grep -q ' · photocopie · '; then
-    printf '\033[33m  ⚠ Le prix de la photocopie n’est pas défini : elle est désormais obligatoire,\n'
-    printf '    et chaque inscription sera REFUSÉE tant qu’il manque. Posez-le dans « Frais » (0 = gratuit).\033[0m\n'
-  fi
+  # Les services D'OFFICE (photocopie 0047, plateforme 0050) : sans prix,
+  # chaque inscription est refusée (non défini n'est pas gratuit).
+  for OBLIG in 'photocopie:Frais de photocopie' 'plateforme:Frais de plateforme'; do
+    if ! printf '%s\n' "$PRIX" | grep -q " · ${OBLIG%%:*} · "; then
+      printf '\033[33m  ⚠ Le prix « %s » n’est pas défini : il est obligatoire à chaque inscription,\n' "${OBLIG#*:}"
+      printf '    et chaque inscription sera REFUSÉE tant qu’il manque. Posez-le dans « Frais » (0 = gratuit).\033[0m\n'
+    fi
+  done
   echo
 fi
 # Le mot de passe provisoire : à la PREMIÈRE installation seulement (le fichier

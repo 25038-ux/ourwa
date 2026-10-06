@@ -415,3 +415,13 @@ même écran chez lui, et l'écran dit laquelle est laquelle.
   (22P02, 22007, 22008, 22003) : 400, jamais 500 (`ParametreInvalideFilter`). ADR-0081.
 - **nulSiIntrouvable** — « introuvable » sur une réponse définitive (404, 400,
   403) ; un échec passager va à la page d'erreur. ADR-0081.
+- **Frais de plateforme** — service `plateforme` d'une école « services » :
+  mensuel, au prix de l'école, créé d'office à chaque (ré)inscription à partir
+  du premier mois dû de la scolarité ; remisable, exemptable, jamais arrêté.
+  Prix non défini → inscription refusée. ADR-0082.
+- **Frais de fourniture** — service `fourniture` : annuel (une ligne), au prix
+  de l'école, coché à l'inscription ou ajouté depuis la fiche ; « Retirer »
+  tant qu'il n'est pas réglé ; a une pièce signée. ADR-0082.
+- **Pourcentages proposés** — les boutons 5 % … 50 % des fenêtres de réduction :
+  ils remplissent le montant (`partPourcentage` / `resteApresPourcentage`,
+  `@elourwa/shared/pourcentages`), arrondi à l'ouguiya entier. ADR-0082.

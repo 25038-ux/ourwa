@@ -79,7 +79,10 @@
 | `cantine_complet` | Cantine — petit déjeuner + déjeuner | mensuel | école, par année |
 | `piscine` | Piscine | mensuel | école, par année |
 | `docteur` | Docteur | mensuel | école, par année |
-| `photocopie` | `libelleFraisPhotocopie()` | annuel (une fois) | école, par année |
+| `transport` | Transport | mensuel | école, par année (0047) |
+| `plateforme` | Frais de plateforme | mensuel, **obligatoire** (d'office) | école, par année (0050, ADR-0082) |
+| `fourniture` | Frais de fourniture | annuel (une fois), au choix | école, par année (0050, ADR-0082) |
+| `photocopie` | `libelleFraisPhotocopie()` | annuel (une fois), **obligatoire** (0047) | école, par année |
 | `inscription` | Frais d'inscription | annuel, **obligatoire** | **par niveau** (§3) |
 
 - Les trois cantines sont exclusives (famille `cantine`) : un seul abonnement

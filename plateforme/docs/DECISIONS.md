@@ -3976,3 +3976,60 @@ dépense, remboursement, avance), les bulletins, le tableau de bord et
 `.catch(nulSiIntrouvable)` : 404 / 400 / 403 → « introuvable » comme avant ;
 un échec passager (délai, API en redémarrage, 5xx) → la page d'erreur, qui dit
 ce qu'il en est et réessaie.
+
+## ADR-0082 — Frais de plateforme (mensuels, d'office), frais de fourniture (annuels, au choix), pourcentages proposés
+
+*06/10/2026. Demande du propriétaire de Jinan : « frais de fourniture (annuel et
+par étudiant et optionnel) (service optionnel) ; Frais de plateforme
+obligatoire et par étudiant et mensuel ; for each reduction window (whether
+monthly reduction or frais changement) add some proposed percentages 5% 10%
+15% 20% 25% 30% 35% until 50%, and the system deducts automatically ».*
+
+**Décision — deux services du catalogue, migration 0050.** Le catalogue
+(`@elourwa/shared/facturation`) en décide pour tout le reste (fenêtres,
+reçus, dette, rapports, page « Frais »), comme pour le transport (0047) :
+
+| | Plateforme | Fournitures |
+|---|---|---|
+| Facturation | chaque mois (une ligne par mois dû) | une fois l'an (une ligne au mois de départ) |
+| Prix | d'école, par année (« Frais ») | d'école, par année (« Frais ») |
+| Souscription | **d'office** à chaque (ré)inscription | **cochée** à l'inscription, ou « + Ajouter un service » |
+| Premier mois | celui de la scolarité (règle du 25) | le mois d'entrée |
+| Remise par mois | oui | non (annuelle : elle s'exempte) |
+| Exemption | oui | oui |
+| Arrêt | non (obligatoire) | « Retirer » tant qu'elle n'est pas réglée |
+| Pièce signée (« Documents ») | non (d'office, comme la photocopie) | oui (un service choisi) |
+
+- **Prix non défini → inscription refusée** pour la plateforme (D4 : non défini
+  n'est pas gratuit), comme la photocopie ; 0 = gratuit, rien d'écrit. Aucun
+  prix n'est posé par la migration : la direction le saisit dans « Frais ».
+  L'installateur l'annonce en fin de mise à jour.
+- **Pas de rattrapage** (comme la photocopie en 0047) : un élève inscrit avant
+  ne reçoit aucune plateforme rétroactive ; la fiche permet de l'ajouter
+  (« + Ajouter un service »).
+- **Retirer un service annuel** : `stop()` retirait les lignes « à partir du
+  mois suivant » — la ligne unique d'un service annuel restait due. Pour un
+  service annuel, la ligne part (ou le retrait est refusé si elle est réglée :
+  « annulez d'abord le paiement »).
+- **Trouvé en chemin** : le journal des transactions décrivait le transport
+  « Service_transport » (la liste des origines « service » ne l'avait pas) ;
+  la description couvre désormais toute origine du catalogue. Et un reçu groupé
+  plafonnait à 60 lignes de service : avec la plateforme, une année entière de
+  tous les services en fait 63 ; plafond porté à 90.
+
+**Décision — les pourcentages proposés.** Dans chaque fenêtre de réduction —
+« Réduction » d'un mois, « Modifier le frais mensuel », la remise par mois d'un
+service, « Accorder une remise » sur la dette, le frais personnalisé de la
+réinscription, le frais mensuel de l'inscription — des boutons 5 % … 50 %
+(de 5 en 5) remplissent le montant et disent le calcul (« 20 % de 3 200 MRU :
+640 MRU retirés, reste 2 560 MRU »). Rien d'autre ne change : le formulaire
+envoie un montant, comme avant, et le serveur garde ses contrôles.
+
+- La part est `base × p %` en décimal (`@elourwa/shared/pourcentages`),
+  arrondie une fois à l'ouguiya entier, au demi supérieur ; le reste est
+  `base − part`, si bien que part + reste = base.
+- La base : le frais mensuel du mois (réduction), **le tarif plein** pour
+  « Modifier le frais mensuel » (20 % d'un frais déjà réduit ne ferait pas
+  20 %), le prix du service (remise par mois), la dette (remise sur la dette),
+  le tarif du niveau pour le mode choisi (inscription, réinscription).
+- Le motif, s'il est vide, devient « Réduction de 20 % ».
