@@ -40,9 +40,10 @@ test.describe('Jinan — transport et remises', () => {
     await page.getByRole('button', { name: /Inscrire l.étudiant/ }).click();
 
     const fenetre = page.locator('.modal-overlay.active');
-    // Octobre 3 000 + inscription 2 000 + photocopie 700 + transport d'octobre 1 200.
-    await expect(fenetre.locator('tfoot')).toContainText('1 mois + 3 services', { timeout: 60000 });
-    await expect(fenetre.locator('tfoot')).toContainText('6 900 MRU');
+    // Octobre 3 000 + inscription 2 000 + photocopie 700 + transport d'octobre 1 200
+    // + plateforme d'octobre 200 (d'office — 0050).
+    await expect(fenetre.locator('tfoot')).toContainText('1 mois + 4 services', { timeout: 60000 });
+    await expect(fenetre.locator('tfoot')).toContainText('7 100 MRU');
     await expect(fenetre).toContainText('Transport');
     await fenetre.getByRole('button', { name: /Encaisser & imprimer/ }).click();
     await expect(page).toHaveURL(/\/finance\/recu\/groupe\//, { timeout: 60000 });

@@ -59,6 +59,8 @@ export async function arreterServiceAction(_prev: unknown, form: FormData): Prom
       json: depuis ? { fromMonth: depuis.mois, fromYear: depuis.annee } : {},
     });
     revalidatePath('/finance', 'layout');
+    // Un service annuel (les fournitures) n'a qu'une échéance : il est RETIRÉ.
+    if (form.get('annuel') === '1') return { ok: `${nom(String(form.get('service') ?? ''))} retiré : il n'est plus dû.` };
     return { ok: `${nom(String(form.get('service') ?? ''))} arrêté${depuis ? ` à partir de ${MOIS_NOMS[depuis.mois]} ${depuis.annee}` : ''}.` };
   } catch (e) {
     return erreur(e, "Le service n'a pas pu être arrêté.");

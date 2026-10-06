@@ -68,8 +68,8 @@ function mentions(lang: 'fr' | 'ar', services: boolean): Record<string, string> 
     facturation_services: !services
       ? ''
       : ar
-        ? 'مواقيت الدراسة (8h – 14h أو 8h – 17h) والخدمات الاختيارية المشترك فيها (المطعم المدرسي، المسبح، الطبيب، النسخ)'
-        : "Horaire d'étude (8h – 14h ou 8h – 17h) et services optionnels souscrits (cantine, piscine, docteur, photocopie)",
+        ? 'مواقيت الدراسة (8h – 14h أو 8h – 17h) والخدمات الاختيارية المشترك فيها (المطعم المدرسي، المسبح، الطبيب، النقل، اللوازم المدرسية)'
+        : "Horaire d'étude (8h – 14h ou 8h – 17h) et services optionnels souscrits (cantine, piscine, docteur, transport, fournitures)",
     marque: MARQUE.nom,
     marque_ar: MARQUE.nomAr,
     ecole: ar

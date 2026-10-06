@@ -7,7 +7,8 @@ import { MoyensPaiement, type LigneMoyen, type Moyen } from '@/components/moyens
 import { FenetreEncaissement, type FenetreData } from '@/components/fenetre-encaissement';
 import { arreterDetteAction, payerDetteMoisAction, reEnrolAction } from '@/app/actions';
 import { MOIS_NOMS } from '@/lib/mois';
-import { ChoixFacturation, type CatalogueFacturation } from '@/components/choix-facturation';
+import { ChoixFacturation, tarifDuMode, type CatalogueFacturation } from '@/components/choix-facturation';
+import { PourcentagesProposes } from '@/components/pourcentages';
 import type { ModeEtude } from '@elourwa/shared/facturation';
 import { OptionsParCycle } from '@/components/options-par-cycle';
 
@@ -200,6 +201,10 @@ export function ReinscrireModale({
 
           <div className="form-group">
             <label>Frais mensuel personnalisé (MRU) — optionnel</label>
+            {/* Une réduction en pourcentage du tarif du niveau pour le mode choisi. */}
+            {facturation && (
+              <PourcentagesProposes base={tarifDuMode(facturation, levelId, mode)} cible="frais_personnalise" sens="reste" libelleBase="tarif du niveau" />
+            )}
             <input
               type="number"
               name="frais_personnalise"

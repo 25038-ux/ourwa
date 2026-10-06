@@ -139,12 +139,13 @@ export default async function ImpayesPage({
                 {lignes.length} correspondant{lignes.length > 1 ? 's' : ''}
               </span>
               {/* École « services » (Jinan, §6) : la dette des services (cantine,
-                  piscine, docteur, photocopie, inscription par élève) est
+                  piscine, docteur, transport, plateforme, fournitures, photocopie,
+                  inscription par élève) est
                   comptée avec la scolarité ; « Mois impayés » reste la scolarité. */}
               {(await estEcoleServices()) && (
                 <p className="text-muted" style={{ flexBasis: '100%', margin: 0, fontSize: '.82rem' }} data-testid="note-services">
-                  « Scolarité due » comprend les services échus (cantine, piscine, docteur, photocopie, frais
-                  d&apos;inscription) ; « Mois impayés » ne compte que la scolarité.
+                  « Scolarité due » comprend les services échus (cantine, piscine, docteur, transport, plateforme,
+                  fournitures, photocopie, frais d&apos;inscription) ; « Mois impayés » ne compte que la scolarité.
                 </p>
               )}
             </div>

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { MODES_ETUDE, libelleMode, type ModeEtude } from '@elourwa/shared/facturation';
 import { useActionMessage } from '@/components/message-page';
+import { PourcentagesProposes } from '@/components/pourcentages';
 import { fr } from '@/components/moyens-paiement';
 import type { CatalogueFacturation } from '@/components/choix-facturation';
 import { MOIS_NOMS } from '@/lib/mois';
@@ -36,7 +37,7 @@ export interface AbonnementFiche {
   amount: string;
   /** La remise par mois (ADR-0079) ; '0.00' sans remise. Absente d'une API plus ancienne. */
   remise?: string;
-  /** Faux pour les services d'office (inscription, photocopie) : ils s'exemptent, ne s'arrêtent pas. */
+  /** Faux pour les services d'office (inscription, photocopie, plateforme) : ils s'exemptent, ne s'arrêtent pas. */
   arretable?: boolean;
   exempt: boolean;
   startMonth: number;
@@ -334,6 +335,7 @@ export function BlocServices({
                   <form action={remiser} style={{ display: 'inline-flex', gap: '.25rem', alignItems: 'center' }}>
                     <input type="hidden" name="studentServiceId" value={a.id} />
                     <input type="hidden" name="service" value={a.service} />
+                    <PourcentagesProposes base={a.amount} cible="remise" sens="part" variante="liste" />
                     <input
                       type="number"
                       name="remise"
@@ -350,12 +352,16 @@ export function BlocServices({
                     </button>
                   </form>
                 )}
-                {peutAdministrer && !arrete && (a.arretable ?? (a.service !== 'inscription' && a.service !== 'photocopie')) && (
+                {peutAdministrer && !arrete && (a.arretable ?? !['inscription', 'photocopie', 'plateforme'].includes(a.service)) && (
                   <form
                     action={arreter}
                     style={{ display: 'inline-flex', gap: '.25rem', alignItems: 'center' }}
                     onSubmit={(e) => {
-                      if (!confirm(`Arrêter « ${a.label} » ? Les mois suivants non payés sont retirés.`)) e.preventDefault();
+                      const question =
+                        a.periodicite === 'annuel'
+                          ? `Retirer « ${a.label} » ? Il ne sera plus dû (refusé s'il est déjà réglé).`
+                          : `Arrêter « ${a.label} » ? Les mois suivants non payés sont retirés.`;
+                      if (!confirm(question)) e.preventDefault();
                     }}
                   >
                     <input type="hidden" name="studentServiceId" value={a.id} />
@@ -363,6 +369,7 @@ export function BlocServices({
                     {/* Un service annuel n'a qu'une échéance, à son mois : l'arrêter,
                         c'est la retirer (si elle n'est pas payée). */}
                     {a.periodicite === 'annuel' && <input type="hidden" name="depuis" value={`${a.startYear}-${a.startMonth}`} />}
+                    {a.periodicite === 'annuel' && <input type="hidden" name="annuel" value="1" />}
                     {a.periodicite === 'mensuel' && (
                       <select name="depuis" defaultValue={suivant ? `${suivant.annee}-${suivant.mois}` : ''} aria-label={`Arrêter ${a.label} à partir de`} style={{ padding: '.1rem .3rem', fontSize: '.72rem' }}>
                         {moisPeriode.map((m) => (
@@ -370,7 +377,9 @@ export function BlocServices({
                         ))}
                       </select>
                     )}
-                    <button className="btn btn-sm btn-danger" disabled={pArr} style={{ padding: '.1rem .45rem', fontSize: '.72rem' }}>Arrêter</button>
+                    <button className="btn btn-sm btn-danger" disabled={pArr} style={{ padding: '.1rem .45rem', fontSize: '.72rem' }}>
+                      {a.periodicite === 'annuel' ? 'Retirer' : 'Arrêter'}
+                    </button>
                   </form>
                 )}
               </div>

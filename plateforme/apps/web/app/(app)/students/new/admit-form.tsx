@@ -16,6 +16,7 @@ import {
 } from '@/components/choix-facturation';
 import type { ModeEtude } from '@elourwa/shared/facturation';
 import { OptionsParCycle } from '@/components/options-par-cycle';
+import { PourcentagesProposes } from '@/components/pourcentages';
 
 interface Group {
   id: string;
@@ -144,7 +145,18 @@ export function AdmitForm({
             />
           </select>
         </div>
-        <div className="form-group"><label>Frais mensuel (MRU)</label><input type="number" step={0.01} name="frais_mensuel" id="frais_mensuel" value={fee} onChange={(e) => setFee(e.target.value)} /></div>
+        <div className="form-group">
+          <label>Frais mensuel (MRU)</label>
+          {/* Une réduction en pourcentage du tarif du niveau (et du mode). */}
+          <PourcentagesProposes
+            base={facturation ? tarifDuMode(facturation, levelId, mode) : groups.find((g) => g.id === groupeId)?.monthly_rate ?? null}
+            cible="frais_mensuel"
+            sens="reste"
+            libelleBase="tarif du niveau"
+            onChoisir={(v) => setFee(v)}
+          />
+          <input type="number" step={0.01} name="frais_mensuel" id="frais_mensuel" value={fee} onChange={(e) => setFee(e.target.value)} />
+        </div>
       </div>
       {facturation && (
         <ChoixFacturation

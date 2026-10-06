@@ -1,5 +1,6 @@
 'use client';
 
+import { PourcentagesProposes } from '@/components/pourcentages';
 import { useEffect, useState } from 'react';
 import {
   applyDiscountAction,
@@ -270,7 +271,7 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
     type: 'enrolment' | 'photocopy'; label: string; reste: string;
   } | null>(null);
   const [lignesFraisAnnuel, setLignesFraisAnnuel] = useState<LigneMoyen[]>([]);
-  const [modalFrais, setModalFrais] = useState<{ eid: string; nom: string; frais: string } | null>(null);
+  const [modalFrais, setModalFrais] = useState<{ eid: string; nom: string; frais: string; plein?: string } | null>(null);
   const [modalReduction, setModalReduction] = useState<{
     eid: string; mois: number; moisNom: string; frais: string; nom: string; anMois: number;
   } | null>(null);
@@ -443,7 +444,10 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
             </div>
             <div>
               <label htmlFor="rd-montant">Montant (MRU)</label>
-              <input type="number" id="rd-montant" name="amount" min="0" step="100" max={Math.trunc(totalDette)} placeholder="ex. 5000" />
+              <input type="number" id="rd-montant" name="amount" min="0" step="1" max={Math.trunc(totalDette)} placeholder="ex. 5000" />
+            </div>
+            <div style={{ flexBasis: '100%' }}>
+              <PourcentagesProposes base={totalDette.toFixed(2)} cible="amount" sens="part" motif="reason" libelleBase="la dette" />
             </div>
             <div style={{ flex: 1, minWidth: '12rem' }}>
               <label htmlFor="rd-motif">Motif</label>
@@ -511,8 +515,8 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
       )}
 
       {/* ===== FRAIS ANNUELS ===== — une école « services » n'en a pas par
-          famille : ses frais d'inscription (par élève) et sa photocopie sont
-          des services de chaque enfant, plus bas. */}
+          famille : ses frais d'inscription (par élève), sa photocopie, ses
+          fournitures et sa plateforme sont des services de chaque enfant, plus bas. */}
       {!facturationServices && (
       <div className="form-card" style={{ marginBottom: '1.5rem' }}>
         <h4 style={{ marginTop: 0 }}>Frais annuels</h4>
@@ -650,7 +654,7 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
                       className="btn btn-sm btn-secondary"
                       style={{ padding: '.15rem .5rem', fontSize: '.75rem' }}
                       title="Modifier le frais mensuel de cet étudiant"
-                      onClick={() => setModalFrais({ eid: enf.studentId, nom: enf.name, frais: enf.monthlyFee })}
+                      onClick={() => setModalFrais({ eid: enf.studentId, nom: enf.name, frais: enf.monthlyFee, plein: enf.fullRate })}
                     >
                       Frais
                     </button>
@@ -1010,6 +1014,16 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
                   <input type="hidden" name="academicYearId" value={academicYearId} />
                   <div className="form-group">
                     <label>Nouveau frais mensuel (MRU) *</label>
+                    {/* Le pourcentage se prend sur le TARIF PLEIN : 20 % d'un frais
+                        déjà réduit ne ferait pas 20 % de réduction. */}
+                    {modalFrais && (
+                      <PourcentagesProposes
+                        base={Number(modalFrais.plein ?? 0) > 0 ? modalFrais.plein : modalFrais.frais}
+                        cible="amount"
+                        sens="reste"
+                        libelleBase={Number(modalFrais.plein ?? 0) > 0 ? 'tarif plein' : 'frais actuel'}
+                      />
+                    )}
                     <input type="number" name="amount" min="0" step="1" required defaultValue={modalFrais ? String(Number(modalFrais.frais)) : ''} />
                     <small className="text-muted">
                       S&apos;applique à tous les mois : les mois déjà réglés à hauteur du nouveau montant apparaîtront « payés », les autres seront recalculés dans la dette.
@@ -1038,6 +1052,9 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
                   <input type="hidden" name="periode" value={modalReduction ? `${modalReduction.anMois}-${modalReduction.mois}` : ''} />
                   <div className="form-group">
                     <label>Montant de la réduction (MRU) *</label>
+                    {modalReduction && (
+                      <PourcentagesProposes base={modalReduction.frais} cible="amount" sens="part" motif="reason" libelleBase="frais mensuel" />
+                    )}
                     <input type="number" name="amount" min="1" step="1" required placeholder="Ex : 2000" max={modalReduction ? Number(modalReduction.frais) : undefined} />
                     <small className="text-muted">Le parent ne paiera que : frais mensuel − réduction. Aucune dette ne sera enregistrée sur la partie réduite.</small>
                   </div>
