@@ -202,6 +202,13 @@ export default async function FraisPage() {
                         ) : (
                           <span className="text-muted" style={{ marginLeft: '.4rem', fontSize: '.8rem' }}>(au choix)</span>
                         )}
+                        {/* ADR-0082 §6 : poser son prix l'ajoute aux élèves déjà inscrits. */}
+                        {s.code === 'plateforme' && (
+                          <small className="text-muted" data-testid="plateforme-tous" style={{ display: 'block', marginTop: '.2rem' }}>
+                            Enregistrer le prix l&apos;ajoute aussi à chaque élève déjà inscrit qui ne l&apos;a pas,
+                            à partir du mois en cours (jamais deux fois, jamais un mois passé).
+                          </small>
+                        )}
                       </td>
                       <td data-label="Prix">
                         {modifiable ? (

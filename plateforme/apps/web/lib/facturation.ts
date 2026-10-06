@@ -37,6 +37,23 @@ export interface PrixService {
   prix: string | null;
 }
 
+/**
+ * `POST /finance/tarifs/services` — les prix de l'année, et (ADR-0082 §6) ce
+ * que poser le prix de la plateforme a ajouté aux élèves inscrits ; `null`
+ * pour un autre service.
+ */
+export interface PrixServicesPoses {
+  services: PrixService[];
+  appliques: {
+    service: 'plateforme';
+    montant: string;
+    /** Les élèves qui viennent de la recevoir. */
+    eleves: number;
+    /** Le premier mois facturé ; `null` : prix 0 ou année terminée. */
+    depuis: { month: number; year: number } | null;
+  } | null;
+}
+
 /** `GET /finance/tarifs` — la page « Frais », telle que l'API la rend. */
 export interface PageTarifs {
   billingModel: 'famille' | 'services';

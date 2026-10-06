@@ -18,7 +18,7 @@ import { verifierFichier as verifierRegleFichier, type FamilleFichier } from '@e
 import { money, toStorage } from '@elourwa/shared/money';
 import { estServiceOptionnel, libelleMode, libelleService } from '@elourwa/shared/facturation';
 import { hoteAvecSlug, LIBELLE_FRAIS_PHOTOCOPIE } from '@/lib/brand';
-import { CHAMPS_TARIF_NIVEAU, type ChampTarifNiveau, type PrixService, type TarifNiveau } from '@/lib/facturation';
+import { CHAMPS_TARIF_NIVEAU, type ChampTarifNiveau, type PrixServicesPoses, type TarifNiveau } from '@/lib/facturation';
 
 /** L'année consultée, telle que le formulaire la porte, pour la garder après la redirection. */
 function anneeConservee(form: FormData): string {
@@ -2505,6 +2505,9 @@ export async function setLevelTarifAction(_prev: unknown, form: FormData) {
  * LE PRIX D'UN SERVICE POUR UNE ANNÉE — `POST /finance/tarifs/services`, un
  * service à la fois. Vide = « non défini » (on ne peut plus y souscrire). Une
  * année close est refusée par l'API. Les abonnements déjà pris gardent leur prix.
+ *
+ * La plateforme (ADR-0082 §6) : l'API l'ajoute aussitôt à chaque élève inscrit
+ * qui ne l'a pas, à partir du mois en cours — le message dit à combien.
  */
 export async function setServicePriceAction(_prev: unknown, form: FormData) {
   const academicYearId = String(form.get('academicYearId') ?? '');
@@ -2515,13 +2518,23 @@ export async function setServicePriceAction(_prev: unknown, form: FormData) {
   if (montant === null) return { error: montantInvalide(libelle) };
   if (!(await estEcoleServices())) return { error: FRAIS_INDISPONIBLES };
   try {
-    const prix = await apiFetch<PrixService[]>('/finance/tarifs/services', {
+    const { services, appliques } = await apiFetch<PrixServicesPoses>('/finance/tarifs/services', {
       method: 'POST',
       json: { academicYearId, prix: { [code]: montant } },
     });
     revalidatePath('/frais');
     const annee = String(form.get('anneeLabel') ?? '').trim();
-    return { ok: `${libelle}${annee ? ` (${annee})` : ''} : ${prixMsg(prix.find((p) => p.code === code)?.prix)}.` };
+    let suite = '';
+    if (appliques?.depuis && money(appliques.montant).greaterThan(0)) {
+      const n = appliques.eleves;
+      const nom = MOIS_NOMS[appliques.depuis.month] ?? '';
+      const depuis = `${/^[AEIOUÉÈ]/.test(nom) ? `d'${nom}` : `de ${nom}`} ${appliques.depuis.year}`;
+      suite =
+        n > 0
+          ? ` Ajoutés à ${n} élève${n > 1 ? 's' : ''} inscrit${n > 1 ? 's' : ''}, à partir ${depuis}.`
+          : ' Tous les élèves inscrits les ont déjà.';
+    }
+    return { ok: `${libelle}${annee ? ` (${annee})` : ''} : ${prixMsg(services.find((p) => p.code === code)?.prix)}.${suite}` };
   } catch (error) {
     return { error: error instanceof ApiError ? error.message : 'Échec.' };
   }

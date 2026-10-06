@@ -6,8 +6,9 @@ import type { Locator, Page } from '@playwright/test';
  * propriétaire de Jinan (06/10/2026), ADR-0082. Sur l'école de développement
  * `jinan` (seed:jinan : plateforme 200 / mois, fournitures 1 500 / an).
  *
- *   1. la page « Frais » : la plateforme (chaque mois, obligatoire) et les
- *      fournitures (une fois par an, au choix) ;
+ *   1. la page « Frais » : la plateforme (chaque mois, obligatoire, ajoutée
+ *      aux inscrits quand son prix est enregistré) et les fournitures (une
+ *      fois par an, au choix) ;
  *   2. inscrire avec les fournitures cochées, le frais mensuel à −20 % d'un clic ;
  *   3. la fiche : la plateforme remisée à −20 % (liste) ; les fournitures,
  *      réglées, ne se retirent pas ;
@@ -44,6 +45,14 @@ test('« Frais » : la plateforme chaque mois, obligatoire ; les fournitures une
   await expect(ligne('Frais de plateforme')).toContainText('obligatoire');
   await expect(ligne('Frais de fourniture')).toContainText('Une fois par an');
   await expect(ligne('Frais de fourniture')).toContainText('au choix');
+
+  // ADR-0082 §6 : la ligne dit que le prix s'ajoute aux élèves déjà inscrits ;
+  // l'enregistrer répond (2025-2026 est terminée : aucun mois à ajouter).
+  await expect(ligne('Frais de plateforme').getByTestId('plateforme-tous')).toContainText('chaque élève déjà inscrit');
+  const champ = ligne('Frais de plateforme').locator('input[type="number"]');
+  await expect(champ).toHaveValue('200');
+  await champ.press('Enter');
+  await expect(page.locator('.alert-success', { hasText: /Frais de plateforme.*200 MRU/ })).toBeVisible({ timeout: 30000 });
 });
 
 test('inscrire avec les fournitures ; le frais mensuel à −20 % d’un clic', async ({ page }) => {
