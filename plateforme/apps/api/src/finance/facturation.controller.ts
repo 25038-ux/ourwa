@@ -93,18 +93,32 @@ export class FacturationController {
     return this.tarifs.setLevelTarifs(uuid.parse(id), body, request.auth!.userId);
   }
 
-  /** Les prix des services d'une année : `{ code: montant | '' }`. Année close refusée. */
+  /**
+   * Les prix des services d'une année : `{ code: montant | '' }`. Année close refusée.
+   *
+   * ⚠ LA PLATEFORME (06/10/2026, ADR-0082 §6) : poser son prix l'ajoute aussitôt
+   * à chaque élève inscrit qui ne l'a pas, à partir du mois en cours —
+   * `appliques` dit combien. Les autres prix ne touchent aucun abonnement pris.
+   */
   @Post('finance/tarifs/services')
   @RequirePermission('scolarite.niveaux')
   @RequireRole('super_admin', 'admin')
-  setServicePrices(@Body() raw: unknown, @Req() request: AuthenticatedRequest) {
+  async setServicePrices(@Body() raw: unknown, @Req() request: AuthenticatedRequest) {
     const body = z
       .object({
         academicYearId: uuid,
         prix: z.record(z.string(), montantOuVideSchema),
       })
       .parse(raw ?? {});
-    return this.tarifs.setServicePrices(body, request.auth!.userId);
+    const services = await this.tarifs.setServicePrices(body, request.auth!.userId);
+    const appliques =
+      'plateforme' in body.prix
+        ? await this.abonnements.appliquerATousLesInscrits(
+            { academicYearId: body.academicYearId, service: 'plateforme' },
+            request.auth!.userId,
+          )
+        : null;
+    return { services, appliques };
   }
 
   /** Les abonnements d'un élève pour une année, mois par mois. */

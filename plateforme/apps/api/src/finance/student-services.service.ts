@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Decimal } from 'decimal.js';
-import type { PayableMonth, Queryable } from '@elourwa/db';
+import { firstOwedMonthOrder, type PayableMonth, type Queryable } from '@elourwa/db';
 import {
   SERVICE_CODES,
   definitionService,
@@ -150,8 +150,8 @@ export class StudentServicesService {
       amount: string;
       start: PayableMonth;
       actorId: string;
-      /** Pour l'audit : souscrit à l'inscription ou depuis la fiche. */
-      via: 'inscription' | 'fiche';
+      /** Pour l'audit : souscrit à l'inscription, depuis la fiche, ou posé à tous les inscrits. */
+      via: 'inscription' | 'fiche' | 'tous_les_inscrits';
     },
   ): Promise<AbonnementCree> {
     const { schoolId } = currentTenant();
@@ -355,6 +355,132 @@ export class StudentServicesService {
       });
       return { ...cree, guardianId, academicYearId: year.id };
     });
+  }
+
+  /**
+   * LA PLATEFORME À TOUS LES INSCRITS — « add the plateforme fee to every
+   * enrolled student automatically » (propriétaire de Jinan, 06/10/2026,
+   * ADR-0082 §6). Appelé par la page « Frais » chaque fois que le prix de la
+   * plateforme y est posé.
+   *
+   * Chaque élève inscrit sur l'année (inscription non annulée) qui n'a AUCUN
+   * abonnement plateforme reçoit le sien, au prix de l'année FIGÉ maintenant :
+   *
+   *   - à partir du mois en cours (la règle du 25 appliquée à aujourd'hui) — un
+   *     mois passé n'est jamais facturé après coup ; et jamais avant son propre
+   *     premier mois dû de scolarité (la règle du 25 sur sa date d'entrée) ;
+   *   - ⚠ JAMAIS DEUX FOIS : un abonnement existant, même exempté, le retient —
+   *     une exemption décidée par la direction n'est pas défaite, un prix
+   *     changé ne réécrit pas un abonnement pris (le montant est figé) ;
+   *   - prix 0 (gratuit) ou année terminée : rien.
+   *
+   * Une transaction PAR FAMILLE, sous le verrou du reçu groupé, le test
+   * d'absence refait sous le verrou : une caisse qui encaisse la même famille
+   * attend, et deux passages simultanés n'écrivent qu'une fois. Interrompu,
+   * il se relance sans risque (reposer le prix).
+   */
+  async appliquerATousLesInscrits(
+    input: { academicYearId: string; service: 'plateforme' },
+    actorId: string,
+    today: Date = new Date(),
+  ): Promise<{
+    service: 'plateforme';
+    montant: string;
+    eleves: number;
+    depuis: { month: number; year: number } | null;
+  }> {
+    await this.tarifs.exigerServices();
+    const service = input.service;
+    const def = definitionService(service);
+    const year = await this.years.assertWritable(input.academicYearId);
+    const { schoolId } = currentTenant();
+
+    const preparation = await this.db.query(async (tx) => {
+      const { rows: prix } = await tx.query<{ amount: string }>(
+        'SELECT amount::text AS amount FROM service_prices WHERE academic_year_id = $1 AND service = $2',
+        [year.id, service],
+      );
+      const montant = toStorage(money(prix[0]?.amount ?? '0'));
+      const months = await this.years.payableMonthsIn(tx, year);
+      const regle = moisDeDepartParDefaut(months, today);
+      if (!money(montant).greaterThan(0) || !regle) return { montant, months, regle: null, eleves: [] };
+      const { rows: eleves } = await tx.query<{
+        student_id: string;
+        guardian_id: string | null;
+        entry_date: string | null;
+      }>(
+        `SELECT e.student_id, s.guardian_id, e.entry_date::text AS entry_date
+           FROM enrollments e JOIN students s ON s.id = e.student_id
+          WHERE e.academic_year_id = $1 AND e.status <> 'cancelled'
+            AND NOT EXISTS (SELECT 1 FROM student_services ss
+                             WHERE ss.student_id = e.student_id
+                               AND ss.academic_year_id = e.academic_year_id
+                               AND ss.famille = $2)
+          ORDER BY s.guardian_id NULLS LAST, e.student_id`,
+        [year.id, def.famille],
+      );
+      return { montant, months, regle, eleves };
+    });
+
+    const { montant, months, regle } = preparation;
+    if (!regle) return { service, montant, eleves: 0, depuis: null };
+
+    const forme = { startYear: year.start_year, startMonth: year.start_month, endMonth: year.end_month };
+    // Par famille : un élève sans correspondant est sa propre famille.
+    const familles = new Map<string, typeof preparation.eleves>();
+    for (const e of preparation.eleves) {
+      const cle = e.guardian_id ?? `eleve:${e.student_id}`;
+      familles.set(cle, [...(familles.get(cle) ?? []), e]);
+    }
+
+    let eleves = 0;
+    for (const membres of familles.values()) {
+      eleves += await this.db.query(async (tx) => {
+        await this.verrouFamille(tx, membres[0]!.guardian_id, year.id);
+        let n = 0;
+        for (const e of membres) {
+          const { rows: deja } = await tx.query(
+            `SELECT 1 FROM student_services
+              WHERE student_id = $1 AND academic_year_id = $2 AND famille = $3`,
+            [e.student_id, year.id, def.famille],
+          );
+          if (deja[0]) continue;
+          const premierDu = firstOwedMonthOrder(forme, e.entry_date);
+          const start = months.find((m) => m.order >= Math.max(regle.order, premierDu));
+          if (!start) continue;
+          const cree = await this.souscrireIn(tx, {
+            studentId: e.student_id,
+            year,
+            months,
+            service,
+            amount: montant,
+            start,
+            actorId,
+            via: 'tous_les_inscrits',
+          });
+          if (cree.created) n += 1;
+        }
+        return n;
+      });
+    }
+
+    if (eleves > 0) {
+      await this.db.query((tx) =>
+        this.audit.record(
+          {
+            actorId,
+            schoolId,
+            action: 'student_service_applied_to_all',
+            entity: 'academic_year',
+            entityId: year.id,
+            after: { service, amount: montant, students: eleves, from: `${regle.month}/${regle.year}`, year: year.label },
+          },
+          tx,
+        ),
+      );
+    }
+
+    return { service, montant, eleves, depuis: { month: regle.month, year: regle.year } };
   }
 
   /**

@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import pg from 'pg';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../src/app.module.js';
@@ -9,6 +9,7 @@ import { CollectionService } from '../src/finance/collection.service.js';
 import { DebtService } from '../src/finance/debt.service.js';
 import { ReportsService } from '../src/reports/reports.service.js';
 import { DocumentsService } from '../src/documents/documents.service.js';
+import { FacturationController } from '../src/finance/facturation.controller.js';
 import { runInTenant } from '../src/tenant/tenant.context.js';
 
 /**
@@ -36,6 +37,7 @@ let collection: CollectionService;
 let debts: DebtService;
 let reports: ReportsService;
 let documents: DocumentsService;
+let facturation: FacturationController;
 
 const S = { schoolId: '', slug: 'pf-jinan' };
 const inS = <T>(fn: () => Promise<T>) => runInTenant(S, fn);
@@ -127,6 +129,7 @@ beforeAll(async () => {
   debts = moduleRef.get(DebtService);
   reports = moduleRef.get(ReportsService);
   documents = moduleRef.get(DocumentsService);
+  facturation = moduleRef.get(FacturationController);
   // La photocopie, d'office depuis 0047 : gratuite ici, pour ne compter que la plateforme.
   await prix({ photocopie: '0' });
 });
@@ -343,3 +346,107 @@ describe('les rapports et les documents', () => {
     expect(enfant.pieces.find((p) => p.piece === 'fourniture')!.souscrit).toBe(true);
   });
 });
+
+/**
+ * « ADD THE PLATEFORME FEE TO EVERY ENROLLED STUDENT AUTOMATICALLY »
+ * (06/10/2026) : poser le prix de la plateforme l'ajoute à CHAQUE élève inscrit
+ * de l'année qui ne l'a pas — à partir du mois en cours (règle du 25), jamais
+ * avant son propre premier mois dû ; jamais deux fois ; jamais à une
+ * inscription annulée ; rien à 0 (gratuit).
+ */
+describe('la plateforme pour tous les inscrits, dès que son prix est posé', () => {
+  const plateformeDe = async (studentId: string) =>
+    (await abonnementsDe(studentId)).filter((a) => a.service === 'plateforme');
+
+  it('⚠ chaque inscrit sans plateforme la reçoit, à partir du mois en cours ; une inscription annulée non', async () => {
+    await prix({ plateforme: '0' });
+    const a = await inscrire();
+    const b = await inscrire();
+    const tard = await inscrire([], null, '2026-03-02');
+    const annule = await inscrire();
+    await owner.query(`UPDATE enrollments SET status = 'cancelled' WHERE student_id = $1`, [annule]);
+    for (const s of [a, b, tard, annule]) expect(await plateformeDe(s)).toHaveLength(0);
+
+    await prix({ plateforme: '200' });
+    const r = await inS(() =>
+      abonnements.appliquerATousLesInscrits({ academicYearId: yearS, service: 'plateforme' }, ACTOR, new Date('2025-11-03T09:00:00Z')),
+    );
+    expect(r.service).toBe('plateforme');
+    expect(r.montant).toBe('200.00');
+    expect(r.eleves).toBeGreaterThanOrEqual(3);
+    expect(r.depuis).toEqual({ month: 11, year: 2025 });
+
+    for (const s of [a, b]) {
+      const p = await plateformeDe(s);
+      expect(p).toHaveLength(1);
+      // Novembre → juin : octobre est passé, il n'est pas facturé après coup.
+      expect(p[0]!.months.map((m) => [m.month, m.due])).toEqual([
+        [11, '200.00'], [12, '200.00'], [1, '200.00'], [2, '200.00'],
+        [3, '200.00'], [4, '200.00'], [5, '200.00'], [6, '200.00'],
+      ]);
+    }
+    // Entré en mars : à partir de SON premier mois dû.
+    expect((await plateformeDe(tard))[0]!.months.map((m) => m.month)).toEqual([3, 4, 5, 6]);
+    expect(await plateformeDe(annule)).toHaveLength(0);
+  });
+
+  it('jamais deux fois : un second passage n’ajoute rien, un prix changé ne touche pas les abonnements pris', async () => {
+    await prix({ plateforme: '250' });
+    const r = await inS(() =>
+      abonnements.appliquerATousLesInscrits({ academicYearId: yearS, service: 'plateforme' }, ACTOR, new Date('2025-11-03T09:00:00Z')),
+    );
+    expect(r.eleves).toBe(0);
+    const { rows } = await owner.query<{ n: string }>(
+      `SELECT count(*)::text AS n FROM student_services ss
+        WHERE ss.academic_year_id = $1 AND ss.service = 'plateforme' AND ss.amount = 250`,
+      [yearS],
+    );
+    expect(rows[0]!.n).toBe('0');
+    await prix({ plateforme: '200' });
+  });
+
+  it('une plateforme exemptée n’est pas recréée ; à 0 (gratuit), rien n’est ajouté', async () => {
+    await prix({ plateforme: '0' });
+    const ex = await inscrire();
+    const libre = await inscrire();
+    await prix({ plateforme: '200' });
+    await inS(() => abonnements.appliquerATousLesInscrits({ academicYearId: yearS, service: 'plateforme' }, ACTOR, new Date('2025-11-03T09:00:00Z')));
+    const p = (await plateformeDe(ex))[0]!;
+    await inS(() => abonnements.setExempt(p.id, { exempt: true }, ACTOR));
+    await inS(() => abonnements.appliquerATousLesInscrits({ academicYearId: yearS, service: 'plateforme' }, ACTOR, new Date('2025-11-03T09:00:00Z')));
+    expect(await plateformeDe(ex)).toHaveLength(1);
+    expect(await plateformeDe(libre)).toHaveLength(1);
+
+    await prix({ plateforme: '0' });
+    const zero = await inscrire();
+    const r = await inS(() =>
+      abonnements.appliquerATousLesInscrits({ academicYearId: yearS, service: 'plateforme' }, ACTOR, new Date('2025-11-03T09:00:00Z')),
+    );
+    expect(r).toMatchObject({ eleves: 0, montant: '0.00' });
+    expect(await plateformeDe(zero)).toHaveLength(0);
+  });
+
+  it('⚠ la page « Frais » (POST /finance/tarifs/services) le fait d’elle-même, et le dit', async () => {
+    await prix({ plateforme: '0' });
+    const s = await inscrire();
+    const req = { auth: { userId: ACTOR, schoolId: S.schoolId, roles: ['super_admin'], permissions: ['scolarite.niveaux'] } };
+    // Le 3 novembre 2025, dans l'année : la page n'a pas de date à passer, c'est aujourd'hui.
+    vi.setSystemTime(new Date('2025-11-03T09:00:00Z'));
+    let r: Awaited<ReturnType<FacturationController['setServicePrices']>>;
+    try {
+      r = await inS(() =>
+        facturation.setServicePrices({ academicYearId: yearS, prix: { plateforme: '200' } }, req as never),
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(r.services.find((x) => x.code === 'plateforme')!.prix).toBe('200.00');
+    expect(r.appliques).toMatchObject({ service: 'plateforme', montant: '200.00' });
+    expect(r.appliques!.eleves).toBeGreaterThanOrEqual(1);
+    expect(await plateformeDe(s)).toHaveLength(1);
+    // Un autre prix (le docteur) n'ajoute rien à personne.
+    const autre = await inS(() => facturation.setServicePrices({ academicYearId: yearS, prix: { docteur: '300' } }, req as never));
+    expect(autre.appliques).toBeNull();
+  });
+});
+
