@@ -615,3 +615,46 @@ describe('0047 — le transport, les remises', () => {
     expect(rows.map((r) => r.conname)).toEqual(['student_services_remise_bornee', 'student_services_remise_mensuelle']);
   });
 });
+
+describe('0050 — la plateforme (mensuelle, d’office) et les fournitures (annuelles, au choix)', () => {
+  it('sont des services connus de la base : un prix, un abonnement', async () => {
+    await J(async (tx) => {
+      for (const [service, amount] of [['plateforme', 200], ['fourniture', 1500]] as const) {
+        await tx.query(
+          `INSERT INTO service_prices (school_id, academic_year_id, service, amount) VALUES ($1, $2, $3, $4)`,
+          [jinan, annee, service, amount],
+        );
+      }
+      const p = await abonner(tx, eleve2, 'plateforme', '200.00');
+      const f = await abonner(tx, eleve2, 'fourniture', '1500.00');
+      const { rows } = await tx.query<{ service: string; famille: string }>(
+        'SELECT service, famille FROM student_services WHERE id = ANY($1) ORDER BY service',
+        [[p, f]],
+      );
+      expect(rows).toEqual([
+        { service: 'fourniture', famille: 'fourniture' },
+        { service: 'plateforme', famille: 'plateforme' },
+      ]);
+    });
+  });
+
+  it('⚠ une remise sur la plateforme (mensuelle), jamais sur les fournitures (annuelles)', async () => {
+    const id = async (service: string) =>
+      (await owner.query<{ id: string }>(
+        'SELECT id FROM student_services WHERE student_id = $1 AND service = $2',
+        [eleve2, service],
+      )).rows[0]!.id;
+    const plateforme = await id('plateforme');
+    const fourniture = await id('fourniture');
+    await J((tx) => tx.query('UPDATE student_services SET remise = 40 WHERE id = $1', [plateforme]));
+    await expect(
+      J((tx) => tx.query('UPDATE student_services SET remise = 100 WHERE id = $1', [fourniture])),
+    ).rejects.toThrow(/student_services_remise_mensuelle/);
+    const { rows } = await owner.query<{ c: string }>(
+      `SELECT pg_get_constraintdef(oid) AS c FROM pg_constraint WHERE conname = 'student_services_remise_mensuelle'`,
+    );
+    expect(rows[0]!.c).toContain("'fourniture'");
+    expect(rows[0]!.c).not.toContain("'plateforme'");
+  });
+});
+

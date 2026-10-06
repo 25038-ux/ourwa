@@ -81,6 +81,11 @@ describe('student_documents (0048)', () => {
     await A((tx) => deposer(tx, 'comportement_social'));
   });
 
+  it('les fournitures (au choix) ont une pièce ; la plateforme (d’office) non (0050)', async () => {
+    await A((tx) => deposer(tx, 'fourniture'));
+    await expect(A((tx) => deposer(tx, 'plateforme'))).rejects.toThrow(/check constraint/i);
+  });
+
   it('⚠ refuse une pièce inconnue, un format modifiable et un nom de fichier fabriqué', async () => {
     await expect(A((tx) => deposer(tx, 'bus'))).rejects.toThrow(/check constraint/i);
     await expect(A((tx) => deposer(tx, 'photocopie'))).rejects.toThrow(/check constraint/i);

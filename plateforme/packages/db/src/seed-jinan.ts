@@ -62,6 +62,11 @@ const PRIX = {
   // 04/10/2026 (ADR-0079) : le transport, mensuel ; la photocopie, désormais d'office.
   transport: 1200,
   photocopie: 700,
+  // 06/10/2026 (ADR-0082) : la plateforme, mensuelle et d'office ; les
+  // fournitures, annuelles et au choix. Les familles ci-dessous ont été
+  // inscrites AVANT : pas de plateforme rétroactive (comme en production).
+  plateforme: 200,
+  fourniture: 1500,
 } as const;
 
 /** Les agents et leurs horaires : 1 = lundi … 6 = samedi. */
@@ -100,7 +105,7 @@ const FAMILIES = [
   },
 ] as const;
 
-const MENSUELS = new Set(['cantine_petit_dejeuner', 'cantine_dejeuner', 'cantine_complet', 'piscine', 'docteur', 'transport']);
+const MENSUELS = new Set(['cantine_petit_dejeuner', 'cantine_dejeuner', 'cantine_complet', 'piscine', 'docteur', 'transport', 'plateforme']);
 
 /** Supprime l'école de développement et ses comptes, dans l'ordre que les clés NO ACTION exigent. */
 async function effacer(db: pg.Client): Promise<void> {
