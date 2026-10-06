@@ -33,6 +33,14 @@ remplacé). Aucune migration : 0050 reste la dernière.
   « réinscrire » : Vatimetou portait 20 dettes diverses laissées par des
   passages précédents — pollution de la base de développement, pas ce
   changement ; `seed:jinan` la remet à zéro).
+- **Mise à jour RÉPÉTÉE dans Docker** (la copie à 0050, 5 élèves, 3 reçus,
+  année 2026-2027 active), la ligne `installer-serveur.sh` épinglée sur
+  3cddd35 : construite et saine, 0050 toujours la dernière, élèves et reçus
+  identiques ; l'installateur annonce « 2 élèves inscrits n'ont pas les Frais
+  de plateforme ». Puis par HTTP, le même appel que « Frais » : ajoutée aux
+  2 (9 mois à 200, d'octobre 2026 à juin 2027, aucun mois passé), les 3 qui
+  l'avaient inchangés (remise et paiements compris), second passage : 0, un
+  autre prix : `appliques` nul, un seul audit de passage.
 - **Ensuite** : le propriétaire lance la mise à jour, puis enregistre le prix
   de la plateforme sur « Frais » : tous les inscrits la reçoivent d'un coup.
 
