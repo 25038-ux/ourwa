@@ -8,6 +8,49 @@ every session, even short or unproductive ones.
 
 
 
+## FRAIS DE PLATEFORME, FRAIS DE FOURNITURE, POURCENTAGES PROPOSÉS — 2026-10-06
+
+**Demande du propriétaire** : « frais de fourniture (annuel et par étudiant et
+optionnel) ; Frais de plateforme obligatoire et par étudiant et mensuel ; for
+each reduction window (whether monthly reduction or frais changement) add some
+proposed percentages 5% … until 50%, and the system deducts automatically. Do
+this and give me the deployment command. » Détail : **ADR-0082**, migration
+**0050**.
+
+- **Fait** : deux services du catalogue — `plateforme` (mensuelle, d'office à
+  chaque (ré)inscription à partir du premier mois dû de la scolarité,
+  remisable, exemptable, jamais arrêtée, sans pièce signée) et `fourniture`
+  (annuelle, cochée ou ajoutée depuis la fiche, « Retirer » tant qu'elle n'est
+  pas réglée, pas de remise, une pièce signée). Prix de la plateforme non
+  défini → inscription refusée ; l'installateur l'annonce. Pas de rattrapage
+  sur les élèves déjà inscrits (la fiche permet de l'ajouter).
+- **Pourcentages** : 5 % … 50 % dans « Réduction » (un mois), « Modifier le
+  frais mensuel » (sur le tarif plein), la remise par mois d'un service
+  (liste), « Accorder une remise » (dette), le frais personnalisé de la
+  réinscription et le frais mensuel de l'inscription. Calcul en décimal
+  (`@elourwa/shared/pourcentages`), arrondi à l'ouguiya entier.
+- **Trouvé en chemin** : le journal des transactions écrivait
+  « Service_transport » ; un reçu groupé plafonnait à 60 lignes de service
+  (63 nécessaires pour une année entière de tous les services) → 90 ; retirer
+  un service annuel laissait sa ligne due.
+- **Vérifié** : shared 132/132, base 93/93, API 1098/1098 (dont 16 nouveaux),
+  `tsc` API et site ; navigateur, suite complète : 179 réussis, 0 échec,
+  2 réussis à la reprise (une page compilée en plus de 45 s par le serveur de
+  développement ; une connexion refusée par lui le temps d'un redémarrage),
+  48 ignorés par conception — dont `jinan-plateforme-pourcentages` (5 tests)
+  et les totaux des inscriptions mis à jour (+ 200 de plateforme).
+- **Mise à jour RÉPÉTÉE dans Docker** (copie de production 0049 avec données),
+  la ligne `installer-serveur.sh` : 0050 appliquée, API saine, avertissement
+  « prix de la plateforme non défini » ; puis par HTTP : anciennes données
+  identiques (3 élèves, reçus), aucune plateforme rétroactive, inscription
+  refusée tant que le prix manque, puis plateforme d'office (9 mois à 200) et
+  fournitures (1 500), remise de 20 % (160), fournitures réglées non
+  retirables, non réglées retirées, journal et documents corrects.
+- **Ensuite** : le propriétaire lance la mise à jour, pose les deux prix dans
+  « Frais » (la plateforme d'abord — sans elle, aucune inscription), et
+  décide s'il faut ajouter la plateforme aux élèves déjà inscrits (depuis la
+  fiche, un par un ; un geste « pour tous » est possible si demandé).
+
 ## « THE UPDATE SCRIPT DIDN'T WORK AT ALL » — 2026-10-05 (midi)
 
 Le propriétaire a lancé la ligne de mise à jour : rien n'a changé. Constaté
