@@ -17,7 +17,8 @@
     "./facturation": "./src/facturation.ts",
     "./emploi-du-temps": "./src/emploi-du-temps.ts",
     "./cycles": "./src/cycles.ts",
-    "./fichiers": "./src/fichiers.ts"
+    "./fichiers": "./src/fichiers.ts",
+    "./pourcentages": "./src/pourcentages.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

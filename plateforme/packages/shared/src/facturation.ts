@@ -56,8 +56,10 @@ export function libelleMode(mode: ModeEtude | null | undefined): string {
 // ── Les services (§4) ───────────────────────────────────────────────────────
 
 /**
- * Les huit codes, dans l'ordre de l'affichage. `transport` (mensuel, coché) et
+ * Les dix codes, dans l'ordre de l'affichage. `transport` (mensuel, coché) et
  * la photocopie devenue obligatoire : 04/10/2026, migration 0047, ADR-0079.
+ * `plateforme` (mensuelle, d'office) et `fourniture` (annuelle, cochée) :
+ * 06/10/2026, migration 0050, ADR-0082.
  */
 export const SERVICE_CODES = [
   'cantine_petit_dejeuner',
@@ -66,6 +68,8 @@ export const SERVICE_CODES = [
   'piscine',
   'docteur',
   'transport',
+  'plateforme',
+  'fourniture',
   'photocopie',
   'inscription',
 ] as const;
@@ -88,7 +92,15 @@ export type ServiceCantine = (typeof SERVICES_CANTINE)[number];
  * Un seul abonnement ACTIF par élève, par année et par famille : les trois
  * cantines sont donc exclusives (changer de formule = arrêter, puis souscrire).
  */
-export type FamilleService = 'cantine' | 'piscine' | 'docteur' | 'transport' | 'photocopie' | 'inscription';
+export type FamilleService =
+  | 'cantine'
+  | 'piscine'
+  | 'docteur'
+  | 'transport'
+  | 'plateforme'
+  | 'fourniture'
+  | 'photocopie'
+  | 'inscription';
 
 /**
  * `tender_lines.source_type` des moyens encaissés pour un service : un par
@@ -100,6 +112,8 @@ export const SOURCES_SERVICES = [
   'service_piscine',
   'service_docteur',
   'service_transport',
+  'service_plateforme',
+  'service_fourniture',
   'service_photocopie',
   'service_inscription',
 ] as const;
@@ -169,6 +183,21 @@ export const SERVICES: readonly DefinitionService[] = Object.freeze([
     code: 'transport', libelle: 'Transport', formule: null,
     periodicite: 'mensuel', famille: 'transport', sourceType: 'service_transport', optionnel: true, arretable: true, prixPar: 'ecole',
   }),
+  // 06/10/2026 (ADR-0082) : « Frais de plateforme obligatoire et par étudiant
+  // et mensuel » — un prix d'école, créé d'office à chaque (ré)inscription
+  // comme la photocopie, mais facturé CHAQUE MOIS comme la scolarité.
+  // Exemptable et remisable (mensuel), jamais arrêté.
+  definir({
+    code: 'plateforme', libelle: 'Frais de plateforme', formule: null,
+    periodicite: 'mensuel', famille: 'plateforme', sourceType: 'service_plateforme', optionnel: false, arretable: false, prixPar: 'ecole',
+  }),
+  // 06/10/2026 (ADR-0082) : « frais de fourniture (annuel et par étudiant et
+  // optionnel) » — coché à l'inscription comme un service, payé une fois
+  // l'an comme la photocopie. Retiré (« Arrêter ») tant qu'il n'est pas réglé.
+  definir({
+    code: 'fourniture', libelle: 'Frais de fourniture', formule: null,
+    periodicite: 'annuel', famille: 'fourniture', sourceType: 'service_fourniture', optionnel: true, arretable: true, prixPar: 'ecole',
+  }),
   // Le libellé est un accesseur : `libelleFraisPhotocopie()` lit l'environnement
   // au moment de la lecture, jamais au chargement du module.
   Object.freeze({
@@ -198,12 +227,12 @@ export const SERVICES_OPTIONNELS: readonly ServiceOptionnel[] = Object.freeze(
   SERVICES.filter((s) => s.prixPar === 'ecole').map((s) => s.code as ServiceOptionnel),
 );
 
-/** Ce qu'une famille COCHE à l'inscription : cantines, piscine, docteur, transport. */
+/** Ce qu'une famille COCHE à l'inscription : cantines, piscine, docteur, transport, fournitures. */
 export const SERVICES_COCHABLES: readonly ServiceOptionnel[] = Object.freeze(
   SERVICES.filter((s) => s.optionnel).map((s) => s.code as ServiceOptionnel),
 );
 
-/** Au prix de l'école ET créés d'office à chaque (ré)inscription : la photocopie. */
+/** Au prix de l'école ET créés d'office à chaque (ré)inscription : la plateforme, la photocopie. */
 export const SERVICES_D_OFFICE: readonly ServiceOptionnel[] = Object.freeze(
   SERVICES.filter((s) => !s.optionnel && s.prixPar === 'ecole').map((s) => s.code as ServiceOptionnel),
 );
@@ -285,6 +314,8 @@ const LIBELLES_SOURCE: Readonly<Record<Exclude<SourceService, 'service_photocopi
   service_piscine: 'Piscine',
   service_docteur: 'Docteur',
   service_transport: 'Transport',
+  service_plateforme: 'Frais de plateforme',
+  service_fourniture: 'Frais de fourniture',
   service_inscription: "Frais d'inscription (élève)",
 });
 

@@ -13,3 +13,4 @@ export * from './facturation.js';
 export * from './emploi-du-temps.js';
 export * from './cycles.js';
 export * from './fichiers.js';
+export * from './pourcentages.js';

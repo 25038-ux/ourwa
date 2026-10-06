@@ -78,7 +78,7 @@ describe('le catalogue des services (§4)', () => {
     delete process.env.FEE_PHOTOCOPY_LABEL;
   });
 
-  it('compte huit services — le transport ajouté le 04/10/2026 (ADR-0079)', () => {
+  it('compte dix services — le transport (04/10/2026, ADR-0079), la plateforme et les fournitures (06/10/2026, ADR-0082)', () => {
     expect(SERVICE_CODES).toEqual([
       'cantine_petit_dejeuner',
       'cantine_dejeuner',
@@ -86,6 +86,8 @@ describe('le catalogue des services (§4)', () => {
       'piscine',
       'docteur',
       'transport',
+      'plateforme',
+      'fourniture',
       'photocopie',
       'inscription',
     ]);
@@ -100,12 +102,14 @@ describe('le catalogue des services (§4)', () => {
       ['piscine', 'Piscine'],
       ['docteur', 'Docteur'],
       ['transport', 'Transport'],
+      ['plateforme', 'Frais de plateforme'],
+      ['fourniture', 'Frais de fourniture'],
       ['photocopie', 'Frais de photocopie'],
       ['inscription', "Frais d'inscription"],
     ]);
   });
 
-  it('mensuels : les cantines, la piscine, le docteur, le transport ; annuels : photocopie et inscription', () => {
+  it('mensuels : les cantines, la piscine, le docteur, le transport, la plateforme ; annuels : fournitures, photocopie, inscription', () => {
     const periodicite = Object.fromEntries(SERVICES.map((s) => [s.code, s.periodicite]));
     expect(periodicite).toEqual({
       cantine_petit_dejeuner: 'mensuel',
@@ -114,6 +118,8 @@ describe('le catalogue des services (§4)', () => {
       piscine: 'mensuel',
       docteur: 'mensuel',
       transport: 'mensuel',
+      plateforme: 'mensuel',
+      fourniture: 'annuel',
       photocopie: 'annuel',
       inscription: 'annuel',
     });
@@ -122,14 +128,14 @@ describe('le catalogue des services (§4)', () => {
   it('⚠ les trois cantines forment UNE famille (exclusives), les autres la leur', () => {
     expect(SERVICES_CANTINE).toEqual(['cantine_petit_dejeuner', 'cantine_dejeuner', 'cantine_complet']);
     for (const c of SERVICES_CANTINE) expect(familleService(c)).toBe('cantine');
-    for (const c of ['piscine', 'docteur', 'transport', 'photocopie', 'inscription'] as const) {
+    for (const c of ['piscine', 'docteur', 'transport', 'plateforme', 'fourniture', 'photocopie', 'inscription'] as const) {
       expect(familleService(c)).toBe(c);
     }
   });
 
-  it('⚠ l’inscription et la photocopie sont obligatoires (04/10/2026) ; l’inscription seule a le prix du niveau', () => {
-    expect(SERVICES.filter((s) => !s.optionnel).map((s) => s.code)).toEqual(['photocopie', 'inscription']);
-    expect(SERVICES.filter((s) => !s.arretable).map((s) => s.code)).toEqual(['photocopie', 'inscription']);
+  it('⚠ la plateforme, la photocopie et l’inscription sont obligatoires ; l’inscription seule a le prix du niveau', () => {
+    expect(SERVICES.filter((s) => !s.optionnel).map((s) => s.code)).toEqual(['plateforme', 'photocopie', 'inscription']);
+    expect(SERVICES.filter((s) => !s.arretable).map((s) => s.code)).toEqual(['plateforme', 'photocopie', 'inscription']);
     expect(SERVICES.filter((s) => s.prixPar === 'niveau').map((s) => s.code)).toEqual(['inscription']);
     // La page « Frais » : tout ce qui a un prix d'école, la photocopie comprise
     // — UN prix pour tous les niveaux.
@@ -140,9 +146,11 @@ describe('le catalogue des services (§4)', () => {
       'piscine',
       'docteur',
       'transport',
+      'plateforme',
+      'fourniture',
       'photocopie',
     ]);
-    // Ce qu'une famille coche.
+    // Ce qu'une famille coche — les fournitures comprises (annuelles, au choix).
     expect(SERVICES_COCHABLES).toEqual([
       'cantine_petit_dejeuner',
       'cantine_dejeuner',
@@ -150,8 +158,13 @@ describe('le catalogue des services (§4)', () => {
       'piscine',
       'docteur',
       'transport',
+      'fourniture',
     ]);
-    expect(SERVICES_D_OFFICE).toEqual(['photocopie']);
+    // D'office à chaque (ré)inscription : la plateforme (chaque mois), la photocopie (une fois).
+    expect(SERVICES_D_OFFICE).toEqual(['plateforme', 'photocopie']);
+    expect(estServiceCochable('plateforme')).toBe(false);
+    expect(estServiceCochable('fourniture')).toBe(true);
+    expect(definitionService('fourniture').arretable).toBe(true);
     expect(estServiceOptionnel('inscription')).toBe(false);
     expect(estServiceOptionnel('piscine')).toBe(true);
     expect(estServiceOptionnel('photocopie')).toBe(true);
@@ -199,6 +212,8 @@ describe('les moyens encaissés par service (§5, §10)', () => {
       'service_piscine',
       'service_docteur',
       'service_transport',
+      'service_plateforme',
+      'service_fourniture',
       'service_photocopie',
       'service_inscription',
     ]);
@@ -208,6 +223,8 @@ describe('les moyens encaissés par service (§5, §10)', () => {
     expect(sourceTypeService('piscine')).toBe('service_piscine');
     expect(sourceTypeService('docteur')).toBe('service_docteur');
     expect(sourceTypeService('transport')).toBe('service_transport');
+    expect(sourceTypeService('plateforme')).toBe('service_plateforme');
+    expect(sourceTypeService('fourniture')).toBe('service_fourniture');
     expect(sourceTypeService('photocopie')).toBe('service_photocopie');
     expect(sourceTypeService('inscription')).toBe('service_inscription');
   });
@@ -226,6 +243,8 @@ describe('les moyens encaissés par service (§5, §10)', () => {
     expect(libelleSourceService('service_piscine')).toBe('Piscine');
     expect(libelleSourceService('service_transport')).toBe('Transport');
     expect(libelleSourceService('service_docteur')).toBe('Docteur');
+    expect(libelleSourceService('service_plateforme')).toBe('Frais de plateforme');
+    expect(libelleSourceService('service_fourniture')).toBe('Frais de fourniture');
     expect(libelleSourceService('service_photocopie')).toBe('Frais de photocopie');
     expect(libelleSourceService('service_photocopie', 'Frais Graytna')).toBe('Frais Graytna');
     expect(libelleSourceService('service_inscription')).toBe("Frais d'inscription (élève)");
@@ -264,6 +283,26 @@ describe('l’ordre des échéances de service (§7)', () => {
       'piscine 11/2025',
       'cantine_dejeuner 1/2026',
       'cantine_complet 2/2026',
+    ]);
+  });
+
+  it('les fournitures avec les annuels (avant la photocopie), la plateforme avec les mois (après le transport)', () => {
+    const e = (service: (typeof SERVICE_CODES)[number], month: number, year: number) => ({ service, month, year });
+    const melange = [
+      e('plateforme', 11, 2025),
+      e('plateforme', 10, 2025),
+      e('transport', 10, 2025),
+      e('photocopie', 10, 2025),
+      e('fourniture', 10, 2025),
+      e('inscription', 10, 2025),
+    ];
+    expect([...melange].sort(comparerEcheancesService).map((x) => `${x.service} ${x.month}/${x.year}`)).toEqual([
+      'fourniture 10/2025',
+      'photocopie 10/2025',
+      'inscription 10/2025',
+      'transport 10/2025',
+      'plateforme 10/2025',
+      'plateforme 11/2025',
     ]);
   });
 
