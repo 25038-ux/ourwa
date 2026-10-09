@@ -44,6 +44,14 @@ courriel infoheavenly24@gmail.com, et la mention d'EduPlateforme en bas.
   recrée Caddy si son Caddyfile a changé, sinon le recharge sans coupure ; il
   refuse le domaine de l'application et ses sous-domaines. Le Caddyfile
   importe `/etc/caddy/sites/*.caddy` (vide : valide, vérifié).
+- **Répété dans Docker** (copie du serveur, commit 849ec69) avec
+  `VITRINE_DOMAIN=heavenly-test.com` : Caddy recréé (nouveau Caddyfile, même
+  empreinte que sur disque), cinq noms servis (les trois de l'application, les
+  deux de la vitrine), DNS des deux noms signalé ; avec un Caddy jetable sur le
+  bloc généré : pages et ressources 200, images et polices en cache 30 jours,
+  `src/`, `README.md`, `construire.py` → 404, `www.` → 301 vers le domaine,
+  en-têtes de sécurité. Puis une mise à jour SANS la variable : vitrine gardée.
+  Application saine, 5 élèves et 3 reçus identiques avant et après.
 - **Le nom arabe officiel** (donné par l'école) : **مؤسسة جنان للتعليم** —
   titre, ligne sous le logo, pied de page, courriel d'inscription.
 - **À faire relire par l'école** : les intitulés de classes (1re → 4e AS…).
