@@ -64,6 +64,15 @@ courriel infoheavenly24@gmail.com, et la mention d'EduPlateforme en bas.
   — aucun témoignage, aucun chiffre, aucune urgence inventés. Vérifié fr/en/ar,
   1440 × 900, 1366 × 768 (preuves dans le premier écran), 390 × 844 ; langue
   changée au milieu de la page, « réduire les animations », sans erreur.
+- **« Des mots bon marché » (le propriétaire, même jour)** : tout le texte
+  est réécrit dans un registre institutionnel et pédagogique, sans image
+  poétique (« grandir vers la lumière », « deux mots pour un même lieu »,
+  « plantez-les ici », les ailes peintes… retirés). L'accueil : « De la
+  maternelle au baccalauréat, une même école » ; puis présentation de
+  l'établissement, projet éducatif (six piliers), cursus par cycle (objectifs,
+  BEPC, baccalauréat), langues, valeurs, vie scolaire, suivi des élèves,
+  services, inscription en trois étapes, questions fréquentes, contact.
+  Toujours rien d'inventé ; légendes poétiques des photos retirées.
 - **Le nom arabe officiel** (donné par l'école) : **مؤسسة جنان للتعليم** —
   titre, ligne sous le logo, pied de page, courriel d'inscription.
 - **À faire relire par l'école** : les intitulés de classes (1re → 4e AS…).

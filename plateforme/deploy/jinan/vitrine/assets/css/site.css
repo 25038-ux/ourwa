@@ -396,7 +396,7 @@ html:not(.js) .langues-pastille { display: none; }
   .hero-visuel { width: min(100%, 400px); }
 }
 .hero-titre em { position: relative; color: var(--or-fonce); }
-.hero-chapo { max-width: 46ch; font-size: clamp(1.02rem, 1.25vw, 1.2rem); color: var(--encre-douce); margin-bottom: clamp(30px, 4vw, 48px); }
+.hero-chapo { max-width: 56ch; font-size: clamp(1.02rem, 1.25vw, 1.2rem); color: var(--encre-douce); margin-bottom: clamp(30px, 4vw, 48px); }
 .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 26px; }
 
 .hero-visuel { position: relative; justify-self: center; width: min(100%, 460px); }
@@ -661,6 +661,9 @@ html:not(.js) .langues-pastille { display: none; }
 .credit a { color: var(--or-clair); transition: color 0.3s; }
 .credit a:hover { color: var(--ivoire); }
 .haut { color: var(--ivoire); }
+
+/* Un texte vide n'occupe pas de place (légendes retirées, note du verset). */
+.hero-legende:empty, .photo figcaption:empty, .verset-note:empty { display: none; }
 
 /* ─────────── La ligne de lecture ─────────── */
 .progression-page { position: fixed; inset: 0 0 auto; z-index: 110; height: 2px; background: linear-gradient(90deg, var(--or-fonce), var(--or-clair)); transform: scaleX(0); transform-origin: left; pointer-events: none; }
