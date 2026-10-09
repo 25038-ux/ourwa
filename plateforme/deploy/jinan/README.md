@@ -146,6 +146,17 @@ que le site en ligne est la nouvelle construction. `-Key` : la clé SSH privée 
 `.env` (mots de passe, clés) et `secrets/` restent ; la base aussi. Jamais
 `docker compose down -v` : `-v` efface la base.
 
+## Le site vitrine (son propre domaine)
+
+Le site de présentation de l'école (`vitrine/`, français · anglais · arabe)
+est un site **à part** : son propre domaine, aucun lien avec l'application.
+Même serveur, même Caddy. DNS du domaine de la vitrine : `@` et `www` en A vers
+le serveur, puis une fois :
+
+    VITRINE_DOMAIN=<domaine-de-la-vitrine> bash /root/installer-jinan.sh
+
+Les mises à jour suivantes le gardent. Détail : `vitrine/README.md`.
+
 ## Sauvegardes
 
 Chaque nuit à 02:30 : `/root/sauvegardes-jinan/jinan-AAAAMMJJ-HHMMSS.tar`

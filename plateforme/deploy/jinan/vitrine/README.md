@@ -40,45 +40,34 @@ python3 -m http.server 8080      # puis http://localhost:8080
 Un aperçu en **un seul fichier** (images et scripts intégrés, polices depuis
 Google Fonts) : `python3 construire.py --apercu heavenly-apercu.html`.
 
-## Le mettre en ligne
+## Le mettre en ligne — sur SON PROPRE domaine
 
-Le domaine `ecole-jinan.com` sert aujourd'hui l'application (la page `/` est
-le tableau de bord du personnel). Deux façons de publier la vitrine **sans
-toucher à l'application** — dans `deploy/jinan/Caddyfile`, puis
-`docker compose up -d caddy` :
+Le site vitrine et l'application sont **deux sites séparés, chacun sur son
+domaine, sans aucun lien de l'un vers l'autre** (décision du propriétaire,
+09/10/2026). Ils tournent sur le même serveur : Caddy sert les deux, chacun
+avec son certificat HTTPS.
 
-**A. Sur un sous-domaine** (ex. `heavenly.ecole-jinan.com` ; un enregistrement
-DNS A vers le serveur d'abord) :
+1. Chez le registraire du domaine de la vitrine (ex. `heavenly-school.com`),
+   deux enregistrements **A** vers l'adresse du serveur : `@` et `www`
+   (aucun AAAA).
+2. Sur le serveur, une fois :
 
-```caddy
-heavenly.{$PUBLIC_DOMAIN} {
-	root * /srv/vitrine
-	file_server
-	encode zstd gzip
-	header /assets/* Cache-Control "public, max-age=31536000, immutable"
-}
-```
+   ```bash
+   VITRINE_DOMAIN=heavenly-school.com bash /root/installer-jinan.sh
+   ```
 
-**B. Sur un chemin du domaine actuel** (`ecole-jinan.com/decouvrir/`, aucun DNS) —
-à ajouter AVANT `reverse_proxy web:3000` dans le bloc du site :
+   Le domaine est gardé dans `.env` ; les mises à jour suivantes (la commande
+   habituelle, sans `VITRINE_DOMAIN`) le gardent et republient la vitrine.
 
-```caddy
-	redir /decouvrir /decouvrir/
-	handle_path /decouvrir/* {
-		root * /srv/vitrine
-		file_server
-	}
-```
-
-Dans les deux cas, monter le dossier dans le conteneur Caddy
-(`docker-compose.yml`, service `caddy`, `volumes:`) :
-
-```yaml
-      - ./vitrine:/srv/vitrine:ro
-```
+Ce que fait `install.sh` : il écrit `caddy-sites/vitrine.caddy` (le domaine,
+`www.` redirigé vers lui, les fichiers de ce dossier, `src/` et les outils
+jamais servis), vérifie le DNS des deux noms, puis recharge Caddy sans
+coupure. Il refuse un domaine qui serait celui de l'application ou l'un de ses
+sous-domaines. Pour retirer la vitrine : effacer la ligne `VITRINE_DOMAIN=`
+de `.env`, puis relancer la mise à jour.
 
 N'importe quel hébergeur de fichiers statiques convient aussi (Netlify,
-Cloudflare Pages, GitHub Pages…) : déposer le dossier tel quel.
+Cloudflare Pages…) : déposer le dossier tel quel.
 
 ## Ce qui est vrai, et ce qui est à confirmer
 
@@ -91,8 +80,8 @@ cantine, piscine, transport, médecin, fournitures, espace parents) sont ceux
 que l'école a configurés dans la plateforme. **Aucun chiffre, aucun témoignage,
 aucune date de fondation n'a été inventé.** Le verset est Tâ-Hâ 20 : 114.
 
-À relire par l'école avant publication : les intitulés des classes (« 1re → 4e
-AS »…) et la traduction arabe du nom officiel (« مؤسسة هيفنلي التعليمية »).
+Le nom arabe officiel : **مؤسسة جنان للتعليم** (donné par l'école). À relire
+par l'école avant publication : les intitulés des classes (« 1re → 4e AS »…).
 
 ## Sobriété et accessibilité
 

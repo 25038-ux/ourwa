@@ -44,6 +44,13 @@
   --corps: var(--ar-sans);
 }
 [lang='ar'] { letter-spacing: 0 !important; }
+/* Les petites capitales espacées du latin n'existent pas en arabe : sans
+   espacement ni majuscules, les lettres restent liées. */
+:root[lang='ar'] :is(.surtitre, .marque-txt small, .mot-glose, .etiquette, .badge, .verset-ref,
+  .coordonnees dt, .pied-col h4, .loader-tag, .defiler, .parcours-indice, .curseur-anneau span) {
+  letter-spacing: 0;
+  text-transform: none;
+}
 
 *, *::before, *::after { box-sizing: border-box; }
 

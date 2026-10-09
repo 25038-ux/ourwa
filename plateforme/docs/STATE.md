@@ -34,12 +34,20 @@ courriel infoheavenly24@gmail.com, et la mention d'EduPlateforme en bas.
   animations » : rien de caché ; sans JavaScript : la page française entière ;
   aucun débordement horizontal (en arabe sur téléphone, la bande des mots
   débordait de 7 px : corrigé).
-- **Pas encore en ligne** : `ecole-jinan.com/` est le tableau de bord de
-  l'application. Le README propose un sous-domaine ou `/decouvrir/` (Caddy),
-  sans toucher à l'application ; à décider par le propriétaire.
-- **À faire relire par l'école** : les intitulés de classes (1re → 4e AS…),
-  le nom arabe officiel (« مؤسسة هيفنلي التعليمية »). Rien d'inventé : ni
-  chiffres, ni témoignages, ni date de fondation.
+- **Décision du propriétaire (même jour)** : « don't link them at all, each
+  one with its separate domain ». La vitrine n'a plus AUCUN lien vers
+  l'application (ni « Espace parents », ni « Se connecter » ; la ligne de
+  service qui décrit l'espace parents reste, sans lien), et elle se publie sur
+  SON domaine : `VITRINE_DOMAIN=<domaine> bash installer-jinan.sh` (gardé dans
+  `.env`). `install.sh` écrit `caddy-sites/vitrine.caddy` (le domaine, `www.`
+  redirigé, `src/` et outils jamais servis), vérifie le DNS des deux noms,
+  recrée Caddy si son Caddyfile a changé, sinon le recharge sans coupure ; il
+  refuse le domaine de l'application et ses sous-domaines. Le Caddyfile
+  importe `/etc/caddy/sites/*.caddy` (vide : valide, vérifié).
+- **Le nom arabe officiel** (donné par l'école) : **مؤسسة جنان للتعليم** —
+  titre, ligne sous le logo, pied de page, courriel d'inscription.
+- **À faire relire par l'école** : les intitulés de classes (1re → 4e AS…).
+  Rien d'inventé : ni chiffres, ni témoignages, ni date de fondation.
 
 ## LA PLATEFORME À TOUS LES INSCRITS — 2026-10-06 (soir)
 

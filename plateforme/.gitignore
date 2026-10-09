@@ -66,3 +66,6 @@ apps/web/e2e/.captures-avant/
 
 # Scripts de coup d'œil locaux (captures Playwright ad hoc)
 apps/web/scratch-*.mjs
+
+# Les sites à part, écrits sur le serveur par install.sh
+deploy/*/caddy-sites/*.caddy

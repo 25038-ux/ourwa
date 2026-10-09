@@ -3,6 +3,10 @@
 #
 #   curl -fSL -o /root/installer-jinan.sh https://raw.githubusercontent.com/25038-ux/ourwa/refs/heads/claude/jinan-web-completion-6wv8c0/plateforme/deploy/jinan/installer-serveur.sh && bash /root/installer-jinan.sh
 #
+# Le SITE VITRINE, sur son propre domaine (une fois ; les mises à jour le gardent) :
+#
+#   VITRINE_DOMAIN=exemple.com bash /root/installer-jinan.sh
+#
 # (`-fSL`, pas `-fsSL` : un téléchargement raté le DIT. Avec `-s`, curl se
 # taisait et rien ne se passait — « the update script didn't work at all ».)
 # Déjà téléchargé une fois ? `bash /root/installer-jinan.sh` suffit : c'est lui

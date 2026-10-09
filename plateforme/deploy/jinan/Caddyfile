@@ -26,3 +26,9 @@ api.{$PUBLIC_DOMAIN} {
 	reverse_proxy web:3000
 	encode zstd gzip
 }
+
+# Les AUTRES sites de ce serveur, chacun sur son propre domaine — aujourd'hui le
+# site vitrine (vitrine/, VITRINE_DOMAIN dans .env), sans aucun lien avec
+# l'application. install.sh écrit leurs blocs dans caddy-sites/ ; aucun
+# fichier : aucun site, et la configuration reste valide.
+import /etc/caddy/sites/*.caddy

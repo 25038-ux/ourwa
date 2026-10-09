@@ -329,14 +329,62 @@ else
   fi
 fi
 
+# Le SITE VITRINE (vitrine/) — SUR SON PROPRE DOMAINE, jamais sous celui de
+# l'application, et sans aucun lien entre les deux (demande du propriétaire,
+# 09/10/2026). `VITRINE_DOMAIN=exemple.com bash installer-jinan.sh` le pose dans
+# .env ; les mises à jour suivantes le gardent. Absent : pas de vitrine.
+if [ -n "${VITRINE_DOMAIN:-}" ]; then
+  VITRINE_DOMAIN="$(printf '%s' "$VITRINE_DOMAIN" | tr 'A-Z' 'a-z')"
+  case "$VITRINE_DOMAIN" in
+    *://*|*/*|*' '*|www.*|*.) rouge "VITRINE_DOMAIN : le nom seul, sans https:// ni www. (ex. heavenly-school.com)"; exit 2 ;;
+  esac
+  case "$VITRINE_DOMAIN" in
+    "$PUBLIC_DOMAIN"|*."$PUBLIC_DOMAIN") rouge "VITRINE_DOMAIN doit être un domaine À PART : ni $PUBLIC_DOMAIN, ni l'un de ses sous-domaines."; exit 2 ;;
+  esac
+  poser VITRINE_DOMAIN "$VITRINE_DOMAIN"
+fi
+VITRINE_DOMAIN="$(lire VITRINE_DOMAIN)"
+mkdir -p "$ICI/caddy-sites"
+if [ -n "$VITRINE_DOMAIN" ] && [ -f "$ICI/vitrine/index.html" ]; then
+  cat > "$ICI/caddy-sites/vitrine.caddy" <<CADDY
+# Écrit par install.sh depuis VITRINE_DOMAIN (.env) — réécrit à chaque mise à jour.
+# Le site vitrine : des fichiers statiques, sur leur propre domaine.
+www.$VITRINE_DOMAIN {
+	redir https://$VITRINE_DOMAIN{uri} permanent
+}
+
+$VITRINE_DOMAIN {
+	root * /srv/vitrine
+	# Les sources et l'outil de construction ne sont pas des pages.
+	@prive path /src/* /construire.py /README.md
+	respond @prive 404
+	@durable path /assets/fonts/* /assets/vendor/* /assets/img/*
+	header @durable Cache-Control "public, max-age=2592000"
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options SAMEORIGIN
+		-Server
+	}
+	encode zstd gzip
+	file_server
+}
+CADDY
+  vert "site vitrine : https://$VITRINE_DOMAIN/ (domaine à part, sans lien avec l'application)"
+else
+  rm -f "$ICI/caddy-sites/vitrine.caddy"
+fi
+
 # ═════════════════════════════════════════════════════════════════════════════
 titre "3. Le DNS"
 IP_ICI="$(curl -4 -fsS --max-time 6 https://api.ipify.org 2>/dev/null || true)"
 [ -n "$IP_ICI" ] || IP_ICI="$(ip -4 route get 1.1.1.1 2>/dev/null | sed -n 's/.* src \([0-9.]*\).*/\1/p')"
 DNS_OK=1
-for h in "$PUBLIC_DOMAIN" "www.$PUBLIC_DOMAIN" "api.$PUBLIC_DOMAIN"; do
+NOMS=("$PUBLIC_DOMAIN" "www.$PUBLIC_DOMAIN" "api.$PUBLIC_DOMAIN")
+[ -z "$VITRINE_DOMAIN" ] || NOMS+=("$VITRINE_DOMAIN" "www.$VITRINE_DOMAIN")
+for h in "${NOMS[@]}"; do
   A="$(getent ahostsv4 "$h" 2>/dev/null | awk '{print $1}' | sort -u | tr '\n' ' ' | sed 's/ $//' || true)"
-  NOM="@"; [ "$h" = "$PUBLIC_DOMAIN" ] || NOM="${h%%.*}"
+  case "$h" in "$PUBLIC_DOMAIN"|"$VITRINE_DOMAIN") NOM="@" ;; *) NOM="${h%%.*}" ;; esac
   AAAA="$(getent ahostsv6 "$h" 2>/dev/null | awk '{print $1}' | grep -v '^::ffff:' | sort -u | tr '\n' ' ' | sed 's/ $//' || true)"
   if [ -z "$A" ]; then
     jaune "$h : aucun enregistrement A. À créer : type A, nom « $NOM », valeur $IP_ICI"; DNS_OK=0
@@ -355,7 +403,7 @@ for h in "$PUBLIC_DOMAIN" "www.$PUBLIC_DOMAIN" "api.$PUBLIC_DOMAIN"; do
 done
 if [ "$DNS_OK" -eq 0 ]; then
   jaune "Le DNS n'est pas encore bon : l'installation continue, et Caddy obtiendra les certificats"
-  jaune "tout seul dès que les trois noms viseront $IP_ICI (quelques minutes à quelques heures)."
+  jaune "tout seul dès que ces noms viseront $IP_ICI (quelques minutes à quelques heures)."
 fi
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -393,6 +441,15 @@ MDP=()
 # 8h – 17h, frais d'inscription par élève, services optionnels — ADR-0073). Posé à
 # la création de l'école, jamais changé ensuite ; bootstrap-school est idempotent.
 docker compose up -d --remove-orphans
+# Caddy : son Caddyfile est un FICHIER monté — remplacé par une mise à jour, le
+# conteneur garde l'ancien tant qu'il n'est pas recréé. Les sites de
+# caddy-sites/ (un dossier monté) sont vus tout de suite : un rechargement, sans
+# coupure, suffit. Un rechargement refusé garde la configuration en service.
+if [ "$(docker compose exec -T caddy sha256sum /etc/caddy/Caddyfile 2>/dev/null | cut -d' ' -f1)" != "$(sha256sum Caddyfile | cut -d' ' -f1)" ]; then
+  docker compose up -d --force-recreate caddy
+elif ! docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1; then
+  jaune "Caddy n'a pas rechargé sa configuration (docker compose logs --tail=40 caddy) : il garde la précédente."
+fi
 # Ce que cette construction a remplacé ne sert plus : l'image précédente et le
 # cache de plus d'une semaine (~2 Go par mise à jour, jamais retirés jusque-là —
 # le disque d'un petit VPS finissait plein). Jamais un volume.
@@ -430,13 +487,17 @@ else
   CONNEXION="mot de passe inchangé (compte déjà présent : mise à jour)."
 fi
 
+VITRINE_LIGNE=""
+[ -z "$VITRINE_DOMAIN" ] || VITRINE_LIGNE="
+  Site vitrine         https://${VITRINE_DOMAIN}/   (domaine à part, sans lien avec l'application)"
+
 cat <<FIN
 
 ═══════════════════════════════════════════════════════════════════════════════
 ✓ Jinan est en ligne (les certificats HTTPS arrivent dans la minute une fois le DNS en place)
 
   Site de l'école      https://${PUBLIC_DOMAIN}/
-  API (application)    https://api.${PUBLIC_DOMAIN}/health
+  API (application)    https://api.${PUBLIC_DOMAIN}/health${VITRINE_LIGNE}
   Connexion            ${ADMIN_EMAIL} — ${CONNEXION}
 
   Pour le Play Store :

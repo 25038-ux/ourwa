@@ -130,6 +130,10 @@ services:
       ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL manque dans .env (voir install.sh)}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Les sites à part (le site vitrine, son propre domaine) : un DOSSIER monté,
+      # pour qu'un rechargement de Caddy voie les fichiers que install.sh y écrit.
+      - ./caddy-sites:/etc/caddy/sites:ro
+      - ./vitrine:/srv/vitrine:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
