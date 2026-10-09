@@ -8,6 +8,39 @@ every session, even short or unproductive ones.
 
 
 
+## LE SITE VITRINE DE HEAVENLY (جنان) — 2026-10-09
+
+**Demande du propriétaire** : un site de présentation « marketing », animé,
+en français, anglais et arabe (choix en haut), aux valeurs « américano-
+islamiques », avec les photos de l'école, l'adresse (entre Appetizer et
+l'ambassade du Brésil, Plus Code 4268+JWX), le téléphone 38 32 88 88, le
+courriel infoheavenly24@gmail.com, et la mention d'EduPlateforme en bas.
+
+- **Fait** : `deploy/jinan/vitrine/` — une page statique (aucun serveur
+  d'application). Textes : `src/i18n.json` (162 clés × 3 langues), page :
+  `src/index.template.html`, `python3 construire.py` génère `index.html`
+  (français en dur) et `assets/js/i18n.js`. GSAP 3.15 + ScrollTrigger et
+  Lenis 1.3 auto-hébergés ; polices auto-hébergées (Fraunces, Manrope, Amiri,
+  IBM Plex Sans Arabic, Aref Ruqaa). Photos recadrées (bandeaux « LIVE » et
+  minuteurs des captures retirés), WebP 760/1400.
+- **Le mouvement** : rideau d'ouverture (étoile à huit branches), titres mot à
+  mot (jamais lettre à lettre : l'arabe garde ses liaisons), manifeste qui
+  s'allume au défilement, parcours horizontal épinglé (sens inversé en arabe),
+  ciel étoilé, verset Tâ-Hâ 20:114, visionneuse de la galerie, curseur et
+  boutons aimantés (souris seulement). Changer de langue tire un rideau,
+  bascule `dir="rtl"`, reconstruit les animations et garde la position.
+- **Vérifié** (Chromium, 1440 × 900 et 390 × 844, fr/en/ar) : aucune erreur de
+  console ; changement de langue au milieu de la page ; « réduire les
+  animations » : rien de caché ; sans JavaScript : la page française entière ;
+  aucun débordement horizontal (en arabe sur téléphone, la bande des mots
+  débordait de 7 px : corrigé).
+- **Pas encore en ligne** : `ecole-jinan.com/` est le tableau de bord de
+  l'application. Le README propose un sous-domaine ou `/decouvrir/` (Caddy),
+  sans toucher à l'application ; à décider par le propriétaire.
+- **À faire relire par l'école** : les intitulés de classes (1re → 4e AS…),
+  le nom arabe officiel (« مؤسسة هيفنلي التعليمية »). Rien d'inventé : ni
+  chiffres, ni témoignages, ni date de fondation.
+
 ## LA PLATEFORME À TOUS LES INSCRITS — 2026-10-06 (soir)
 
 **Demande du propriétaire** : « No — add the plateforme fee to every enrolled

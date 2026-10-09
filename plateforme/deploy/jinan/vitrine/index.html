@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Heavenly · جنان — Institution éducative à Nouakchott</title>
+  <meta name="description" content="Heavenly Educational Institution (جنان) : le programme national mauritanien de la maternelle au lycée, une attention particulière à l&#x27;anglais, et des valeurs où la foi et l&#x27;esprit d&#x27;initiative marchent ensemble. Nouakchott.">
+  <meta name="theme-color" content="#0B1622">
+  <meta name="color-scheme" content="light">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Heavenly Educational Institution">
+  <meta property="og:title" content="Heavenly · جنان — Institution éducative à Nouakchott">
+  <meta property="og:description" content="Heavenly Educational Institution (جنان) : le programme national mauritanien de la maternelle au lycée, une attention particulière à l&#x27;anglais, et des valeurs où la foi et l&#x27;esprit d&#x27;initiative marchent ensemble. Nouakchott.">
+  <meta property="og:image" content="assets/img/og.jpg">
+  <meta property="og:locale" content="fr_FR">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="assets/img/ailes-1400.webp" as="image" type="image/webp">
+  <!--FONTS-->
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
+  <!--/FONTS-->
+  <link rel="stylesheet" href="assets/css/site.css">
+  <script>
+    // Avant tout rendu : la langue choisie (pour éviter un éclair de français) et
+    // la classe `js` qui active le rideau d'ouverture et les états de départ.
+    (function () {
+      var d = document.documentElement, l = null;
+      try { l = new URLSearchParams(location.search).get('lang') || localStorage.getItem('heavenly-lang'); } catch (e) {}
+      if (!l) { var n = (navigator.language || 'fr').slice(0, 2); l = n === 'ar' ? 'ar' : n === 'en' ? 'en' : 'fr'; }
+      if (l !== 'fr' && l !== 'en' && l !== 'ar') l = 'fr';
+      d.lang = l; d.dir = l === 'ar' ? 'rtl' : 'ltr';
+      d.classList.add('js');
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('calme');
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip" href="#ecole" data-i18n="skip">Aller au contenu</a>
+
+  <!-- Les formes : l'étoile à huit branches (le khatam), sa sœur intérieure, l'étincelle. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="etoile" viewBox="0 0 100 100"><path d="M50.00,4.00 L63.47,17.47 L82.53,17.47 L82.53,36.53 L96.00,50.00 L82.53,63.47 L82.53,82.53 L63.47,82.53 L50.00,96.00 L36.53,82.53 L17.47,82.53 L17.47,63.47 L4.00,50.00 L17.47,36.53 L17.47,17.47 L36.53,17.47 Z"/></symbol>
+    <symbol id="etoile-int" viewBox="0 0 100 100"><path d="M50.00,29.00 L56.15,35.15 L64.85,35.15 L64.85,43.85 L71.00,50.00 L64.85,56.15 L64.85,64.85 L56.15,64.85 L50.00,71.00 L43.85,64.85 L35.15,64.85 L35.15,56.15 L29.00,50.00 L35.15,43.85 L35.15,35.15 L43.85,35.15 Z"/></symbol>
+    <symbol id="eclat" viewBox="0 0 24 24"><path d="M12 0 C12.9 7.6 16.4 11.1 24 12 C16.4 12.9 12.9 16.4 12 24 C11.1 16.4 7.6 12.9 0 12 C7.6 11.1 11.1 7.6 12 0 Z"/></symbol>
+    <symbol id="fleche" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </svg>
+
+  <!-- Le rideau d'ouverture -->
+  <div class="loader" aria-hidden="true">
+    <div class="loader-in">
+      <svg class="loader-star" viewBox="0 0 100 100"><path pathLength="1" d="M50.00,4.00 L63.47,17.47 L82.53,17.47 L82.53,36.53 L96.00,50.00 L82.53,63.47 L82.53,82.53 L63.47,82.53 L50.00,96.00 L36.53,82.53 L17.47,82.53 L17.47,63.47 L4.00,50.00 L17.47,36.53 L17.47,17.47 L36.53,17.47 Z"/><path pathLength="1" class="in" d="M50.00,29.00 L56.15,35.15 L64.85,35.15 L64.85,43.85 L71.00,50.00 L64.85,56.15 L64.85,64.85 L56.15,64.85 L50.00,71.00 L43.85,64.85 L35.15,64.85 L35.15,56.15 L29.00,50.00 L35.15,43.85 L35.15,35.15 L43.85,35.15 Z"/></svg>
+      <div class="loader-name"><span class="brand-word">Heavenly</span><span class="loader-ar" lang="ar">جنان</span></div>
+      <div class="loader-tag" data-i18n="loader.tagline">Institution éducative</div>
+    </div>
+  </div>
+
+  <div class="curseur cache" aria-hidden="true"><div class="curseur-point"></div><div class="curseur-anneau"><span data-i18n="cursor.view">Voir</span></div></div>
+
+  <header class="entete">
+    <a class="marque" href="#accueil" aria-label="Heavenly Educational Institution">
+      <svg class="marque-signe" viewBox="0 0 100 100" aria-hidden="true"><use href="#etoile" class="o"/><use href="#etoile-int" class="i"/><circle cx="50" cy="50" r="4.5" class="c"/></svg>
+      <span class="marque-txt"><span class="brand-word">Heavenly</span><small>Educational Institution · <span lang="ar">جنان</span></small></span>
+    </a>
+    <nav class="nav" aria-label="Navigation">
+      <a href="#ecole" data-i18n="nav.school">L&#x27;école</a>
+      <a href="#parcours" data-i18n="nav.journey">Le parcours</a>
+      <a href="#valeurs" data-i18n="nav.values">Les valeurs</a>
+      <a href="#vie" data-i18n="nav.life">La vie</a>
+      <a href="#services" data-i18n="nav.services">Les services</a>
+      <a href="#visite" data-i18n="nav.visit">Nous trouver</a>
+    </nav>
+    <div class="entete-droite">
+      <div class="langues" role="group" data-i18n-attr="aria-label:nav.language" aria-label="Langue">
+        <button type="button" data-lang="fr" lang="fr">FR</button>
+        <button type="button" data-lang="en" lang="en">EN</button>
+        <button type="button" data-lang="ar" lang="ar">ع</button>
+        <span class="langues-pastille" aria-hidden="true"></span>
+      </div>
+      <a class="bouton bouton-plein petit" href="#visite" data-magnetic><span data-i18n="nav.cta">Prendre rendez-vous</span></a>
+      <button class="burger" type="button" aria-expanded="false" aria-controls="menu" data-i18n-attr="aria-label:nav.menu" aria-label="Menu"><span></span><span></span></button>
+    </div>
+  </header>
+
+  <div class="menu" id="menu" aria-hidden="true">
+    <div class="menu-fond"></div>
+    <nav class="menu-liens" aria-label="Menu">
+      <a href="#ecole"><i>01</i><span data-i18n="nav.school">L&#x27;école</span></a>
+      <a href="#parcours"><i>02</i><span data-i18n="nav.journey">Le parcours</span></a>
+      <a href="#valeurs"><i>03</i><span data-i18n="nav.values">Les valeurs</span></a>
+      <a href="#vie"><i>04</i><span data-i18n="nav.life">La vie</span></a>
+      <a href="#services"><i>05</i><span data-i18n="nav.services">Les services</span></a>
+      <a href="#visite"><i>06</i><span data-i18n="nav.visit">Nous trouver</span></a>
+    </nav>
+    <div class="menu-pied">
+      <div class="langues langues-menu" role="group" aria-label="Langue">
+        <button type="button" data-lang="fr" lang="fr">Français</button>
+        <button type="button" data-lang="en" lang="en">English</button>
+        <button type="button" data-lang="ar" lang="ar">العربية</button>
+      </div>
+      <a href="tel:+22238328888" dir="ltr">+222 38 32 88 88</a>
+      <a href="mailto:infoheavenly24@gmail.com">infoheavenly24@gmail.com</a>
+    </div>
+  </div>
+
+  <main id="contenu">
+
+    <!-- ═════════════ L'ACCUEIL ═════════════ -->
+    <section class="hero" id="accueil">
+      <div class="hero-ciel" aria-hidden="true">
+        <div class="motif"></div>
+        <svg class="eclat e1"><use href="#eclat"/></svg>
+        <svg class="eclat e2"><use href="#eclat"/></svg>
+        <svg class="eclat e3"><use href="#eclat"/></svg>
+        <svg class="eclat e4"><use href="#eclat"/></svg>
+        <svg class="eclat e5"><use href="#eclat"/></svg>
+      </div>
+      <div class="hero-grille">
+        <div class="hero-texte">
+          <p class="surtitre hero-surtitre"><span class="trait"></span><span data-i18n="hero.eyebrow">Nouakchott — de la maternelle au lycée</span></p>
+          <h1 class="hero-titre" data-i18n-html="hero.title" data-split="lines"><span class="line">Ici, chaque enfant</span> <span class="line">grandit vers</span> <span class="line">la <em>lumière</em>.</span></h1>
+          <p class="hero-chapo" data-i18n="hero.lead">Le programme national mauritanien, de la maternelle au lycée — avec une attention particulière à l&#x27;anglais, une touche du programme américain, et des valeurs où la foi et l&#x27;esprit d&#x27;initiative marchent ensemble.</p>
+          <div class="hero-actions">
+            <a class="bouton bouton-plein" href="#ecole" data-magnetic><span data-i18n="hero.cta1">Découvrir l&#x27;école</span><svg class="ic"><use href="#fleche"/></svg></a>
+            <a class="bouton bouton-lien" href="tel:+22238328888"><span data-i18n-html="hero.cta2">Appeler le <bdi>38 32 88 88</bdi></span></a>
+          </div>
+        </div>
+        <div class="hero-visuel">
+          <div class="arche-cadre">
+            <div class="arche hero-arche">
+              <img src="assets/img/ailes-1400.webp" srcset="assets/img/ailes-760.webp 760w, assets/img/ailes-1400.webp 1400w" sizes="(max-width: 900px) 80vw, 34vw" width="1275" height="1600" alt="Un petit garçon devant des ailes peintes aux couleurs de l&#x27;arc-en-ciel" data-i18n-alt="alt.ailes" fetchpriority="high">
+            </div>
+          </div>
+          <p class="hero-legende" data-i18n="hero.caption">Les ailes sont peintes. L&#x27;envol, lui, est bien réel.</p>
+          <div class="sceau" aria-hidden="true">
+            <svg viewBox="0 0 200 200">
+              <defs><path id="cercle-sceau" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"/></defs>
+              <text><textPath href="#cercle-sceau" textLength="488">HEAVENLY ✦ EDUCATIONAL INSTITUTION ✦ NOUAKCHOTT ✦ </textPath></text>
+            </svg>
+            <svg class="sceau-etoile" viewBox="0 0 100 100"><use href="#etoile"/></svg>
+          </div>
+        </div>
+      </div>
+      <a class="defiler" href="#ecole"><span data-i18n="hero.scroll">Défiler</span><i></i></a>
+    </section>
+
+    <!-- ═════════════ LE DÉFILÉ DES MOTS ═════════════ -->
+    <section class="defile" aria-hidden="true">
+      <div class="defile-rang r1"><div class="defile-piste"><span data-i18n="marquee.row1">Savoir ✦ Foi ✦ Caractère ✦ Curiosité ✦ Courage ✦ Bienveillance ✦ Excellence ✦</span><span data-i18n="marquee.row1">Savoir ✦ Foi ✦ Caractère ✦ Curiosité ✦ Courage ✦ Bienveillance ✦ Excellence ✦</span><span data-i18n="marquee.row1">Savoir ✦ Foi ✦ Caractère ✦ Curiosité ✦ Courage ✦ Bienveillance ✦ Excellence ✦</span><span data-i18n="marquee.row1">Savoir ✦ Foi ✦ Caractère ✦ Curiosité ✦ Courage ✦ Bienveillance ✦ Excellence ✦</span></div></div>
+      <div class="defile-rang r2" dir="ltr"><div class="defile-piste">
+        <span>العلم · Knowledge · Savoir ✦ الإيمان · Faith · Foi ✦ الأخلاق · Character · Caractère ✦ الرحمة · Kindness · Bienveillance ✦ </span><span>العلم · Knowledge · Savoir ✦ الإيمان · Faith · Foi ✦ الأخلاق · Character · Caractère ✦ الرحمة · Kindness · Bienveillance ✦ </span><span>العلم · Knowledge · Savoir ✦ الإيمان · Faith · Foi ✦ الأخلاق · Character · Caractère ✦ الرحمة · Kindness · Bienveillance ✦ </span>
+      </div></div>
+    </section>
+
+    <!-- ═════════════ LE NOM ═════════════ -->
+    <section class="nom" id="ecole">
+      <div class="conteneur">
+        <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="name.kicker">Notre nom</span></p>
+        <h2 class="titre-section" data-i18n-html="name.title" data-split="words">Deux mots pour <em>un même lieu</em>.</h2>
+        <div class="nom-grille">
+          <div class="nom-mots">
+            <div class="mot mot-en" data-reveal>
+              <span class="mot-grand brand-word" lang="en">Heavenly</span>
+              <span class="mot-glose" data-i18n="name.heavenly.gloss">« céleste », en anglais</span>
+            </div>
+            <div class="mot-lien" aria-hidden="true"><span></span><svg><use href="#eclat"/></svg><span></span></div>
+            <div class="mot mot-ar" data-reveal>
+              <span class="mot-grand ruqaa" lang="ar">جِنان</span>
+              <span class="mot-glose" data-i18n="name.jinan.gloss">« les jardins », en arabe</span>
+            </div>
+          </div>
+          <p class="nom-texte" data-i18n="name.text" data-scrub>En arabe, Jinan signifie « les jardins ». En anglais, Heavenly dit ce qui vient du ciel. Nous avons choisi ces deux mots comme on fait une promesse : que chaque enfant qui franchit notre porte soit cultivé comme ce qu&#x27;il y a de plus précieux au monde — de la lumière, de l&#x27;eau, du temps — et qu&#x27;il puisse fleurir à sa saison.</p>
+        </div>
+        <div class="nom-photos">
+          <figure class="photo p-jardin" data-parallax="-12">
+            <div class="arche revele"><img src="assets/img/jardin-760.webp" srcset="assets/img/jardin-760.webp 760w, assets/img/jardin-1400.webp 1400w" sizes="(max-width: 900px) 80vw, 30vw" width="1263" height="1600" loading="lazy" alt="Deux enfants qui rient dans le jardin fleuri de l&#x27;école" data-i18n-alt="alt.jardin"></div>
+            <figcaption data-i18n="name.cap1">Au jardin, après la classe.</figcaption>
+          </figure>
+          <figure class="photo p-amies" data-parallax="10">
+            <div class="cadre revele"><img src="assets/img/amies-760.webp" srcset="assets/img/amies-760.webp 760w, assets/img/amies-1400.webp 1400w" sizes="(max-width: 900px) 70vw, 24vw" width="1290" height="1666" loading="lazy" alt="Deux fillettes en robes blanches brodées de fleurs" data-i18n-alt="alt.amies"></div>
+            <figcaption data-i18n="name.cap2">Amies, et pour longtemps.</figcaption>
+          </figure>
+        </div>
+        <ul class="chiffres">
+          <li data-reveal><b data-count="3">3</b><span data-i18n="stats.1">langues : l&#x27;arabe, le français, l&#x27;anglais</span></li>
+          <li data-reveal><b data-count="4">4</b><span data-i18n="stats.2">cycles, de la maternelle au lycée</span></li>
+          <li data-reveal><b data-count="2">2</b><span data-i18n="stats.3">rythmes : 8 h – 14 h, ou jusqu&#x27;à 17 h</span></li>
+          <li data-reveal><b data-count="1">1</b><span data-i18n="stats.4">programme : le programme national mauritanien</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ═════════════ LE PARCOURS ═════════════ -->
+    <section class="parcours" id="parcours">
+      <div class="parcours-epingle">
+        <div class="parcours-piste">
+          <div class="parcours-intro">
+            <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="journey.kicker">Le parcours</span></p>
+            <h2 class="titre-section" data-i18n-html="journey.title" data-split="words">Du premier mot <em>au dernier examen</em>.</h2>
+            <p class="texte" data-i18n="journey.intro" data-reveal>Le programme national mauritanien, de bout en bout. Autour de lui, une attention particulière à l&#x27;anglais, une touche du programme anglo-américain — et un peu de cet esprit américain qui ose, essaie, et recommence.</p>
+            <p class="parcours-indice" aria-hidden="true"><span data-i18n="journey.hint">Faites défiler</span><svg class="ic"><use href="#fleche"/></svg></p>
+          </div>
+          <article class="cycle">
+            <div class="cycle-photo arche"><img src="assets/img/balancoire-760.webp" width="1259" height="1490" loading="lazy" alt="Des enfants jouent à la balançoire" data-i18n-alt="alt.balancoire"></div>
+            <div class="cycle-corps">
+              <span class="cycle-num">01</span>
+              <h3 data-i18n="journey.c1.name">Maternelle</h3>
+              <p class="cycle-sous" data-i18n="journey.c1.sub">Les premières couleurs</p>
+              <p data-i18n="journey.c1.text">Jouer, chanter, compter, apprendre à dire son nom — l&#x27;école commence par la joie.</p>
+              <span class="etiquette" data-i18n="journey.c1.tag">Éveil · Langage · Jeu</span>
+            </div>
+          </article>
+          <article class="cycle">
+            <div class="cycle-photo arche"><img src="assets/img/ecriture-760.webp" width="810" height="1080" loading="lazy" alt="Une élève à lunettes écrit dans son cahier et sourit" data-i18n-alt="alt.ecriture"></div>
+            <div class="cycle-corps">
+              <span class="cycle-num">02</span>
+              <h3 data-i18n="journey.c2.name">Fondamental</h3>
+              <p class="cycle-sous" data-i18n="journey.c2.sub">Les fondations</p>
+              <p data-i18n="journey.c2.text">Lire, écrire, calculer, comprendre. Les bases du programme national, posées avec patience et exigence.</p>
+              <span class="etiquette" data-i18n="journey.c2.tag">De la 1re à la 6e année</span>
+            </div>
+          </article>
+          <article class="cycle">
+            <div class="cycle-photo arche"><img src="assets/img/anatomie-760.webp" width="1032" height="1470" loading="lazy" alt="Un modèle anatomique du corps humain" data-i18n-alt="alt.anatomie"></div>
+            <div class="cycle-corps">
+              <span class="cycle-num">03</span>
+              <h3 data-i18n="journey.c3.name">Collège</h3>
+              <p class="cycle-sous" data-i18n="journey.c3.sub">Les grandes questions</p>
+              <p data-i18n="journey.c3.text">Les sciences prennent corps, l&#x27;anglais devient une voix, la curiosité devient une méthode.</p>
+              <span class="etiquette" data-i18n="journey.c3.tag">De la 1re à la 4e AS</span>
+            </div>
+          </article>
+          <article class="cycle">
+            <div class="cycle-photo arche"><img src="assets/img/squelette-760.webp" width="1230" height="1390" loading="lazy" alt="Un squelette et un torse anatomique, en salle de sciences" data-i18n-alt="alt.squelette"></div>
+            <div class="cycle-corps">
+              <span class="cycle-num">04</span>
+              <h3 data-i18n="journey.c4.name">Lycée</h3>
+              <p class="cycle-sous" data-i18n="journey.c4.sub">L&#x27;envol</p>
+              <p data-i18n="journey.c4.text">Préparer le baccalauréat — et, au-delà, penser par soi-même, parler avec assurance, choisir sa route.</p>
+              <span class="etiquette" data-i18n="journey.c4.tag">De la 5e à la 7e AS · Baccalauréat</span>
+            </div>
+          </article>
+        </div>
+        <div class="parcours-progression" aria-hidden="true"><span></span></div>
+      </div>
+    </section>
+
+    <!-- ═════════════ LA NUIT : LES LANGUES, LES VALEURS, LE VERSET ═════════════ -->
+    <div class="nuit">
+      <canvas class="etoiles" aria-hidden="true"></canvas>
+
+      <section class="langues-sec" id="langues">
+        <div class="conteneur">
+          <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="lang.kicker">Trois langues, une seule voix</span></p>
+          <h2 class="titre-section" data-i18n-html="lang.title" data-split="words">Une attention particulière <em>à l'anglais</em>.</h2>
+          <ul class="trois-langues">
+            <li class="langue l-ar" data-glisse="1">
+              <span class="langue-mot" lang="ar">العربية</span>
+              <span class="langue-desc" data-i18n="lang.ar.desc">La langue du Coran, et de nos racines.</span>
+            </li>
+            <li class="langue l-fr" data-glisse="-1">
+              <span class="langue-mot" lang="fr">Français</span>
+              <span class="langue-desc" data-i18n="lang.fr.desc">Une langue d&#x27;échange, de culture et de savoir.</span>
+            </li>
+            <li class="langue l-en" data-glisse="1">
+              <span class="langue-mot" lang="en">English</span>
+              <span class="langue-desc"><span class="badge" data-i18n="lang.en.badge">Notre accent</span> <span data-i18n="lang.en.desc">La langue du vaste monde — et notre accent particulier.</span></span>
+            </li>
+          </ul>
+          <p class="texte texte-large" data-i18n="lang.text" data-reveal>L&#x27;anglais, non pas comme une matière à réussir, mais comme une voix à faire sienne. Inspirés des classes américaines — projets, exposés, lectures à voix haute — nous donnons aux enfants l&#x27;assurance de se lever, et de prendre la parole.</p>
+        </div>
+      </section>
+
+      <section class="valeurs" id="valeurs">
+        <div class="conteneur">
+          <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="values.kicker">Nos valeurs</span></p>
+          <h2 class="titre-section" data-i18n-html="values.title" data-split="words">Là où la foi rencontre <em>l'esprit d'initiative</em>.</h2>
+          <p class="texte" data-i18n="values.intro" data-reveal>Des valeurs islamiques, transmises avec douceur. Un esprit américain, vécu avec enthousiasme. Elles ne s&#x27;opposent pas : elles se répondent.</p>
+          <div class="cartes">
+            <article class="carte"><span class="carte-ar" lang="ar">إحسان</span><span class="carte-tr">Iḥsān</span><h3 data-i18n="values.v1.name">Excellence</h3><p data-i18n="values.v1.text">Bien faire, même quand personne ne regarde.</p><svg class="carte-etoile" aria-hidden="true"><use href="#etoile"/></svg></article>
+            <article class="carte"><span class="carte-ar" lang="ar">أمانة</span><span class="carte-tr">Amāna</span><h3 data-i18n="values.v2.name">Intégrité</h3><p data-i18n="values.v2.text">Tenir parole, et prendre soin de ce qui nous est confié.</p><svg class="carte-etoile" aria-hidden="true"><use href="#etoile"/></svg></article>
+            <article class="carte"><span class="carte-ar" lang="ar">علم</span><span class="carte-tr">ʿIlm</span><h3 data-i18n="values.v3.name">Curiosité</h3><p data-i18n="values.v3.text">Aimer apprendre, et oser demander « pourquoi ? ».</p><svg class="carte-etoile" aria-hidden="true"><use href="#etoile"/></svg></article>
+            <article class="carte"><span class="carte-ar" lang="ar">شورى</span><span class="carte-tr">Shūrā</span><h3 data-i18n="values.v4.name">La parole</h3><p data-i18n="values.v4.text">Écouter, débattre, décider ensemble : apprendre à être citoyen.</p><svg class="carte-etoile" aria-hidden="true"><use href="#etoile"/></svg></article>
+            <article class="carte"><span class="carte-ar" lang="ar">رحمة</span><span class="carte-tr">Raḥma</span><h3 data-i18n="values.v5.name">Bienveillance</h3><p data-i18n="values.v5.text">De la douceur pour les plus petits, du respect pour les plus grands.</p><svg class="carte-etoile" aria-hidden="true"><use href="#etoile"/></svg></article>
+            <article class="carte"><span class="carte-ar" lang="ar">عزيمة</span><span class="carte-tr">ʿAzīma</span><h3 data-i18n="values.v6.name">Persévérance</h3><p data-i18n="values.v6.text">Essayer, tomber, recommencer : le courage d&#x27;apprendre.</p><svg class="carte-etoile" aria-hidden="true"><use href="#etoile"/></svg></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="verset" aria-labelledby="verset-texte">
+        <svg class="verset-etoile" aria-hidden="true" viewBox="0 0 100 100"><use href="#etoile"/></svg>
+        <div class="conteneur">
+          <p class="verset-ar" id="verset-texte" lang="ar" dir="rtl">وَقُل رَّبِّ زِدْنِي عِلْمًا</p>
+          <p class="verset-trad" data-i18n="verse.translation">« Et dis : Seigneur, accrois mes connaissances. »</p>
+          <p class="verset-ref" data-i18n="verse.ref">Le Coran, sourate Tâ-Hâ, 20 : 114</p>
+          <p class="verset-note" data-i18n="verse.note">Une prière que nous emportons dans chaque leçon.</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- ═════════════ LA VIE ═════════════ -->
+    <section class="vie" id="vie">
+      <div class="conteneur">
+        <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="life.kicker">La vie à Heavenly</span></p>
+        <h2 class="titre-section" data-i18n-html="life.title" data-split="words">Des jours qui méritent <em>d'être retenus</em>.</h2>
+        <div class="galerie">
+          <figure class="g g1" data-cursor="view"><div class="g-img revele"><img src="assets/img/table-ronde-760.webp" srcset="assets/img/table-ronde-760.webp 760w, assets/img/table-ronde-1400.webp 1400w" sizes="(max-width: 900px) 92vw, 55vw" width="1257" height="1520" loading="lazy" alt="Des élèves partagent un gâteau autour d&#x27;une table ronde, devant des fresques colorées" data-i18n-alt="alt.table"></div><figcaption><b data-i18n="life.g1.title">La table ronde</b><span data-i18n="life.g1.text">On y apprend les couleurs, les jours, les mois — et à partager.</span></figcaption></figure>
+          <figure class="g g2" data-cursor="view"><div class="g-img arche revele"><img src="assets/img/anniversaire-760.webp" srcset="assets/img/anniversaire-760.webp 760w, assets/img/anniversaire-1400.webp 1400w" sizes="(max-width: 900px) 80vw, 32vw" width="1253" height="1510" loading="lazy" alt="Un anniversaire en classe, bougies allumées" data-i18n-alt="alt.anniv"></div><figcaption><b data-i18n="life.g2.title">Les anniversaires</b><span data-i18n="life.g2.text">Chaque enfant a son jour, et toute la classe le fête.</span></figcaption></figure>
+          <figure class="g g3" data-cursor="view"><div class="g-img revele"><img src="assets/img/dessin-1400.webp" width="1020" height="574" loading="lazy" alt="Une enseignante dessine avec trois enfants" data-i18n-alt="alt.dessin"></div><figcaption><b data-i18n="life.g3.title">L&#x27;atelier</b><span data-i18n="life.g3.text">Les couleurs avant les mots.</span></figcaption></figure>
+          <figure class="g g4" data-cursor="view"><div class="g-img revele"><img src="assets/img/creme-760.webp" srcset="assets/img/creme-760.webp 760w, assets/img/creme-1400.webp 1400w" sizes="(max-width: 900px) 80vw, 26vw" width="1249" height="1500" loading="lazy" alt="Une fillette rieuse, de la crème sur le nez" data-i18n-alt="alt.creme"></div><figcaption><b data-i18n="life.g4.title">La joie</b><span data-i18n="life.g4.text">Sans retenue — et parfois avec de la crème.</span></figcaption></figure>
+          <figure class="g g5" data-cursor="view"><div class="g-img revele"><img src="assets/img/fete-nationale-760.webp" srcset="assets/img/fete-nationale-760.webp 760w, assets/img/fete-nationale-1400.webp 1400w" sizes="(max-width: 900px) 92vw, 55vw" width="1600" height="1200" loading="lazy" alt="Des élèves brandissent des drapeaux et des ballons" data-i18n-alt="alt.fete"></div><figcaption><b data-i18n="life.g5.title">Nos couleurs</b><span data-i18n="life.g5.text">Petits drapeaux, grande fierté.</span></figcaption></figure>
+          <figure class="g g6" data-cursor="view"><div class="g-img arche revele"><img src="assets/img/piscine-760.webp" srcset="assets/img/piscine-760.webp 760w, assets/img/piscine-1400.webp 1400w" sizes="(max-width: 900px) 80vw, 28vw" width="1267" height="1600" loading="lazy" alt="Des enfants dans la piscine de l&#x27;école" data-i18n-alt="alt.piscine"></div><figcaption><b data-i18n="life.g6.title">La piscine</b><span data-i18n="life.g6.text">Apprendre à nager, sous le soleil de Nouakchott.</span></figcaption></figure>
+          <figure class="g g7" data-cursor="view"><div class="g-img revele"><img src="assets/img/petit-dejeuner-760.webp" srcset="assets/img/petit-dejeuner-760.webp 760w, assets/img/petit-dejeuner-1400.webp 1400w" sizes="(max-width: 900px) 92vw, 48vw" width="1286" height="818" loading="lazy" alt="Deux garçons prennent leur petit-déjeuner" data-i18n-alt="alt.petitdej"></div><figcaption><b data-i18n="life.g7.title">Le petit-déjeuner</b><span data-i18n="life.g7.text">Bien commencer la journée, ensemble.</span></figcaption></figure>
+          <figure class="g g8" data-cursor="view"><div class="g-img revele"><img src="assets/img/jeux-760.webp" srcset="assets/img/jeux-760.webp 760w, assets/img/jeux-1400.webp 1400w" sizes="(max-width: 900px) 80vw, 26vw" width="1222" height="1500" loading="lazy" alt="La salle de jeux et ses chevaux à bascule" data-i18n-alt="alt.jeux"></div><figcaption><b data-i18n="life.g8.title">La salle de jeux</b><span data-i18n="life.g8.text">Des chevaux qui ne galopent que dans l&#x27;imagination.</span></figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════ GRANDIR ═════════════ -->
+    <section class="grandir" id="grandir">
+      <div class="conteneur">
+        <p class="surtitre centre" data-reveal><span class="trait"></span><span data-i18n="grow.kicker">Grandir</span><span class="trait"></span></p>
+        <h2 class="grandir-titre">
+          <span class="g-l1" data-i18n="grow.line1" data-split="words">Nous les mesurons en centimètres.</span>
+          <span class="g-l2" data-i18n-html="grow.line2" data-split="words">Nous les aimons <em>sans mesure</em>.</span>
+        </h2>
+        <div class="toises">
+          <figure class="toise" data-parallax="-6"><div class="cadre revele"><img src="assets/img/toise-2-760.webp" width="1223" height="1600" loading="lazy" alt="Un élève adossé à la toise murale" data-i18n-alt="alt.toise"></div></figure>
+          <figure class="toise t-centre" data-parallax="6"><div class="cadre revele"><img src="assets/img/toise-1-760.webp" width="1273" height="1539" loading="lazy" alt="Un élève adossé à la toise murale" data-i18n-alt="alt.toise"></div></figure>
+          <figure class="toise" data-parallax="-3"><div class="cadre revele"><img src="assets/img/toise-3-760.webp" width="1129" height="1600" loading="lazy" alt="Un élève adossé à la toise murale" data-i18n-alt="alt.toise"></div></figure>
+          <div class="regle" aria-hidden="true"><span class="regle-remplie"></span></div>
+        </div>
+        <p class="texte centre grandir-texte" data-i18n="grow.text" data-reveal>Au mur, une girafe, un éléphant et une règle. Chaque année, on s&#x27;y adosse — et l&#x27;on découvre qu&#x27;on a grandi.</p>
+      </div>
+    </section>
+
+    <!-- ═════════════ LES SERVICES ═════════════ -->
+    <section class="services" id="services">
+      <div class="conteneur">
+        <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="services.kicker">Au quotidien</span></p>
+        <h2 class="titre-section" data-i18n-html="services.title" data-split="words">Tout ce qu'il faut, <em>sous un même toit</em>.</h2>
+        <ol class="liste-services">
+          <li class="svc" data-img="ecriture"><span class="svc-n">01</span><h3 data-i18n="services.s1.title">Deux rythmes</h3><p data-i18n="services.s1.text">De 8 h à 14 h, ou la journée complète jusqu&#x27;à 17 h.</p><svg class="ic svc-f"><use href="#fleche"/></svg></li>
+          <li class="svc" data-img="petit-dejeuner"><span class="svc-n">02</span><h3 data-i18n="services.s2.title">La cantine</h3><p data-i18n="services.s2.text">Petit-déjeuner et déjeuner, servis à table, ensemble.</p><svg class="ic svc-f"><use href="#fleche"/></svg></li>
+          <li class="svc" data-img="piscine"><span class="svc-n">03</span><h3 data-i18n="services.s3.title">La piscine</h3><p data-i18n="services.s3.text">Pour apprendre à nager — et à avoir confiance en soi.</p><svg class="ic svc-f"><use href="#fleche"/></svg></li>
+          <li class="svc" data-img="fete-nationale"><span class="svc-n">04</span><h3 data-i18n="services.s4.title">Le transport</h3><p data-i18n="services.s4.text">Le transport scolaire, de la maison à l&#x27;école.</p><svg class="ic svc-f"><use href="#fleche"/></svg></li>
+          <li class="svc" data-img="anatomie"><span class="svc-n">05</span><h3 data-i18n="services.s5.title">Le suivi médical</h3><p data-i18n="services.s5.text">Un médecin veille sur la santé des élèves.</p><svg class="ic svc-f"><use href="#fleche"/></svg></li>
+          <li class="svc" data-img="dessin"><span class="svc-n">06</span><h3 data-i18n="services.s6.title">Les fournitures</h3><p data-i18n="services.s6.text">Le nécessaire de l&#x27;année, prêt dès la rentrée.</p><svg class="ic svc-f"><use href="#fleche"/></svg></li>
+          <li class="svc" data-img="table-ronde"><span class="svc-n">07</span><h3 data-i18n="services.s7.title">L&#x27;espace parents</h3><p><span data-i18n="services.s7.text">Notes, absences et paiements, sur votre téléphone.</span> <a class="lien-or" href="https://ecole-jinan.com/login" data-i18n="services.s7.link">Se connecter</a></p><svg class="ic svc-f"><use href="#fleche"/></svg></li>
+        </ol>
+      </div>
+      <div class="svc-apercu" aria-hidden="true"><div class="svc-apercu-in">
+        <img data-k="ecriture" src="assets/img/ecriture-760.webp" alt="" loading="lazy">
+        <img data-k="petit-dejeuner" src="assets/img/petit-dejeuner-760.webp" alt="" loading="lazy">
+        <img data-k="piscine" src="assets/img/piscine-760.webp" alt="" loading="lazy">
+        <img data-k="fete-nationale" src="assets/img/fete-nationale-760.webp" alt="" loading="lazy">
+        <img data-k="anatomie" src="assets/img/anatomie-760.webp" alt="" loading="lazy">
+        <img data-k="dessin" src="assets/img/dessin-760.webp" alt="" loading="lazy">
+        <img data-k="table-ronde" src="assets/img/table-ronde-760.webp" alt="" loading="lazy">
+      </div></div>
+    </section>
+
+    <!-- ═════════════ NOUS TROUVER ═════════════ -->
+    <section class="visite" id="visite">
+      <div class="conteneur visite-grille">
+        <div class="visite-texte">
+          <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="visit.kicker">Nous trouver</span></p>
+          <h2 class="titre-section" data-i18n-html="visit.title" data-split="words">La porte <em>est ouverte</em>.</h2>
+          <p class="texte" data-i18n="visit.text" data-reveal>Venez voir les classes, les couleurs et les visages. Le plus beau, c&#x27;est en vrai.</p>
+          <dl class="coordonnees">
+            <div data-reveal><dt data-i18n="visit.address.label">Adresse</dt><dd data-i18n="visit.address">Entre Appetizer et l&#x27;ambassade du Brésil, Nouakchott, Mauritanie</dd></div>
+            <div data-reveal><dt data-i18n="visit.code.label">Plus Code</dt><dd dir="ltr">4268+JWX Nouakchott</dd></div>
+            <div data-reveal><dt data-i18n="visit.phone.label">Téléphone</dt><dd><a href="tel:+22238328888" dir="ltr">+222 38 32 88 88</a></dd></div>
+            <div data-reveal><dt data-i18n="visit.email.label">Courriel</dt><dd><a href="mailto:infoheavenly24@gmail.com">infoheavenly24@gmail.com</a></dd></div>
+          </dl>
+          <div class="visite-actions" data-reveal>
+            <a class="bouton bouton-plein" href="https://www.google.com/maps/search/?api=1&amp;query=4268%2BJWX%20Nouakchott" target="_blank" rel="noopener" data-magnetic><span data-i18n="visit.directions">Itinéraire</span><svg class="ic"><use href="#fleche"/></svg></a>
+            <a class="bouton bouton-trait" href="tel:+22238328888" data-magnetic><span data-i18n="visit.call">Appeler</span></a>
+            <a class="bouton bouton-trait" href="mailto:infoheavenly24@gmail.com" data-magnetic><span data-i18n="visit.write">Écrire</span></a>
+          </div>
+        </div>
+        <div class="visite-carte">
+          <div class="arche-cadre">
+            <div class="arche carte-arche revele">
+              <iframe data-src="https://www.google.com/maps/embed?origin=mfe&amp;pb=!1m3!2m1!1s4268%2BJWX+Nouakchott!6i16" title="Carte : Heavenly Educational Institution, Nouakchott" data-i18n-attr="title:visit.map.title" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+          </div>
+          <span class="carte-code" dir="ltr">4268+JWX · Nouakchott</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════ LE MOT DE LA FIN ═════════════ -->
+    <section class="fin" id="inscription">
+      <canvas class="etoiles" aria-hidden="true"></canvas>
+      <svg class="fin-etoile" aria-hidden="true" viewBox="0 0 100 100"><use href="#etoile"/></svg>
+      <div class="conteneur centre">
+        <h2 class="fin-titre">
+          <span data-i18n="close.line1" data-split="words">Plantez-les ici.</span>
+          <span class="or" data-i18n-html="close.line2" data-split="words">Regardez-les <em>toucher le ciel</em>.</span>
+        </h2>
+        <p class="texte fin-texte" data-i18n="close.text" data-reveal>Parlons de votre enfant : de ce qu&#x27;il aime, de ce qu&#x27;il rêve, de la classe qui l&#x27;attend.</p>
+        <div class="fin-actions" data-reveal>
+          <a class="bouton bouton-or" data-mail href="mailto:infoheavenly24@gmail.com" data-magnetic><span data-i18n="close.cta">Inscrire mon enfant</span><svg class="ic"><use href="#fleche"/></svg></a>
+          <a class="bouton bouton-clair" href="tel:+22238328888" data-magnetic><span data-i18n-html="close.call"><bdi>+222 38 32 88 88</bdi></span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="visionneuse" role="dialog" aria-modal="true" aria-hidden="true" data-i18n-attr="aria-label:life.kicker" aria-label="La vie à Heavenly">
+    <button type="button" class="visionneuse-fermer" data-i18n-attr="aria-label:nav.close" aria-label="Fermer"><span></span><span></span></button>
+    <figure class="visionneuse-cadre">
+      <img alt="">
+      <figcaption><b></b><span></span></figcaption>
+    </figure>
+    <div class="visionneuse-nav">
+      <button type="button" class="vn-prec" aria-label="‹"><svg class="ic"><use href="#fleche"/></svg></button>
+      <span class="vn-compte" dir="ltr"></span>
+      <button type="button" class="vn-suiv" aria-label="›"><svg class="ic"><use href="#fleche"/></svg></button>
+    </div>
+  </div>
+
+  <footer class="pied">
+    <div class="conteneur">
+      <div class="pied-haut">
+        <div class="pied-marque">
+          <svg class="marque-signe grand" viewBox="0 0 100 100" aria-hidden="true"><use href="#etoile" class="o"/><use href="#etoile-int" class="i"/><circle cx="50" cy="50" r="4.5" class="c"/></svg>
+          <p class="pied-nom"><span class="brand-word">Heavenly</span> <span lang="ar" class="pied-ar">جنان</span></p>
+          <p class="pied-tag" data-i18n="footer.tagline">Institution éducative · de la maternelle au lycée · Nouakchott</p>
+        </div>
+        <div class="pied-col">
+          <h4 data-i18n="footer.explore">Explorer</h4>
+          <a href="#ecole" data-i18n="nav.school">L&#x27;école</a>
+          <a href="#parcours" data-i18n="nav.journey">Le parcours</a>
+          <a href="#valeurs" data-i18n="nav.values">Les valeurs</a>
+          <a href="#vie" data-i18n="nav.life">La vie</a>
+          <a href="#services" data-i18n="nav.services">Les services</a>
+          <a href="https://ecole-jinan.com/login" data-i18n="nav.portal">Espace parents</a>
+        </div>
+        <div class="pied-col">
+          <h4 data-i18n="footer.contact">Contact</h4>
+          <a href="tel:+22238328888" dir="ltr">+222 38 32 88 88</a>
+          <a href="mailto:infoheavenly24@gmail.com">infoheavenly24@gmail.com</a>
+          <span dir="ltr">4268+JWX Nouakchott</span>
+          <span data-i18n="visit.address">Entre Appetizer et l&#x27;ambassade du Brésil, Nouakchott, Mauritanie</span>
+        </div>
+        <div class="pied-col">
+          <h4 data-i18n="footer.language">Langue</h4>
+          <button type="button" data-lang="fr" lang="fr">Français</button>
+          <button type="button" data-lang="en" lang="en">English</button>
+          <button type="button" data-lang="ar" lang="ar">العربية</button>
+        </div>
+      </div>
+      <div class="pied-geant brand-word" aria-hidden="true">Heavenly</div>
+      <div class="pied-bas">
+        <span data-i18n="footer.rights">© 2026 Heavenly Educational Institution. Tous droits réservés.</span>
+        <span class="credit"><span data-i18n="footer.credit">Site conçu et réalisé par</span> <a href="mailto:25038@supnum.mr"><b>EduPlateforme</b></a> · <a href="mailto:25038@supnum.mr">25038@supnum.mr</a> · <a href="tel:+22247331944" dir="ltr">47 33 19 44</a></span>
+        <a class="haut" href="#accueil"><span data-i18n="footer.top">Haut de page</span> ↑</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/i18n.js"></script>
+  <script src="assets/vendor/gsap.min.js"></script>
+  <script src="assets/vendor/ScrollTrigger.min.js"></script>
+  <script src="assets/vendor/lenis.min.js"></script>
+  <script src="assets/js/site.js"></script>
+</body>
+</html>
