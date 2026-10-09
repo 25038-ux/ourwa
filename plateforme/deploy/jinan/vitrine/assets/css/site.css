@@ -377,12 +377,24 @@ html:not(.js) .langues-pastille { display: none; }
   font-family: var(--titre);
   font-weight: 300;
   font-variation-settings: 'opsz' 144, 'SOFT' 100;
-  font-size: clamp(3.1rem, 7.4vw, 8.4rem);
+  font-size: clamp(3rem, 6.7vw, 7.8rem);
   line-height: 0.96;
   letter-spacing: -0.04em;
   margin-bottom: clamp(26px, 3.4vw, 46px);
 }
-:root[lang='ar'] .hero-titre { font-weight: 400; line-height: 1.32; letter-spacing: 0; font-size: clamp(2.9rem, 6.6vw, 7.2rem); }
+:root[lang='ar'] .hero-titre { font-weight: 400; line-height: 1.3; letter-spacing: 0; font-size: clamp(2.7rem, 5.5vw, 6.3rem); }
+/* Un écran peu haut : la flèche « défiler » céderait sa place aux preuves. */
+@media (max-height: 940px) { .hero .defiler { display: none; } }
+/* Un portable de 768 px de haut : l'accueil se resserre pour que les preuves
+   restent dans le premier écran. */
+@media (max-height: 820px) and (min-width: 901px) {
+  .hero { padding-top: calc(var(--entete) + 14px); padding-bottom: 40px; }
+  .hero-titre { font-size: clamp(3rem, 6vw, 6.6rem); margin-bottom: 22px; }
+  :root[lang='ar'] .hero-titre { font-size: clamp(2.6rem, 4.8vw, 5.2rem); }
+  .hero-chapo { margin-bottom: 26px; }
+  .hero-preuves { margin-top: 22px; }
+  .hero-visuel { width: min(100%, 400px); }
+}
 .hero-titre em { position: relative; color: var(--or-fonce); }
 .hero-chapo { max-width: 46ch; font-size: clamp(1.02rem, 1.25vw, 1.2rem); color: var(--encre-douce); margin-bottom: clamp(30px, 4vw, 48px); }
 .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 26px; }
@@ -650,6 +662,81 @@ html:not(.js) .langues-pastille { display: none; }
 .credit a:hover { color: var(--ivoire); }
 .haut { color: var(--ivoire); }
 
+/* ─────────── La ligne de lecture ─────────── */
+.progression-page { position: fixed; inset: 0 0 auto; z-index: 110; height: 2px; background: linear-gradient(90deg, var(--or-fonce), var(--or-clair)); transform: scaleX(0); transform-origin: left; pointer-events: none; }
+[dir='rtl'] .progression-page { transform-origin: right; }
+html:not(.js) .progression-page, .calme .progression-page { display: none; }
+
+/* ─────────── Les preuves de l'accueil ─────────── */
+.hero-preuves { display: flex; flex-wrap: wrap; gap: 8px; margin-top: clamp(26px, 3vw, 40px); }
+.hero-preuves li { display: inline-flex; align-items: center; gap: 8px; padding: 7px 13px; border: 1px solid var(--trait); border-radius: 999px; background: rgba(251, 248, 241, 0.65); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); font-size: 0.76rem; white-space: nowrap; font-weight: 600; color: var(--encre); }
+:root[lang='ar'] .hero-preuves li { font-size: 0.95rem; font-weight: 500; }
+.ic-eclat { width: 11px; height: 11px; fill: var(--or); flex: none; }
+.js:not(.calme) .hero-preuves li { opacity: 0; }
+
+/* ─────────── Pourquoi nous ─────────── */
+.pourquoi { position: relative; padding: clamp(120px, 15vw, 210px) 0 clamp(80px, 10vw, 140px); background: var(--ivoire); }
+.pourquoi-grille { display: grid; grid-template-columns: 0.92fr 1.08fr; gap: clamp(40px, 8vw, 140px); align-items: start; }
+.pourquoi-colle { position: sticky; top: 108px; }
+.pourquoi-colle .titre-section { font-size: clamp(2.4rem, 4.6vw, 4.6rem); }
+.pourquoi-cadre { margin-top: clamp(30px, 4vw, 50px); width: min(100%, 360px); }
+.pourquoi-visuel { aspect-ratio: 4 / 4.6; }
+.pourquoi-visuel img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.08); transition: opacity 0.9s var(--ease), transform 1.6s var(--ease); }
+.pourquoi-visuel img.actif { opacity: 1; transform: none; }
+.raisons { counter-reset: r; padding-top: 10px; }
+.raison { display: grid; grid-template-columns: 74px 1fr; gap: 6px 22px; padding: clamp(34px, 4.2vw, 58px) 0; border-top: 1px solid var(--trait); transition: opacity 0.6s var(--ease); }
+.raison:last-child { border-bottom: 1px solid var(--trait); }
+.js:not(.calme) .raison { opacity: 0.3; }
+.js:not(.calme) .raison.actif { opacity: 1; }
+.raison-n { font-family: var(--serif); font-style: italic; font-weight: 300; font-size: 2.6rem; line-height: 1; color: var(--or-fonce); font-variation-settings: 'opsz' 144, 'SOFT' 100; }
+.raison h3 { font-family: var(--titre); font-weight: 400; font-variation-settings: 'opsz' 144, 'SOFT' 100; font-size: clamp(1.7rem, 2.6vw, 2.5rem); line-height: 1.08; letter-spacing: -0.02em; margin-bottom: 12px; text-wrap: balance; }
+:root[lang='ar'] .raison h3 { line-height: 1.45; letter-spacing: 0; }
+.raison p { color: var(--encre-douce); font-size: clamp(1rem, 1.12vw, 1.12rem); max-width: 44ch; }
+.raison-img { display: none; }
+
+/* ─────────── L'inscription en trois pas ─────────── */
+.etapes { position: relative; padding: clamp(110px, 14vw, 200px) 0; background: var(--papier); border-radius: 44px 44px 0 0; box-shadow: 0 -1px 0 var(--trait); }
+.titre-section.centre { margin-inline: auto; max-width: 20ch; }
+.etapes-liste { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(20px, 3vw, 46px); margin: clamp(50px, 7vw, 100px) 0 clamp(50px, 6vw, 80px); }
+.etape { position: relative; z-index: 1; display: grid; justify-items: center; text-align: center; gap: 12px; }
+.etape-n { display: grid; place-items: center; width: 96px; height: 96px; border-radius: 50%; background: var(--papier); border: 1px solid rgba(154, 118, 51, 0.45); font-family: var(--serif); font-weight: 300; font-size: 2.8rem; color: var(--or-fonce); font-variation-settings: 'opsz' 144, 'SOFT' 100; margin-bottom: 12px; box-shadow: 0 0 0 10px var(--papier); }
+.etape h3 { font-family: var(--titre); font-weight: 400; font-size: clamp(1.6rem, 2.2vw, 2.1rem); font-variation-settings: 'opsz' 144, 'SOFT' 100; letter-spacing: -0.01em; }
+.etape p { color: var(--encre-douce); max-width: 32ch; }
+.etapes-ligne { position: absolute; z-index: 0; top: 48px; inset-inline: calc(100% / 6); height: 1px; background: var(--trait); list-style: none; }
+.etapes-ligne span { position: absolute; inset: 0; background: var(--or-fonce); transform-origin: left; }
+[dir='rtl'] .etapes-ligne span { transform-origin: right; }
+.js:not(.calme) .etapes-ligne span { transform: scaleX(0); }
+.etapes-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+
+/* ─────────── Les questions ─────────── */
+.questions { position: relative; padding: clamp(110px, 14vw, 200px) 0 clamp(70px, 9vw, 120px); background: var(--ivoire); }
+.questions-grille { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: clamp(40px, 7vw, 120px); align-items: start; }
+.questions-tete { position: sticky; top: 108px; }
+.questions-appel { margin-top: 28px; }
+.faq { border-top: 1px solid var(--trait); }
+.q { border-bottom: 1px solid var(--trait); }
+.q summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 26px 0; cursor: pointer; list-style: none; font-family: var(--titre); font-weight: 400; font-size: clamp(1.25rem, 1.8vw, 1.65rem); line-height: 1.3; font-variation-settings: 'opsz' 72, 'SOFT' 100; transition: color 0.3s; }
+:root[lang='ar'] .q summary { line-height: 1.6; }
+.q summary::-webkit-details-marker { display: none; }
+.q summary:hover { color: var(--or-fonce); }
+.q summary i { position: relative; flex: none; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--trait); transition: background 0.4s, border-color 0.4s, transform 0.6s var(--ease); }
+.q summary i::before, .q summary i::after { content: ''; position: absolute; left: 12px; right: 12px; top: 18px; height: 1.5px; background: currentColor; transition: transform 0.6s var(--ease); }
+.q summary i::after { transform: rotate(90deg); }
+.q[open] summary i { background: var(--encre); border-color: var(--encre); color: var(--ivoire); transform: rotate(180deg); }
+.q[open] summary i::after { transform: rotate(0deg); }
+.q-r { overflow: hidden; }
+.q-r p { padding: 0 60px 28px 0; color: var(--encre-douce); max-width: 60ch; }
+[dir='rtl'] .q-r p { padding: 0 0 28px 60px; }
+
+/* ─────────── La barre d'action (téléphone) ─────────── */
+.barre-mobile { display: none; }
+@media (max-width: 900px) {
+  .barre-mobile { position: fixed; z-index: 85; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; padding: 8px; border-radius: 999px; background: rgba(245, 239, 227, 0.86); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); box-shadow: 0 18px 40px -16px rgba(20, 32, 44, 0.45), 0 0 0 1px var(--trait); transform: translateY(150%); transition: transform 0.6s var(--ease); }
+  .barre-mobile.visible { transform: none; }
+  .barre-mobile .bouton { height: 48px; justify-content: center; padding: 0 16px; }
+  .menu-ouvert .barre-mobile { transform: translateY(150%); }
+}
+
 /* ─────────── La visionneuse ─────────── */
 .g { cursor: zoom-in; }
 .js:not(.calme) .g { cursor: none; }
@@ -689,6 +776,25 @@ html:not(.js) .langues-pastille { display: none; }
 }
 @media (max-width: 900px) {
   :root { --entete: 72px; }
+  .pourquoi-grille, .questions-grille { grid-template-columns: 1fr; }
+  .pourquoi-colle, .questions-tete { position: static; }
+  .pourquoi-cadre { display: none; }
+  .raison { grid-template-columns: 1fr 96px; gap: 4px 18px; align-items: start; }
+  .raison-n { grid-column: 1 / -1; font-size: 2rem; margin-bottom: 6px; }
+  .raison-corps { grid-column: 1; }
+  .raison-img { display: block; grid-column: 2; grid-row: 2; aspect-ratio: 4 / 5; }
+  .raison-img img { width: 100%; height: 100%; object-fit: cover; }
+  .js:not(.calme) .raison { opacity: 1; }
+  .etapes-liste { grid-template-columns: 1fr; gap: 40px; }
+  .etape { grid-template-columns: 64px 1fr; column-gap: 20px; row-gap: 6px; justify-items: start; text-align: start; align-items: start; }
+  .etape-n { grid-row: 1 / span 2; width: 64px; height: 64px; font-size: 1.9rem; margin: 0; box-shadow: 0 0 0 8px var(--papier); }
+  .etape h3, .etape p { grid-column: 2; }
+  .etape h3 { margin-top: 12px; }
+  .etapes-ligne { top: 32px; bottom: 32px; inset-inline: 32px auto; width: 1px; height: auto; }
+  .etapes-ligne span { transform-origin: top; }
+  .js:not(.calme) .etapes-ligne span { transform: scaleY(0); }
+  .q-r p, [dir='rtl'] .q-r p { padding-inline: 0; }
+  .pied { padding-bottom: 110px; }
   .hero { padding-top: calc(var(--entete) + 24px); align-items: flex-start; }
   .hero-grille { grid-template-columns: 1fr; gap: 50px; }
   .hero-visuel { width: min(78vw, 400px); }

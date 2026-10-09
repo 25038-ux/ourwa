@@ -35,7 +35,7 @@
   </script>
 </head>
 <body>
-  <a class="skip" href="#ecole" data-i18n="skip">Aller au contenu</a>
+  <a class="skip" href="#pourquoi" data-i18n="skip">Aller au contenu</a>
 
   <!-- Les formes : l'étoile à huit branches (le khatam), sa sœur intérieure, l'étincelle. -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
@@ -54,6 +54,7 @@
     </div>
   </div>
 
+  <div class="progression-page" aria-hidden="true"></div>
   <div class="curseur cache" aria-hidden="true"><div class="curseur-point"></div><div class="curseur-anneau"><span data-i18n="cursor.view">Voir</span></div></div>
 
   <header class="entete">
@@ -62,11 +63,11 @@
       <span class="marque-txt"><span class="brand-word">Heavenly</span><small data-i18n-html="brand.sub">Educational Institution · <span lang="ar">جنان</span></small></span>
     </a>
     <nav class="nav" aria-label="Navigation">
-      <a href="#ecole" data-i18n="nav.school">L&#x27;école</a>
+      <a href="#pourquoi" data-i18n="nav.why">Pourquoi nous</a>
       <a href="#parcours" data-i18n="nav.journey">Le parcours</a>
       <a href="#valeurs" data-i18n="nav.values">Les valeurs</a>
       <a href="#vie" data-i18n="nav.life">La vie</a>
-      <a href="#services" data-i18n="nav.services">Les services</a>
+      <a href="#inscrire" data-i18n="nav.enrol">Inscription</a>
       <a href="#visite" data-i18n="nav.visit">Nous trouver</a>
     </nav>
     <div class="entete-droite">
@@ -84,11 +85,11 @@
   <div class="menu" id="menu" aria-hidden="true">
     <div class="menu-fond"></div>
     <nav class="menu-liens" aria-label="Menu">
-      <a href="#ecole"><i>01</i><span data-i18n="nav.school">L&#x27;école</span></a>
+      <a href="#pourquoi"><i>01</i><span data-i18n="nav.why">Pourquoi nous</span></a>
       <a href="#parcours"><i>02</i><span data-i18n="nav.journey">Le parcours</span></a>
       <a href="#valeurs"><i>03</i><span data-i18n="nav.values">Les valeurs</span></a>
       <a href="#vie"><i>04</i><span data-i18n="nav.life">La vie</span></a>
-      <a href="#services"><i>05</i><span data-i18n="nav.services">Les services</span></a>
+      <a href="#inscrire"><i>05</i><span data-i18n="nav.enrol">Inscription</span></a>
       <a href="#visite"><i>06</i><span data-i18n="nav.visit">Nous trouver</span></a>
     </nav>
     <div class="menu-pied">
@@ -120,9 +121,15 @@
           <h1 class="hero-titre" data-i18n-html="hero.title" data-split="lines"><span class="line">Ici, chaque enfant</span> <span class="line">grandit vers</span> <span class="line">la <em>lumière</em>.</span></h1>
           <p class="hero-chapo" data-i18n="hero.lead">Le programme national mauritanien, de la maternelle au lycée — avec une attention particulière à l&#x27;anglais, une touche du programme américain, et des valeurs où la foi et l&#x27;esprit d&#x27;initiative marchent ensemble.</p>
           <div class="hero-actions">
-            <a class="bouton bouton-plein" href="#ecole" data-magnetic><span data-i18n="hero.cta1">Découvrir l&#x27;école</span><svg class="ic"><use href="#fleche"/></svg></a>
+            <a class="bouton bouton-plein" href="#visite" data-magnetic><span data-i18n="hero.cta1">Réserver une visite</span><svg class="ic"><use href="#fleche"/></svg></a>
             <a class="bouton bouton-lien" href="tel:+22238328888"><span data-i18n-html="hero.cta2">Appeler le <bdi>38 32 88 88</bdi></span></a>
           </div>
+          <ul class="hero-preuves">
+            <li><svg class="ic-eclat" aria-hidden="true"><use href="#eclat"/></svg><span data-i18n="hero.chip1">Programme national</span></li>
+            <li><svg class="ic-eclat" aria-hidden="true"><use href="#eclat"/></svg><span data-i18n="hero.chip2">Arabe · Français · Anglais</span></li>
+            <li><svg class="ic-eclat" aria-hidden="true"><use href="#eclat"/></svg><span data-i18n="hero.chip3">Journée jusqu&#x27;à 17 h</span></li>
+            <li><svg class="ic-eclat" aria-hidden="true"><use href="#eclat"/></svg><span data-i18n="hero.chip4">Cantine · Transport</span></li>
+          </ul>
         </div>
         <div class="hero-visuel">
           <div class="arche-cadre">
@@ -149,6 +156,77 @@
       <div class="defile-rang r2" dir="ltr"><div class="defile-piste">
         <span>العلم · Knowledge · Savoir ✦ الإيمان · Faith · Foi ✦ الأخلاق · Character · Caractère ✦ الرحمة · Kindness · Bienveillance ✦ </span><span>العلم · Knowledge · Savoir ✦ الإيمان · Faith · Foi ✦ الأخلاق · Character · Caractère ✦ الرحمة · Kindness · Bienveillance ✦ </span><span>العلم · Knowledge · Savoir ✦ الإيمان · Faith · Foi ✦ الأخلاق · Character · Caractère ✦ الرحمة · Kindness · Bienveillance ✦ </span>
       </div></div>
+    </section>
+
+    <!-- ═════════════ POURQUOI NOUS ═════════════ -->
+    <section class="pourquoi" id="pourquoi">
+      <div class="conteneur pourquoi-grille">
+        <div class="pourquoi-colle">
+          <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="why.kicker">Pourquoi Heavenly</span></p>
+          <h2 class="titre-section" data-i18n-html="why.title" data-split="words">Ce que votre enfant <em>emporte d'ici</em>.</h2>
+          <p class="texte" data-i18n="why.intro" data-reveal>Six raisons pour lesquelles des familles de Nouakchott nous confient ce qu&#x27;elles ont de plus précieux.</p>
+          <div class="arche-cadre pourquoi-cadre">
+            <div class="arche pourquoi-visuel revele">
+              <img src="assets/img/ecriture-760.webp" width="810" height="1080" loading="lazy" alt="Une élève à lunettes écrit dans son cahier et sourit" data-i18n-alt="alt.ecriture" class="actif">
+              <img src="assets/img/table-ronde-760.webp" width="1257" height="1520" loading="lazy" alt="Des élèves partagent un gâteau autour d&#x27;une table ronde, devant des fresques colorées" data-i18n-alt="alt.table">
+              <img src="assets/img/dessin-760.webp" width="1020" height="574" loading="lazy" alt="Une enseignante dessine avec trois enfants" data-i18n-alt="alt.dessin">
+              <img src="assets/img/fete-nationale-760.webp" width="1600" height="1200" loading="lazy" alt="Des élèves brandissent des drapeaux et des ballons" data-i18n-alt="alt.fete">
+              <img src="assets/img/petit-dejeuner-760.webp" width="1286" height="818" loading="lazy" alt="Deux garçons prennent leur petit-déjeuner" data-i18n-alt="alt.petitdej">
+              <img src="assets/img/toise-3-760.webp" width="1129" height="1600" loading="lazy" alt="Un élève adossé à la toise murale" data-i18n-alt="alt.toise">
+            </div>
+          </div>
+        </div>
+        <ol class="raisons">
+          <li class="raison actif">
+            <span class="raison-n">01</span>
+            <div class="raison-corps">
+              <h3 data-i18n="why.r1.title">Un parcours qui ouvre les portes</h3>
+              <p data-i18n="why.r1.text">Le programme national mauritanien, complet, de la maternelle au baccalauréat. Votre enfant suit le parcours officiel, sans détour.</p>
+            </div>
+            <div class="raison-img arche"><img src="assets/img/ecriture-760.webp" width="810" height="1080" loading="lazy" alt="" aria-hidden="true"></div>
+          </li>
+          <li class="raison">
+            <span class="raison-n">02</span>
+            <div class="raison-corps">
+              <h3 data-i18n="why.r2.title">L&#x27;anglais, pour de vrai</h3>
+              <p data-i18n="why.r2.text">Une attention particulière à l&#x27;anglais, et une touche du programme américain : une langue que l&#x27;on parle, pas seulement que l&#x27;on récite.</p>
+            </div>
+            <div class="raison-img arche"><img src="assets/img/table-ronde-760.webp" width="1257" height="1520" loading="lazy" alt="" aria-hidden="true"></div>
+          </li>
+          <li class="raison">
+            <span class="raison-n">03</span>
+            <div class="raison-corps">
+              <h3 data-i18n="why.r3.title">La foi, transmise avec douceur</h3>
+              <p data-i18n="why.r3.text">Des valeurs islamiques vécues chaque jour : le respect, la parole tenue, la bienveillance envers les autres.</p>
+            </div>
+            <div class="raison-img arche"><img src="assets/img/dessin-760.webp" width="1020" height="574" loading="lazy" alt="" aria-hidden="true"></div>
+          </li>
+          <li class="raison">
+            <span class="raison-n">04</span>
+            <div class="raison-corps">
+              <h3 data-i18n="why.r4.title">La confiance en soi</h3>
+              <p data-i18n="why.r4.text">Un peu de l&#x27;esprit américain : lever la main, prendre la parole, essayer encore. Des enfants qui osent.</p>
+            </div>
+            <div class="raison-img arche"><img src="assets/img/fete-nationale-760.webp" width="1600" height="1200" loading="lazy" alt="" aria-hidden="true"></div>
+          </li>
+          <li class="raison">
+            <span class="raison-n">05</span>
+            <div class="raison-corps">
+              <h3 data-i18n="why.r5.title">Des journées qui simplifient la vôtre</h3>
+              <p data-i18n="why.r5.text">Jusqu&#x27;à 17 h, avec la cantine, le transport scolaire et le suivi médical : une seule école pour tout organiser.</p>
+            </div>
+            <div class="raison-img arche"><img src="assets/img/petit-dejeuner-760.webp" width="1286" height="818" loading="lazy" alt="" aria-hidden="true"></div>
+          </li>
+          <li class="raison">
+            <span class="raison-n">06</span>
+            <div class="raison-corps">
+              <h3 data-i18n="why.r6.title">Vous suivez tout, au jour le jour</h3>
+              <p data-i18n="why.r6.text">Notes, absences et paiements dans l&#x27;espace parents, sur votre téléphone. Vous savez, chaque jour, où en est votre enfant.</p>
+            </div>
+            <div class="raison-img arche"><img src="assets/img/toise-3-760.webp" width="1129" height="1600" loading="lazy" alt="" aria-hidden="true"></div>
+          </li>
+        </ol>
+      </div>
     </section>
 
     <!-- ═════════════ LE NOM ═════════════ -->
@@ -359,6 +437,45 @@
       </div></div>
     </section>
 
+    <!-- ═════════════ L'INSCRIPTION, EN TROIS PAS ═════════════ -->
+    <section class="etapes" id="inscrire">
+      <div class="conteneur">
+        <p class="surtitre centre" data-reveal><span class="trait"></span><span data-i18n="steps.kicker">Inscription</span><span class="trait"></span></p>
+        <h2 class="titre-section centre etapes-titre" data-i18n-html="steps.title" data-split="words">Trois pas jusqu'à <em>la rentrée</em>.</h2>
+        <ol class="etapes-liste">
+          <li class="etape"><span class="etape-n">1</span><h3 data-i18n="steps.s1.title">Contactez-nous</h3><p data-i18n-html="steps.s1.text">Appelez le <bdi>38 32 88 88</bdi> ou écrivez-nous : dites-nous l'âge et la classe de votre enfant.</p></li>
+          <li class="etape"><span class="etape-n">2</span><h3 data-i18n="steps.s2.title">Venez nous voir</h3><p data-i18n="steps.s2.text">Visitez les classes, rencontrez l&#x27;équipe, posez toutes vos questions.</p></li>
+          <li class="etape"><span class="etape-n">3</span><h3 data-i18n="steps.s3.title">Inscrivez votre enfant</h3><p data-i18n="steps.s3.text">Choisissez son rythme — 8 h – 14 h ou 8 h – 17 h — et les services qui vous conviennent. La suite, c&#x27;est nous.</p></li>
+          <li class="etapes-ligne" aria-hidden="true"><span></span></li>
+        </ol>
+        <div class="etapes-actions" data-reveal>
+          <a class="bouton bouton-plein" data-mail="visite" href="mailto:infoheavenly24@gmail.com" data-magnetic><span data-i18n="steps.cta">Demander une visite</span><svg class="ic"><use href="#fleche"/></svg></a>
+          <a class="bouton bouton-trait" href="tel:+22238328888" data-magnetic><span data-i18n-html="close.call"><bdi>+222 38 32 88 88</bdi></span></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═════════════ LES QUESTIONS ═════════════ -->
+    <section class="questions" id="questions">
+      <div class="conteneur questions-grille">
+        <div class="questions-tete">
+          <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="faq.kicker">Vos questions</span></p>
+          <h2 class="titre-section" data-i18n-html="faq.title" data-split="words">Ce que les parents <em>nous demandent</em>.</h2>
+          <p class="texte" data-i18n="faq.more" data-reveal>Une autre question ? Le plus simple est de nous appeler.</p>
+          <a class="bouton bouton-trait questions-appel" href="tel:+22238328888" data-magnetic data-reveal><span data-i18n-html="close.call"><bdi>+222 38 32 88 88</bdi></span></a>
+        </div>
+        <div class="faq">
+          <details class="q" data-reveal><summary><span data-i18n="faq.q1">Quel programme suivez-vous ?</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a1">Le programme national mauritanien, de la maternelle au lycée et jusqu'au baccalauréat, avec une attention particulière à l'anglais et une touche du programme américain.</p></div></details>
+          <details class="q" data-reveal><summary><span data-i18n="faq.q2">Quelles langues mon enfant apprendra-t-il ?</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a2">L'arabe, le français et l'anglais — avec un accent particulier sur l'anglais.</p></div></details>
+          <details class="q" data-reveal><summary><span data-i18n="faq.q3">Quels sont les horaires ?</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a3">Deux rythmes au choix : de 8 h à 14 h, ou la journée complète, jusqu'à 17 h.</p></div></details>
+          <details class="q" data-reveal><summary><span data-i18n="faq.q4">Y a-t-il une cantine et un transport scolaire ?</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a4">Oui. Le petit-déjeuner, le déjeuner et le transport scolaire sont proposés en services, à choisir selon vos besoins.</p></div></details>
+          <details class="q" data-reveal><summary><span data-i18n="faq.q5">Comment suivre la scolarité de mon enfant ?</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a5">Grâce à l'espace parents, sur votre téléphone : notes, absences et paiements, au fil des jours.</p></div></details>
+          <details class="q" data-reveal><summary><span data-i18n="faq.q6">Comment inscrire mon enfant ?</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a6">Appelez le <bdi>38 32 88 88</bdi> ou écrivez à <bdi>infoheavenly24@gmail.com</bdi>, puis venez visiter l'école : nous vous accompagnons pour la suite.</p></div></details>
+          <details class="q" data-reveal><summary><span data-i18n="faq.q7">Où se trouve l&#x27;école ?</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a7">À Nouakchott, entre Appetizer et l'ambassade du Brésil (Plus Code <bdi>4268+JWX</bdi>).</p></div></details>
+        </div>
+      </div>
+    </section>
+
     <!-- ═════════════ NOUS TROUVER ═════════════ -->
     <section class="visite" id="visite">
       <div class="conteneur visite-grille">
@@ -373,9 +490,9 @@
             <div data-reveal><dt data-i18n="visit.email.label">Courriel</dt><dd><a href="mailto:infoheavenly24@gmail.com">infoheavenly24@gmail.com</a></dd></div>
           </dl>
           <div class="visite-actions" data-reveal>
-            <a class="bouton bouton-plein" href="https://www.google.com/maps/search/?api=1&amp;query=4268%2BJWX%20Nouakchott" target="_blank" rel="noopener" data-magnetic><span data-i18n="visit.directions">Itinéraire</span><svg class="ic"><use href="#fleche"/></svg></a>
+            <a class="bouton bouton-plein" data-mail="visite" href="mailto:infoheavenly24@gmail.com" data-magnetic><span data-i18n="visit.request">Demander une visite</span><svg class="ic"><use href="#fleche"/></svg></a>
+            <a class="bouton bouton-trait" href="https://www.google.com/maps/search/?api=1&amp;query=4268%2BJWX%20Nouakchott" target="_blank" rel="noopener" data-magnetic><span data-i18n="visit.directions">Itinéraire</span></a>
             <a class="bouton bouton-trait" href="tel:+22238328888" data-magnetic><span data-i18n="visit.call">Appeler</span></a>
-            <a class="bouton bouton-trait" href="mailto:infoheavenly24@gmail.com" data-magnetic><span data-i18n="visit.write">Écrire</span></a>
           </div>
         </div>
         <div class="visite-carte">
@@ -400,7 +517,7 @@
         </h2>
         <p class="texte fin-texte" data-i18n="close.text" data-reveal>Parlons de votre enfant : de ce qu&#x27;il aime, de ce qu&#x27;il rêve, de la classe qui l&#x27;attend.</p>
         <div class="fin-actions" data-reveal>
-          <a class="bouton bouton-or" data-mail href="mailto:infoheavenly24@gmail.com" data-magnetic><span data-i18n="close.cta">Inscrire mon enfant</span><svg class="ic"><use href="#fleche"/></svg></a>
+          <a class="bouton bouton-or" data-mail="inscription" href="mailto:infoheavenly24@gmail.com" data-magnetic><span data-i18n="close.cta">Inscrire mon enfant</span><svg class="ic"><use href="#fleche"/></svg></a>
           <a class="bouton bouton-clair" href="tel:+22238328888" data-magnetic><span data-i18n-html="close.call"><bdi>+222 38 32 88 88</bdi></span></a>
         </div>
       </div>
@@ -420,6 +537,11 @@
     </div>
   </div>
 
+  <div class="barre-mobile" aria-hidden="true">
+    <a class="bouton bouton-trait" href="tel:+22238328888" tabindex="-1"><span data-i18n="bar.call">Appeler</span></a>
+    <a class="bouton bouton-or" href="#visite" tabindex="-1"><span data-i18n="bar.visit">Réserver une visite</span><svg class="ic"><use href="#fleche"/></svg></a>
+  </div>
+
   <footer class="pied">
     <div class="conteneur">
       <div class="pied-haut">
@@ -430,11 +552,13 @@
         </div>
         <div class="pied-col">
           <h4 data-i18n="footer.explore">Explorer</h4>
+          <a href="#pourquoi" data-i18n="nav.why">Pourquoi nous</a>
           <a href="#ecole" data-i18n="nav.school">L&#x27;école</a>
           <a href="#parcours" data-i18n="nav.journey">Le parcours</a>
           <a href="#valeurs" data-i18n="nav.values">Les valeurs</a>
           <a href="#vie" data-i18n="nav.life">La vie</a>
           <a href="#services" data-i18n="nav.services">Les services</a>
+          <a href="#inscrire" data-i18n="nav.enrol">Inscription</a>
         </div>
         <div class="pied-col">
           <h4 data-i18n="footer.contact">Contact</h4>

@@ -46,8 +46,10 @@
     document.title = t('meta.title');
     const desc = $('meta[name="description"]');
     if (desc) desc.setAttribute('content', t('meta.description'));
+    // Deux courriels tout prêts : la demande de visite, et l'inscription.
     $$('[data-mail]').forEach((a) => {
-      a.href = `mailto:${MAIL}?subject=${encodeURIComponent(t('mail.subject'))}&body=${encodeURIComponent(t('mail.body'))}`;
+      const k = a.dataset.mail === 'visite' ? 'mail.visit.' : 'mail.';
+      a.href = `mailto:${MAIL}?subject=${encodeURIComponent(t(k + 'subject'))}&body=${encodeURIComponent(t(k + 'body'))}`;
     });
     $$('[data-lang]').forEach((b) => {
       const actif = b.dataset.lang === lang;
@@ -173,8 +175,22 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fermerMenu(); });
 
   let dernierY = 0;
+  const barre = $('.barre-mobile');
+  // La barre d'action du téléphone : après l'accueil, sauf là où ses deux
+  // gestes sont déjà sous les yeux (nous trouver, le mot de la fin, le pied).
+  function barreMobile() {
+    if (!barre) return;
+    const deja = ['#visite', '.fin', '.pied', '.etapes-actions'].some((sel) => {
+      const el = $(sel);
+      if (!el) return false;
+      const r = el.getBoundingClientRect();
+      return r.top < window.innerHeight && r.bottom > 0;
+    });
+    barre.classList.toggle('visible', window.scrollY > window.innerHeight * 0.7 && !deja);
+  }
   function surDefilement() {
     const y = window.scrollY;
+    barreMobile();
     entete.classList.toggle('colle', y > 30);
     if (!menuOuvert) {
       if (y > 420 && y > dernierY + 2) entete.classList.add('cache');
@@ -184,6 +200,8 @@
   }
   if (lenis) lenis.on('scroll', surDefilement);
   else window.addEventListener('scroll', surDefilement, { passive: true });
+  // Au doigt, le défilement est natif : la barre écoute aussi la fenêtre.
+  window.addEventListener('scroll', barreMobile, { passive: true });
 
   // L'en-tête passe en clair au-dessus des sections de nuit.
   function sombresSousEntete() {
@@ -260,6 +278,28 @@
       if (entrees[0].isIntersecting) { iframe.src = iframe.dataset.src; obs.disconnect(); }
     }, { rootMargin: '700px 0px' }).observe(iframe);
   }
+
+  /* ───────────────────────── Les questions ───────────────────────── */
+
+  // Une réponse s'ouvre en glissant, et referme celle qui était ouverte.
+  const questions = $$('.faq .q');
+  function fermerQuestion(q) {
+    const r = $('.q-r', q);
+    if (calme) { q.open = false; return; }
+    gsap.fromTo(r, { height: r.offsetHeight }, { height: 0, duration: 0.5, ease: 'power3.inOut', onComplete: () => { q.open = false; r.style.height = ''; } });
+  }
+  questions.forEach((q) => {
+    $('summary', q).addEventListener('click', (e) => {
+      e.preventDefault();
+      if (q.open) { fermerQuestion(q); return; }
+      questions.filter((autre) => autre !== q && autre.open).forEach(fermerQuestion);
+      q.open = true;
+      if (!calme) {
+        const r = $('.q-r', q);
+        gsap.fromTo(r, { height: 0 }, { height: r.scrollHeight, duration: 0.6, ease: 'power3.out', onComplete: () => { r.style.height = ''; } });
+      }
+    });
+  });
 
   /* ───────────────────────── La visionneuse ───────────────────────── */
 
@@ -530,6 +570,15 @@
         gsap.fromTo(el, { rotate: -30 }, { rotate: 60, ease: 'none', scrollTrigger: { trigger: el.parentElement, start: 'top bottom', end: 'bottom top', scrub: true } });
       });
 
+      // La ligne de lecture, tout en haut.
+      gsap.fromTo('.progression-page', { scaleX: 0 }, { scaleX: 1, ease: 'none', scrollTrigger: { start: 0, end: 'max', scrub: 0.3 } });
+
+      // Les trois pas : ils montent, et la ligne d'or les relie.
+      const etapes = $$('.etape').filter((e) => !dejaVu(e));
+      if (etapes.length) {
+        gsap.from(etapes, { opacity: 0, y: 50, duration: 1.2, stagger: 0.15, ease: 'expo.out', scrollTrigger: { trigger: '.etapes-liste', start: 'top 82%', once: true } });
+      }
+
       // Grandir : la règle se remplit.
       gsap.fromTo('.regle-remplie', { scaleY: 0 }, { scaleY: 1, ease: 'none', scrollTrigger: { trigger: '.toises', start: 'top 80%', end: 'bottom 40%', scrub: 1 } });
 
@@ -572,7 +621,21 @@
           });
         }
       });
+      // Pourquoi nous : la raison lue s'allume, la photo à côté change avec elle.
+      mm.add('(min-width: 901px)', () => {
+        const raisons = $$('.raison');
+        const images = $$('.pourquoi-visuel img');
+        const allumer = (i) => {
+          raisons.forEach((r, j) => r.classList.toggle('actif', j === i));
+          images.forEach((img, j) => img.classList.toggle('actif', j === i));
+        };
+        raisons.forEach((r, i) => {
+          ScrollTrigger.create({ trigger: r, start: 'top 62%', end: 'bottom 62%', onToggle: (st) => { if (st.isActive) allumer(i); } });
+        });
+        gsap.fromTo('.etapes-ligne span', { scaleX: 0 }, { scaleX: 1, ease: 'none', scrollTrigger: { trigger: '.etapes-liste', start: 'top 72%', end: 'bottom 55%', scrub: 1 } });
+      });
       mm.add('(max-width: 900px)', () => {
+        gsap.fromTo('.etapes-ligne span', { scaleY: 0 }, { scaleY: 1, ease: 'none', scrollTrigger: { trigger: '.etapes-liste', start: 'top 70%', end: 'bottom 60%', scrub: 1 } });
         $$('.cycle').forEach((carte) => {
           if (dejaVu(carte)) return;
           gsap.from(carte, { opacity: 0, y: 60, duration: 1.2, ease: 'expo.out', scrollTrigger: { trigger: carte, start: 'top 88%', once: true } });
@@ -597,6 +660,7 @@
       .fromTo('.hero-arche img', { scale: 1.4 }, { scale: 1, duration: 2.6 }, 0.1)
       .add(() => $('.hero-visuel .arche-cadre').classList.add('vu'), 1.1)
       .fromTo(['.hero-chapo', '.hero-actions'], { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1.4, stagger: 0.12 }, 0.6)
+      .fromTo('.hero-preuves li', { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 1.1, stagger: 0.08 }, 0.95)
       .fromTo('.hero-legende', { opacity: 0 }, { opacity: 1, duration: 1.4 }, 1.1)
       .fromTo('.sceau', { opacity: 0, scale: 0.5, rotate: -90 }, { opacity: 1, scale: 1, rotate: 0, duration: 1.8 }, 0.9);
     return tl;

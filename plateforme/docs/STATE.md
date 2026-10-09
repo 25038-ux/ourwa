@@ -52,6 +52,18 @@ courriel infoheavenly24@gmail.com, et la mention d'EduPlateforme en bas.
   `src/`, `README.md`, `construire.py` → 404, `www.` → 301 vers le domaine,
   en-têtes de sécurité. Puis une mise à jour SANS la variable : vitrine gardée.
   Application saine, 5 élèves et 3 reçus identiques avant et après.
+- **« Make it more compelling »** (même jour) : la page parle aux parents qui
+  décident. L'accueil : quatre preuves (programme national · arabe, français,
+  anglais · journée jusqu'à 17 h · cantine et transport) et « Réserver une
+  visite ». Nouvelle section « Pourquoi Heavenly » : six raisons, la photo
+  épinglée change avec la raison lue. « Trois pas jusqu'à la rentrée »
+  (contacter, visiter, inscrire ; ligne d'or dessinée au défilement) et un
+  courriel « demande de visite » tout prêt. Une FAQ de sept questions
+  (accordéon). Téléphone : barre « Appeler · Réserver une visite » ; partout,
+  une ligne de lecture en haut. Tout vient de ce que l'école a dit ou configuré
+  — aucun témoignage, aucun chiffre, aucune urgence inventés. Vérifié fr/en/ar,
+  1440 × 900, 1366 × 768 (preuves dans le premier écran), 390 × 844 ; langue
+  changée au milieu de la page, « réduire les animations », sans erreur.
 - **Le nom arabe officiel** (donné par l'école) : **مؤسسة جنان للتعليم** —
   titre, ligne sous le logo, pied de page, courriel d'inscription.
 - **À faire relire par l'école** : les intitulés de classes (1re → 4e AS…).

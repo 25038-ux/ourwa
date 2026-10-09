@@ -22,6 +22,15 @@ vitrine/
 └── construire.py           ← reconstruit index.html et i18n.js
 ```
 
+## Ce que la page dit, dans l'ordre
+
+L'accueil (la promesse, quatre preuves, « Réserver une visite ») · le défilé des
+mots · **Pourquoi Heavenly** (six raisons) · le nom (Heavenly / جنان) · le
+parcours de la maternelle au lycée · les trois langues · les valeurs · le verset ·
+la vie à l'école · grandir · les services · **trois pas jusqu'à la rentrée** ·
+**les questions des parents** · nous trouver · le mot de la fin. Sur téléphone,
+une barre « Appeler · Réserver une visite » suit le lecteur.
+
 ## Changer un texte
 
 1. Modifier `src/i18n.json` (la même clé dans `fr`, `en` et `ar`).
