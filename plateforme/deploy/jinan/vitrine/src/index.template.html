@@ -5,24 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{{meta.title}}</title>
   <meta name="description" content="{{meta.description}}">
-  <meta name="theme-color" content="#0B1622">
+  <meta name="theme-color" content="#16734D">
   <meta name="color-scheme" content="light">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Heavenly Educational Institution">
   <meta property="og:title" content="{{meta.title}}">
   <meta property="og:description" content="{{meta.description}}">
   <meta property="og:image" content="assets/img/og.jpg">
-  <meta property="og:locale" content="fr_FR">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="assets/img/ailes-1400.webp" as="image" type="image/webp">
+  <link rel="preload" href="assets/img/ailes-760.webp" as="image" type="image/webp">
   <!--FONTS-->
   <link rel="stylesheet" href="assets/fonts/fonts.css">
   <!--/FONTS-->
   <link rel="stylesheet" href="assets/css/site.css">
   <script>
-    // Avant tout rendu : la langue choisie (pour éviter un éclair de français) et
-    // la classe `js` qui active le rideau d'ouverture et les états de départ.
+    // Avant le premier rendu : la langue (pas d'éclair de français) et la classe
+    // `js` qui active les apparitions.
     (function () {
       var d = document.documentElement, l = null;
       try { l = new URLSearchParams(location.search).get('lang') || localStorage.getItem('heavenly-lang'); } catch (e) {}
@@ -30,42 +29,55 @@
       if (l !== 'fr' && l !== 'en' && l !== 'ar') l = 'fr';
       d.lang = l; d.dir = l === 'ar' ? 'rtl' : 'ltr';
       d.classList.add('js');
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('calme');
+      // Filet de sécurité : si le script du site ne se charge pas, tout s'affiche quand même.
+      setTimeout(function () { if (!window.HEAVENLY_PRET) d.classList.remove('js'); }, 3000);
     })();
   </script>
 </head>
 <body>
-  <a class="skip" href="#pourquoi" data-i18n="skip">{{skip}}</a>
+  <a class="skip" href="#ecole" data-i18n="skip">{{skip}}</a>
 
-  <!-- Les formes : l'étoile à huit branches (le khatam), sa sœur intérieure, l'étincelle. -->
+  <!-- Le dessin de l'école : l'étoile à huit branches, des icônes au trait, des croquis d'enfant. -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <symbol id="etoile" viewBox="0 0 100 100"><path d="M50.00,4.00 L63.47,17.47 L82.53,17.47 L82.53,36.53 L96.00,50.00 L82.53,63.47 L82.53,82.53 L63.47,82.53 L50.00,96.00 L36.53,82.53 L17.47,82.53 L17.47,63.47 L4.00,50.00 L17.47,36.53 L17.47,17.47 L36.53,17.47 Z"/></symbol>
     <symbol id="etoile-int" viewBox="0 0 100 100"><path d="M50.00,29.00 L56.15,35.15 L64.85,35.15 L64.85,43.85 L71.00,50.00 L64.85,56.15 L64.85,64.85 L56.15,64.85 L50.00,71.00 L43.85,64.85 L35.15,64.85 L35.15,56.15 L29.00,50.00 L35.15,43.85 L35.15,35.15 L43.85,35.15 Z"/></symbol>
-    <symbol id="eclat" viewBox="0 0 24 24"><path d="M12 0 C12.9 7.6 16.4 11.1 24 12 C16.4 12.9 12.9 16.4 12 24 C11.1 16.4 7.6 12.9 0 12 C7.6 11.1 11.1 7.6 12 0 Z"/></symbol>
-    <symbol id="fleche" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+
+    <symbol id="i-livre" viewBox="0 0 24 24"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></symbol>
+    <symbol id="i-bulle" viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4A2.5 2.5 0 0 1 4 13.5zM8.5 10h.01M12 10h.01M15.5 10h.01"/></symbol>
+    <symbol id="i-ampoule" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.8.6 1.1 1.4 1.1 2.2h5c0-.8.3-1.6 1.1-2.2A6 6 0 0 0 12 3z"/></symbol>
+    <symbol id="i-croissant" viewBox="0 0 24 24"><path d="M15.5 4.2A8 8 0 1 0 20 17a6.3 6.3 0 1 1-4.5-12.8zM18.2 7.2l.6 1.5 1.6.1-1.2 1 .4 1.6-1.4-.9-1.4.9.4-1.6-1.2-1 1.6-.1z"/></symbol>
+    <symbol id="i-horloge" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7.5V12l3 2"/></symbol>
+    <symbol id="i-appli" viewBox="0 0 24 24"><path d="M8 3h8a1.5 1.5 0 0 1 1.5 1.5v15A1.5 1.5 0 0 1 16 21H8a1.5 1.5 0 0 1-1.5-1.5v-15A1.5 1.5 0 0 1 8 3zM9.5 13.5l2-2.5 1.5 1.5 2-3M11 18h2"/></symbol>
+    <symbol id="i-bol" viewBox="0 0 24 24"><path d="M3.5 11h17a8.5 8.5 0 0 1-17 0zM8 7.5c0-1.2 1-1.3 1-2.5M12 7.5c0-1.2 1-1.3 1-2.5M16 7.5c0-1.2 1-1.3 1-2.5"/></symbol>
+    <symbol id="i-vagues" viewBox="0 0 24 24"><path d="M3 16.5c1.5 0 2 1.5 3.5 1.5S8.5 16.5 10 16.5s2 1.5 3.5 1.5 2-1.5 3.5-1.5 2 1.5 3.5 1.5M3 20.5c1.5 0 2 1.5 3.5 1.5S8.5 20.5 10 20.5s2 1.5 3.5 1.5 2-1.5 3.5-1.5 2 1.5 3.5 1.5M8 13.5V5.5a2 2 0 0 1 4 0M14 13.5V5.5a2 2 0 0 1 4 0M8 9.5h6"/></symbol>
+    <symbol id="i-bus" viewBox="0 0 24 24"><path d="M6 3.5h12A2.5 2.5 0 0 1 20.5 6v10h-17V6A2.5 2.5 0 0 1 6 3.5zM3.5 11h17M7 16v3.5M17 16v3.5M7.5 13.5h.01M16.5 13.5h.01"/></symbol>
+    <symbol id="i-sante" viewBox="0 0 24 24"><path d="M7 4h10a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3zM12 8.5v7M8.5 12h7"/></symbol>
+    <symbol id="i-crayon" viewBox="0 0 24 24"><path d="M4 20l1.2-4.8L15.5 4.9a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L8.8 18.8zM14 6.5l3.5 3.5"/></symbol>
+    <symbol id="i-fleche" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-appel" viewBox="0 0 24 24"><path d="M5 4h3.5L10 8 8 9.5a11 11 0 0 0 6.5 6.5L16 14l4 1.5V19a1.5 1.5 0 0 1-1.5 1.5A16 16 0 0 1 3.5 5.5 1.5 1.5 0 0 1 5 4z"/></symbol>
+    <symbol id="i-lieu" viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><path d="M4.5 5.5h15a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1zM4 7l8 6 8-6"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="M5 4h14v16H5zM9 9h6M9 13h6M9 17h3"/></symbol>
+
+    <symbol id="d-etoile" viewBox="0 0 50 50"><path d="M25 5.5l5.4 13.3 14.1 1.3-10.8 9.2 3.4 14-12.1-7.7-12.3 7.6 3.6-13.9L5.6 20l14.2-1.1z"/></symbol>
+    <symbol id="d-coeur" viewBox="0 0 50 50"><path d="M25 41C9 31 4.5 17.5 13.8 11.2c5.6-3.7 9.7-.2 11.2 4 1.6-4.2 5.6-7.6 11.2-4C45.5 17.4 41 31 25 41z"/></symbol>
+    <symbol id="d-soleil-coeur" viewBox="0 0 120 120"><path d="M60 36.5c13.7-.4 23.6 10.6 23.5 23.8-.1 13-10.8 23.4-23.9 23.2-12.8-.2-23-10.6-23.1-23.4-.1-13.4 10.3-23.2 23.5-23.6z"/></symbol>
+    <symbol id="d-soleil-rayons" viewBox="0 0 120 120"><path d="M60.5 7c-.6 5 .1 10-.4 15M59.5 98c.6 5-.2 10.5.4 15M7 59.5c5-.5 10 .4 15-.2M98 60.6c5.2-.4 10 .3 15-.3M22.5 21.5c3.6 3.4 7.4 7.4 10.5 11M87.4 87.2c3.4 3.6 7 7.4 10.4 10.8M97.8 22c-3.5 3.6-7.3 7.2-10.6 10.8M22 98c3.6-3.4 7.2-7.4 10.8-10.6"/></symbol>
+    <symbol id="d-avion" viewBox="0 0 100 80"><path d="M6 40.5L93.5 6.5 66 74.5 50.5 50.5zM50.5 50.5L93.5 6.5M50.5 50.5l-5 19.5 12.5-9"/></symbol>
+    <symbol id="d-nuage" viewBox="0 0 100 60"><path d="M22 52.5C8.5 53 5.5 33 19.5 30.5c-.5-16 23-21 30-7 6.5-10.5 26.5-8 26 7 16.5-2 18.5 22.5 2 22.5z"/></symbol>
+    <symbol id="d-crayon" viewBox="0 0 64 64"><path d="M12.5 51.5L44 20l8 8-31.5 31.5-10.5 2.5zM40 24l8 8M10 62l6-6"/></symbol>
+    <symbol id="d-livre" viewBox="0 0 64 48"><path d="M32 10.5C24 4.5 12 4.2 4 8v34c8-3.8 20-3.5 28 2.5 8-6 20-6.3 28-2.5V8c-8-3.8-20-3.5-28 2.5zM32 10.5V44"/></symbol>
   </svg>
-
-  <!-- Le rideau d'ouverture -->
-  <div class="loader" aria-hidden="true">
-    <div class="loader-in">
-      <svg class="loader-star" viewBox="0 0 100 100"><path pathLength="1" d="M50.00,4.00 L63.47,17.47 L82.53,17.47 L82.53,36.53 L96.00,50.00 L82.53,63.47 L82.53,82.53 L63.47,82.53 L50.00,96.00 L36.53,82.53 L17.47,82.53 L17.47,63.47 L4.00,50.00 L17.47,36.53 L17.47,17.47 L36.53,17.47 Z"/><path pathLength="1" class="in" d="M50.00,29.00 L56.15,35.15 L64.85,35.15 L64.85,43.85 L71.00,50.00 L64.85,56.15 L64.85,64.85 L56.15,64.85 L50.00,71.00 L43.85,64.85 L35.15,64.85 L35.15,56.15 L29.00,50.00 L35.15,43.85 L35.15,35.15 L43.85,35.15 Z"/></svg>
-      <div class="loader-name"><span class="brand-word">Heavenly</span><span class="loader-ar" lang="ar">جنان</span></div>
-      <div class="loader-tag" data-i18n="loader.tagline">{{loader.tagline}}</div>
-    </div>
-  </div>
-
-  <div class="progression-page" aria-hidden="true"></div>
-  <div class="curseur cache" aria-hidden="true"><div class="curseur-point"></div><div class="curseur-anneau"><span data-i18n="cursor.view">{{cursor.view}}</span></div></div>
 
   <header class="entete">
     <a class="marque" href="#accueil" aria-label="Heavenly Educational Institution">
-      <svg class="marque-signe" viewBox="0 0 100 100" aria-hidden="true"><use href="#etoile" class="o"/><use href="#etoile-int" class="i"/><circle cx="50" cy="50" r="4.5" class="c"/></svg>
-      <span class="marque-txt"><span class="brand-word">Heavenly</span><small data-i18n-html="brand.sub">{{{brand.sub}}}</small></span>
+      <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><use href="#etoile" class="o"/><use href="#etoile-int" class="i"/><circle cx="50" cy="50" r="5" class="c"/></svg>
+      <span class="marque-txt"><b>Heavenly</b><small data-i18n="brand.sub">{{brand.sub}}</small></span>
     </a>
     <nav class="nav" aria-label="Navigation">
+      <a href="#ecole" data-i18n="nav.school">{{nav.school}}</a>
       <a href="#pourquoi" data-i18n="nav.why">{{nav.why}}</a>
       <a href="#parcours" data-i18n="nav.journey">{{nav.journey}}</a>
-      <a href="#valeurs" data-i18n="nav.values">{{nav.values}}</a>
       <a href="#vie" data-i18n="nav.life">{{nav.life}}</a>
       <a href="#inscrire" data-i18n="nav.enrol">{{nav.enrol}}</a>
       <a href="#visite" data-i18n="nav.visit">{{nav.visit}}</a>
@@ -75,22 +87,20 @@
         <button type="button" data-lang="fr" lang="fr">FR</button>
         <button type="button" data-lang="en" lang="en">EN</button>
         <button type="button" data-lang="ar" lang="ar">ع</button>
-        <span class="langues-pastille" aria-hidden="true"></span>
       </div>
-      <a class="bouton bouton-plein petit" href="#visite" data-magnetic><span data-i18n="nav.cta">{{nav.cta}}</span></a>
-      <button class="burger" type="button" aria-expanded="false" aria-controls="menu" data-i18n-attr="aria-label:nav.menu" aria-label="{{nav.menu}}"><span></span><span></span></button>
+      <a class="btn btn-vert btn-petit entete-cta" href="#visite"><span data-i18n="nav.cta">{{nav.cta}}</span></a>
+      <button class="burger" type="button" aria-expanded="false" aria-controls="menu" data-i18n-attr="aria-label:nav.menu" aria-label="{{nav.menu}}"><span></span><span></span><span></span></button>
     </div>
   </header>
 
-  <div class="menu" id="menu" aria-hidden="true">
-    <div class="menu-fond"></div>
+  <div class="menu" id="menu" hidden>
     <nav class="menu-liens" aria-label="Menu">
-      <a href="#pourquoi"><i>01</i><span data-i18n="nav.why">{{nav.why}}</span></a>
-      <a href="#parcours"><i>02</i><span data-i18n="nav.journey">{{nav.journey}}</span></a>
-      <a href="#valeurs"><i>03</i><span data-i18n="nav.values">{{nav.values}}</span></a>
-      <a href="#vie"><i>04</i><span data-i18n="nav.life">{{nav.life}}</span></a>
-      <a href="#inscrire"><i>05</i><span data-i18n="nav.enrol">{{nav.enrol}}</span></a>
-      <a href="#visite"><i>06</i><span data-i18n="nav.visit">{{nav.visit}}</span></a>
+      <a href="#ecole" data-i18n="nav.school">{{nav.school}}</a>
+      <a href="#pourquoi" data-i18n="nav.why">{{nav.why}}</a>
+      <a href="#parcours" data-i18n="nav.journey">{{nav.journey}}</a>
+      <a href="#vie" data-i18n="nav.life">{{nav.life}}</a>
+      <a href="#inscrire" data-i18n="nav.enrol">{{nav.enrol}}</a>
+      <a href="#visite" data-i18n="nav.visit">{{nav.visit}}</a>
     </nav>
     <div class="menu-pied">
       <div class="langues langues-menu" role="group" aria-label="Langue">
@@ -98,8 +108,7 @@
         <button type="button" data-lang="en" lang="en">English</button>
         <button type="button" data-lang="ar" lang="ar">العربية</button>
       </div>
-      <a href="tel:+22238328888" dir="ltr">+222 38 32 88 88</a>
-      <a href="mailto:infoheavenly24@gmail.com">infoheavenly24@gmail.com</a>
+      <a class="btn btn-vert" href="tel:+22238328888"><svg class="ic"><use href="#i-appel"/></svg><span dir="ltr">+222 38 32 88 88</span></a>
     </div>
   </div>
 
@@ -107,350 +116,247 @@
 
     <!-- ═════════════ L'ACCUEIL ═════════════ -->
     <section class="hero" id="accueil">
-      <div class="hero-ciel" aria-hidden="true">
-        <div class="motif"></div>
-        <svg class="eclat e1"><use href="#eclat"/></svg>
-        <svg class="eclat e2"><use href="#eclat"/></svg>
-        <svg class="eclat e3"><use href="#eclat"/></svg>
-        <svg class="eclat e4"><use href="#eclat"/></svg>
-        <svg class="eclat e5"><use href="#eclat"/></svg>
-      </div>
-      <div class="hero-grille">
+      <div class="conteneur hero-grille">
         <div class="hero-texte">
-          <p class="surtitre hero-surtitre"><span class="trait"></span><span data-i18n="hero.eyebrow">{{hero.eyebrow}}</span></p>
-          <h1 class="hero-titre" data-i18n-html="hero.title" data-split="lines">{{{hero.title}}}</h1>
-          <p class="hero-chapo" data-i18n="hero.lead">{{hero.lead}}</p>
-          <div class="hero-actions">
-            <a class="bouton bouton-plein" href="#visite" data-magnetic><span data-i18n="hero.cta1">{{hero.cta1}}</span><svg class="ic"><use href="#fleche"/></svg></a>
-            <a class="bouton bouton-lien" href="tel:+22238328888"><span data-i18n-html="hero.cta2">{{{hero.cta2}}}</span></a>
+          <p class="etiquette e-vert" data-anim style="--i:0"><span class="point"></span><span data-i18n="hero.eyebrow">{{hero.eyebrow}}</span></p>
+          <h1 class="hero-titre" data-i18n-html="hero.title" data-anim style="--i:1">{{{hero.title}}}</h1>
+          <p class="hero-chapo" data-i18n="hero.lead" data-anim style="--i:2">{{hero.lead}}</p>
+          <div class="hero-actions" data-anim style="--i:3">
+            <a class="btn btn-vert" href="#visite"><span data-i18n="hero.cta1">{{hero.cta1}}</span><svg class="ic sens"><use href="#i-fleche"/></svg></a>
+            <a class="btn btn-blanc" href="tel:+22238328888"><svg class="ic"><use href="#i-appel"/></svg><span data-i18n-html="hero.cta2">{{{hero.cta2}}}</span></a>
           </div>
-          <ul class="hero-preuves">
-            <li><svg class="ic-eclat" aria-hidden="true"><use href="#eclat"/></svg><span data-i18n="hero.chip1">{{hero.chip1}}</span></li>
-            <li><svg class="ic-eclat" aria-hidden="true"><use href="#eclat"/></svg><span data-i18n="hero.chip2">{{hero.chip2}}</span></li>
-            <li><svg class="ic-eclat" aria-hidden="true"><use href="#eclat"/></svg><span data-i18n="hero.chip3">{{hero.chip3}}</span></li>
-            <li><svg class="ic-eclat" aria-hidden="true"><use href="#eclat"/></svg><span data-i18n="hero.chip4">{{hero.chip4}}</span></li>
+          <ul class="preuves" data-anim style="--i:4">
+            <li><span class="pt pt-vert"></span><span data-i18n="hero.chip1">{{hero.chip1}}</span></li>
+            <li><span class="pt pt-ciel"></span><span data-i18n="hero.chip2">{{hero.chip2}}</span></li>
+            <li><span class="pt pt-jaune"></span><span data-i18n="hero.chip3">{{hero.chip3}}</span></li>
+            <li><span class="pt pt-corail"></span><span data-i18n="hero.chip4">{{hero.chip4}}</span></li>
           </ul>
         </div>
-        <div class="hero-visuel">
-          <div class="arche-cadre">
-            <div class="arche hero-arche">
-              <img src="assets/img/ailes-1400.webp" srcset="assets/img/ailes-760.webp 760w, assets/img/ailes-1400.webp 1400w" sizes="(max-width: 900px) 80vw, 34vw" width="1275" height="1600" alt="{{alt.ailes}}" data-i18n-alt="alt.ailes" fetchpriority="high">
-            </div>
-          </div>
-          <p class="hero-legende" data-i18n="hero.caption">{{hero.caption}}</p>
-          <div class="sceau" aria-hidden="true">
-            <svg viewBox="0 0 200 200">
-              <defs><path id="cercle-sceau" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"/></defs>
-              <text><textPath href="#cercle-sceau" textLength="488">HEAVENLY ✦ EDUCATIONAL INSTITUTION ✦ NOUAKCHOTT ✦ </textPath></text>
-            </svg>
-            <svg class="sceau-etoile" viewBox="0 0 100 100"><use href="#etoile"/></svg>
+
+        <div class="hero-visuel" aria-hidden="false">
+          <svg class="tache" viewBox="0 0 600 600" aria-hidden="true"><path d="M302 34c88-6 182 40 222 122 42 86 26 196-30 268-58 74-160 132-252 120-96-12-182-86-206-180-24-92 18-196 86-262 52-50 108-64 180-68z"/></svg>
+          <figure class="ph ph-grande" data-anim="pop" style="--i:1">
+            <span class="scotch s-jaune" aria-hidden="true"></span>
+            <img src="assets/img/ailes-760.webp" srcset="assets/img/ailes-760.webp 760w, assets/img/ailes-1400.webp 1400w" sizes="(max-width: 900px) 64vw, 30vw" width="1275" height="1600" alt="{{alt.ailes}}" data-i18n-alt="alt.ailes" fetchpriority="high">
+          </figure>
+          <figure class="ph ph-polaroid" data-anim="pop" style="--i:3">
+            <span class="scotch s-ciel" aria-hidden="true"></span>
+            <img src="assets/img/creme-760.webp" width="1249" height="1500" alt="{{alt.creme}}" data-i18n-alt="alt.creme">
+          </figure>
+          <figure class="ph ph-rond" data-anim="pop" style="--i:2">
+            <img src="assets/img/jardin-rond-360.webp" width="360" height="360" alt="{{alt.jardin}}" data-i18n-alt="alt.jardin">
+          </figure>
+          <p class="note note-bienvenue" data-anim style="--i:5"><span data-i18n="note.welcome">{{note.welcome}}</span>
+            <svg class="note-fleche" viewBox="0 0 100 80" aria-hidden="true"><path class="trace" pathLength="1" d="M8 12c22-10 52-2 52 20 0 18-26 18-22 4 6-20 40-8 48 26M78 54l10 9 5-13"/></svg>
+          </p>
+          <div class="croquis" aria-hidden="true" data-anim style="--i:6">
+            <svg class="d d-soleil" viewBox="0 0 120 120"><use href="#d-soleil-rayons" class="rayons"/><use href="#d-soleil-coeur"/></svg>
+            <svg class="d d-trace" viewBox="0 0 220 120"><path class="trace pointille" pathLength="1" d="M4 112c36 0 56-52 26-62C0 40 20 0 70 20c40 16 50 70 90 50 30-14 40-40 56-46"/></svg>
+            <svg class="d d-avion" viewBox="0 0 100 80"><use href="#d-avion"/></svg>
+            <svg class="d d-etoile1" viewBox="0 0 50 50"><use href="#d-etoile"/></svg>
+            <svg class="d d-etoile2" viewBox="0 0 50 50"><use href="#d-etoile"/></svg>
+            <svg class="d d-coeur" viewBox="0 0 50 50"><use href="#d-coeur"/></svg>
           </div>
         </div>
       </div>
-      <a class="defiler" href="#ecole"><span data-i18n="hero.scroll">{{hero.scroll}}</span><i></i></a>
+      <svg class="vague" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 36c120 26 240 30 360 14S600 6 720 18s240 40 360 32 240-38 360-30V70H0z"/></svg>
     </section>
 
-    <!-- ═════════════ LE DÉFILÉ DES MOTS ═════════════ -->
-    <section class="defile" aria-hidden="true">
-      <div class="defile-rang r1"><div class="defile-piste"><span data-i18n="marquee.row1">{{marquee.row1}}</span><span data-i18n="marquee.row1">{{marquee.row1}}</span><span data-i18n="marquee.row1">{{marquee.row1}}</span><span data-i18n="marquee.row1">{{marquee.row1}}</span></div></div>
-      <div class="defile-rang r2" dir="ltr"><div class="defile-piste">
-        <span>العلم · Knowledge · Savoir ✦ الإيمان · Faith · Foi ✦ الأخلاق · Character · Caractère ✦ الرحمة · Kindness · Bienveillance ✦ </span><span>العلم · Knowledge · Savoir ✦ الإيمان · Faith · Foi ✦ الأخلاق · Character · Caractère ✦ الرحمة · Kindness · Bienveillance ✦ </span><span>العلم · Knowledge · Savoir ✦ الإيمان · Faith · Foi ✦ الأخلاق · Character · Caractère ✦ الرحمة · Kindness · Bienveillance ✦ </span>
-      </div></div>
-    </section>
-
-    <!-- ═════════════ POURQUOI NOUS ═════════════ -->
-    <section class="pourquoi" id="pourquoi">
-      <div class="conteneur pourquoi-grille">
-        <div class="pourquoi-colle">
-          <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="why.kicker">{{why.kicker}}</span></p>
-          <h2 class="titre-section" data-i18n-html="why.title" data-split="words">{{{why.title}}}</h2>
-          <p class="texte" data-i18n="why.intro" data-reveal>{{why.intro}}</p>
-          <div class="arche-cadre pourquoi-cadre">
-            <div class="arche pourquoi-visuel revele">
-              <img src="assets/img/ecriture-760.webp" width="810" height="1080" loading="lazy" alt="{{alt.ecriture}}" data-i18n-alt="alt.ecriture" class="actif">
-              <img src="assets/img/table-ronde-760.webp" width="1257" height="1520" loading="lazy" alt="{{alt.table}}" data-i18n-alt="alt.table">
-              <img src="assets/img/dessin-760.webp" width="1020" height="574" loading="lazy" alt="{{alt.dessin}}" data-i18n-alt="alt.dessin">
-              <img src="assets/img/fete-nationale-760.webp" width="1600" height="1200" loading="lazy" alt="{{alt.fete}}" data-i18n-alt="alt.fete">
-              <img src="assets/img/petit-dejeuner-760.webp" width="1286" height="818" loading="lazy" alt="{{alt.petitdej}}" data-i18n-alt="alt.petitdej">
-              <img src="assets/img/toise-3-760.webp" width="1129" height="1600" loading="lazy" alt="{{alt.toise}}" data-i18n-alt="alt.toise">
-            </div>
+    <!-- ═════════════ PRÉSENTATION ═════════════ -->
+    <section class="presentation" id="ecole">
+      <div class="conteneur pres-grille">
+        <div class="pres-texte">
+          <p class="etiquette e-jaune" data-anim><span class="point"></span><span data-i18n="name.kicker">{{name.kicker}}</span></p>
+          <h2 class="titre" data-i18n-html="name.title" data-anim>{{{name.title}}}</h2>
+          <div class="carte-nom" data-anim>
+            <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><use href="#etoile" class="o"/><use href="#etoile-int" class="i"/><circle cx="50" cy="50" r="5" class="c"/></svg>
+            <div><b>Heavenly Educational Institution</b><span lang="ar" dir="rtl">مؤسسة جنان للتعليم</span></div>
           </div>
+          <p class="texte" data-i18n="name.text" data-anim>{{name.text}}</p>
         </div>
-        <ol class="raisons">
-          <li class="raison actif">
-            <span class="raison-n">01</span>
-            <div class="raison-corps">
-              <h3 data-i18n="why.r1.title">{{why.r1.title}}</h3>
-              <p data-i18n="why.r1.text">{{why.r1.text}}</p>
-            </div>
-            <div class="raison-img arche"><img src="assets/img/ecriture-760.webp" width="810" height="1080" loading="lazy" alt="" aria-hidden="true"></div>
-          </li>
-          <li class="raison">
-            <span class="raison-n">02</span>
-            <div class="raison-corps">
-              <h3 data-i18n="why.r2.title">{{why.r2.title}}</h3>
-              <p data-i18n="why.r2.text">{{why.r2.text}}</p>
-            </div>
-            <div class="raison-img arche"><img src="assets/img/table-ronde-760.webp" width="1257" height="1520" loading="lazy" alt="" aria-hidden="true"></div>
-          </li>
-          <li class="raison">
-            <span class="raison-n">03</span>
-            <div class="raison-corps">
-              <h3 data-i18n="why.r3.title">{{why.r3.title}}</h3>
-              <p data-i18n="why.r3.text">{{why.r3.text}}</p>
-            </div>
-            <div class="raison-img arche"><img src="assets/img/dessin-760.webp" width="1020" height="574" loading="lazy" alt="" aria-hidden="true"></div>
-          </li>
-          <li class="raison">
-            <span class="raison-n">04</span>
-            <div class="raison-corps">
-              <h3 data-i18n="why.r4.title">{{why.r4.title}}</h3>
-              <p data-i18n="why.r4.text">{{why.r4.text}}</p>
-            </div>
-            <div class="raison-img arche"><img src="assets/img/fete-nationale-760.webp" width="1600" height="1200" loading="lazy" alt="" aria-hidden="true"></div>
-          </li>
-          <li class="raison">
-            <span class="raison-n">05</span>
-            <div class="raison-corps">
-              <h3 data-i18n="why.r5.title">{{why.r5.title}}</h3>
-              <p data-i18n="why.r5.text">{{why.r5.text}}</p>
-            </div>
-            <div class="raison-img arche"><img src="assets/img/petit-dejeuner-760.webp" width="1286" height="818" loading="lazy" alt="" aria-hidden="true"></div>
-          </li>
-          <li class="raison">
-            <span class="raison-n">06</span>
-            <div class="raison-corps">
-              <h3 data-i18n="why.r6.title">{{why.r6.title}}</h3>
-              <p data-i18n="why.r6.text">{{why.r6.text}}</p>
-            </div>
-            <div class="raison-img arche"><img src="assets/img/toise-3-760.webp" width="1129" height="1600" loading="lazy" alt="" aria-hidden="true"></div>
-          </li>
-        </ol>
+        <div class="pres-photo">
+          <figure class="ph ph-imprime" data-anim="pop" style="--r:2.5deg">
+            <span class="scotch s-corail" aria-hidden="true"></span>
+            <img src="assets/img/amies-760.webp" srcset="assets/img/amies-760.webp 760w, assets/img/amies-1400.webp 1400w" sizes="(max-width: 900px) 80vw, 36vw" width="1290" height="1666" loading="lazy" alt="{{alt.amies}}" data-i18n-alt="alt.amies">
+          </figure>
+          <svg class="d d-pres-crayon flotte" viewBox="0 0 64 64" aria-hidden="true"><use href="#d-crayon"/></svg>
+          <svg class="d d-pres-etoile scintille" viewBox="0 0 50 50" aria-hidden="true"><use href="#d-etoile"/></svg>
+        </div>
       </div>
+      <ul class="conteneur chiffres">
+        <li class="chiffre c-vert" data-anim="pop" style="--i:0"><b>3</b><span data-i18n="stats.1">{{stats.1}}</span></li>
+        <li class="chiffre c-jaune" data-anim="pop" style="--i:1"><b>4</b><span data-i18n="stats.2">{{stats.2}}</span></li>
+        <li class="chiffre c-ciel" data-anim="pop" style="--i:2"><b>2</b><span data-i18n="stats.3">{{stats.3}}</span></li>
+        <li class="chiffre c-corail" data-anim="pop" style="--i:3"><b>1</b><span data-i18n="stats.4">{{stats.4}}</span></li>
+      </ul>
     </section>
 
-    <!-- ═════════════ LE NOM ═════════════ -->
-    <section class="nom" id="ecole">
+    <!-- ═════════════ PROJET ÉDUCATIF ═════════════ -->
+    <section class="projet bloc bloc-jaune" id="pourquoi">
+      <svg class="vague vague-haut" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34c140-28 260-30 400-14s260 34 400 22 260-38 400-30 160 18 240 22V0H0z"/></svg>
       <div class="conteneur">
-        <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="name.kicker">{{name.kicker}}</span></p>
-        <h2 class="titre-section" data-i18n-html="name.title" data-split="words">{{{name.title}}}</h2>
-        <div class="nom-grille">
-          <div class="nom-mots">
-            <div class="mot mot-en" data-reveal>
-              <span class="mot-grand brand-word" lang="en">Heavenly</span>
-              <span class="mot-glose" data-i18n="name.heavenly.gloss">{{name.heavenly.gloss}}</span>
-            </div>
-            <div class="mot-lien" aria-hidden="true"><span></span><svg><use href="#eclat"/></svg><span></span></div>
-            <div class="mot mot-ar" data-reveal>
-              <span class="mot-grand ruqaa" lang="ar">جِنان</span>
-              <span class="mot-glose" data-i18n="name.jinan.gloss">{{name.jinan.gloss}}</span>
-            </div>
+        <header class="tete">
+          <p class="etiquette e-blanc" data-anim><span class="point"></span><span data-i18n="why.kicker">{{why.kicker}}</span></p>
+          <h2 class="titre" data-i18n-html="why.title" data-anim>{{{why.title}}}</h2>
+          <p class="texte" data-i18n="why.intro" data-anim>{{why.intro}}</p>
+        </header>
+        <ul class="piliers">
+          <li class="pilier" data-anim style="--i:0"><span class="icone ic-vert"><svg><use href="#i-livre"/></svg></span><h3 data-i18n="why.r1.title">{{why.r1.title}}</h3><p data-i18n="why.r1.text">{{why.r1.text}}</p></li>
+          <li class="pilier" data-anim style="--i:1"><span class="icone ic-ciel"><svg><use href="#i-bulle"/></svg></span><h3 data-i18n="why.r2.title">{{why.r2.title}}</h3><p data-i18n="why.r2.text">{{why.r2.text}}</p></li>
+          <li class="pilier" data-anim style="--i:2"><span class="icone ic-corail"><svg><use href="#i-ampoule"/></svg></span><h3 data-i18n="why.r3.title">{{why.r3.title}}</h3><p data-i18n="why.r3.text">{{why.r3.text}}</p></li>
+          <li class="pilier" data-anim style="--i:3"><span class="icone ic-vert"><svg><use href="#i-croissant"/></svg></span><h3 data-i18n="why.r4.title">{{why.r4.title}}</h3><p data-i18n="why.r4.text">{{why.r4.text}}</p></li>
+          <li class="pilier" data-anim style="--i:4"><span class="icone ic-jaune"><svg><use href="#i-horloge"/></svg></span><h3 data-i18n="why.r5.title">{{why.r5.title}}</h3><p data-i18n="why.r5.text">{{why.r5.text}}</p></li>
+          <li class="pilier" data-anim style="--i:5"><span class="icone ic-ciel"><svg><use href="#i-appli"/></svg></span><h3 data-i18n="why.r6.title">{{why.r6.title}}</h3><p data-i18n="why.r6.text">{{why.r6.text}}</p></li>
+        </ul>
+      </div>
+      <svg class="d d-projet-nuage flotte" viewBox="0 0 100 60" aria-hidden="true"><use href="#d-nuage"/></svg>
+      <svg class="vague" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30c130 22 250 34 380 22s250-40 380-34 250 36 380 34 200-22 300-24V70H0z"/></svg>
+    </section>
+
+    <!-- ═════════════ LE CURSUS ═════════════ -->
+    <section class="cursus" id="parcours">
+      <div class="conteneur">
+        <header class="tete tete-centre">
+          <p class="etiquette e-ciel" data-anim><span class="point"></span><span data-i18n="journey.kicker">{{journey.kicker}}</span></p>
+          <h2 class="titre" data-i18n-html="journey.title" data-anim>{{{journey.title}}}</h2>
+          <p class="texte" data-i18n="journey.intro" data-anim>{{journey.intro}}</p>
+        </header>
+        <div class="chemin">
+          <div class="chemin-ligne" aria-hidden="true"><span class="chemin-rempli"></span>
+            <svg class="chemin-avion" viewBox="0 0 100 80"><use href="#d-avion"/></svg>
           </div>
-          <p class="nom-texte" data-i18n="name.text" data-scrub>{{name.text}}</p>
+          <article class="cycle cy-1" data-anim>
+            <figure class="ph ph-cycle" style="--r:-2deg"><span class="scotch s-jaune" aria-hidden="true"></span><img src="assets/img/balancoire-760.webp" srcset="assets/img/balancoire-760.webp 760w, assets/img/balancoire-1400.webp 1400w" sizes="(max-width: 900px) 84vw, 400px" width="1259" height="1490" loading="lazy" alt="{{alt.balancoire}}" data-i18n-alt="alt.balancoire"></figure>
+            <div class="cycle-corps">
+              <span class="cycle-num">1</span>
+              <h3 data-i18n="journey.c1.name">{{journey.c1.name}}</h3>
+              <p class="cycle-sous" data-i18n="journey.c1.sub">{{journey.c1.sub}}</p>
+              <p data-i18n="journey.c1.text">{{journey.c1.text}}</p>
+              <span class="tag" data-i18n="journey.c1.tag">{{journey.c1.tag}}</span>
+            </div>
+          </article>
+          <article class="cycle cy-2" data-anim>
+            <figure class="ph ph-cycle" style="--r:2deg"><span class="scotch s-ciel" aria-hidden="true"></span><img src="assets/img/ecriture-760.webp" srcset="assets/img/ecriture-760.webp 760w, assets/img/ecriture-1400.webp 1400w" sizes="(max-width: 900px) 84vw, 400px" width="810" height="1080" loading="lazy" alt="{{alt.ecriture}}" data-i18n-alt="alt.ecriture"></figure>
+            <div class="cycle-corps">
+              <span class="cycle-num">2</span>
+              <h3 data-i18n="journey.c2.name">{{journey.c2.name}}</h3>
+              <p class="cycle-sous" data-i18n="journey.c2.sub">{{journey.c2.sub}}</p>
+              <p data-i18n="journey.c2.text">{{journey.c2.text}}</p>
+              <span class="tag" data-i18n="journey.c2.tag">{{journey.c2.tag}}</span>
+            </div>
+          </article>
+          <article class="cycle cy-3" data-anim>
+            <figure class="ph ph-cycle" style="--r:-1.5deg"><span class="scotch s-corail" aria-hidden="true"></span><img src="assets/img/anatomie-760.webp" srcset="assets/img/anatomie-760.webp 760w, assets/img/anatomie-1400.webp 1400w" sizes="(max-width: 900px) 84vw, 400px" width="1032" height="1470" loading="lazy" alt="{{alt.anatomie}}" data-i18n-alt="alt.anatomie"></figure>
+            <div class="cycle-corps">
+              <span class="cycle-num">3</span>
+              <h3 data-i18n="journey.c3.name">{{journey.c3.name}}</h3>
+              <p class="cycle-sous" data-i18n="journey.c3.sub">{{journey.c3.sub}}</p>
+              <p data-i18n="journey.c3.text">{{journey.c3.text}}</p>
+              <span class="tag" data-i18n="journey.c3.tag">{{journey.c3.tag}}</span>
+            </div>
+          </article>
+          <article class="cycle cy-4" data-anim>
+            <figure class="ph ph-cycle" style="--r:2.5deg"><span class="scotch s-jaune" aria-hidden="true"></span><img src="assets/img/squelette-760.webp" srcset="assets/img/squelette-760.webp 760w, assets/img/squelette-1400.webp 1400w" sizes="(max-width: 900px) 84vw, 400px" width="1230" height="1390" loading="lazy" alt="{{alt.squelette}}" data-i18n-alt="alt.squelette"></figure>
+            <div class="cycle-corps">
+              <span class="cycle-num">4</span>
+              <h3 data-i18n="journey.c4.name">{{journey.c4.name}}</h3>
+              <p class="cycle-sous" data-i18n="journey.c4.sub">{{journey.c4.sub}}</p>
+              <p data-i18n="journey.c4.text">{{journey.c4.text}}</p>
+              <span class="tag" data-i18n="journey.c4.tag">{{journey.c4.tag}}</span>
+            </div>
+          </article>
         </div>
-        <div class="nom-photos">
-          <figure class="photo p-jardin" data-parallax="-12">
-            <div class="arche revele"><img src="assets/img/jardin-760.webp" srcset="assets/img/jardin-760.webp 760w, assets/img/jardin-1400.webp 1400w" sizes="(max-width: 900px) 80vw, 30vw" width="1263" height="1600" loading="lazy" alt="{{alt.jardin}}" data-i18n-alt="alt.jardin"></div>
-            <figcaption data-i18n="name.cap1">{{name.cap1}}</figcaption>
-          </figure>
-          <figure class="photo p-amies" data-parallax="10">
-            <div class="cadre revele"><img src="assets/img/amies-760.webp" srcset="assets/img/amies-760.webp 760w, assets/img/amies-1400.webp 1400w" sizes="(max-width: 900px) 70vw, 24vw" width="1290" height="1666" loading="lazy" alt="{{alt.amies}}" data-i18n-alt="alt.amies"></div>
-            <figcaption data-i18n="name.cap2">{{name.cap2}}</figcaption>
-          </figure>
+      </div>
+    </section>
+
+    <!-- ═════════════ LE VERSET ═════════════ -->
+    <section class="verset" aria-labelledby="verset-texte">
+      <div class="conteneur">
+        <div class="verset-carte" data-anim>
+          <svg class="d d-livre" viewBox="0 0 64 48" aria-hidden="true"><use href="#d-livre"/></svg>
+          <p class="verset-ar" id="verset-texte" lang="ar" dir="rtl">وَقُل رَّبِّ زِدْنِي عِلْمًا</p>
+          <p class="verset-trad" data-i18n="verse.translation">{{verse.translation}}</p>
+          <p class="verset-ref" data-i18n="verse.ref">{{verse.ref}}</p>
         </div>
-        <ul class="chiffres">
-          <li data-reveal><b data-count="3">3</b><span data-i18n="stats.1">{{stats.1}}</span></li>
-          <li data-reveal><b data-count="4">4</b><span data-i18n="stats.2">{{stats.2}}</span></li>
-          <li data-reveal><b data-count="2">2</b><span data-i18n="stats.3">{{stats.3}}</span></li>
-          <li data-reveal><b data-count="1">1</b><span data-i18n="stats.4">{{stats.4}}</span></li>
+      </div>
+    </section>
+
+    <!-- ═════════════ LA VIE SCOLAIRE ═════════════ -->
+    <section class="vie" id="vie">
+      <div class="conteneur">
+        <header class="tete">
+          <p class="etiquette e-corail" data-anim><span class="point"></span><span data-i18n="life.kicker">{{life.kicker}}</span></p>
+          <h2 class="titre" data-i18n-html="life.title" data-anim>{{{life.title}}}</h2>
+        </header>
+        <ul class="polaroids">
+          <li class="pola" data-anim="pop" style="--r:-2.5deg;--i:0"><button type="button" class="pola-btn"><span class="scotch s-jaune" aria-hidden="true"></span><img src="assets/img/table-ronde-760.webp" width="1257" height="1520" loading="lazy" alt="{{alt.table}}" data-i18n-alt="alt.table"><span class="pola-titre" data-i18n="life.g1.title">{{life.g1.title}}</span></button><p data-i18n="life.g1.text">{{life.g1.text}}</p></li>
+          <li class="pola" data-anim="pop" style="--r:2deg;--i:1"><button type="button" class="pola-btn"><span class="scotch s-ciel" aria-hidden="true"></span><img src="assets/img/anniversaire-760.webp" width="1253" height="1510" loading="lazy" alt="{{alt.anniv}}" data-i18n-alt="alt.anniv"><span class="pola-titre" data-i18n="life.g2.title">{{life.g2.title}}</span></button><p data-i18n="life.g2.text">{{life.g2.text}}</p></li>
+          <li class="pola pola-large" data-anim="pop" style="--r:-1.5deg;--i:2"><button type="button" class="pola-btn"><span class="scotch s-corail" aria-hidden="true"></span><img src="assets/img/dessin-1400.webp" width="1020" height="574" loading="lazy" alt="{{alt.dessin}}" data-i18n-alt="alt.dessin"><span class="pola-titre" data-i18n="life.g3.title">{{life.g3.title}}</span></button><p data-i18n="life.g3.text">{{life.g3.text}}</p></li>
+          <li class="pola pola-large" data-anim="pop" style="--r:1.5deg;--i:0"><button type="button" class="pola-btn"><span class="scotch s-jaune" aria-hidden="true"></span><img src="assets/img/fete-nationale-760.webp" width="1600" height="1200" loading="lazy" alt="{{alt.fete}}" data-i18n-alt="alt.fete"><span class="pola-titre" data-i18n="life.g5.title">{{life.g5.title}}</span></button><p data-i18n="life.g5.text">{{life.g5.text}}</p></li>
+          <li class="pola" data-anim="pop" style="--r:-2deg;--i:1"><button type="button" class="pola-btn"><span class="scotch s-ciel" aria-hidden="true"></span><img src="assets/img/piscine-760.webp" width="1267" height="1600" loading="lazy" alt="{{alt.piscine}}" data-i18n-alt="alt.piscine"><span class="pola-titre" data-i18n="life.g6.title">{{life.g6.title}}</span></button><p data-i18n="life.g6.text">{{life.g6.text}}</p></li>
+          <li class="pola pola-large" data-anim="pop" style="--r:2.5deg;--i:2"><button type="button" class="pola-btn"><span class="scotch s-corail" aria-hidden="true"></span><img src="assets/img/petit-dejeuner-760.webp" width="1286" height="818" loading="lazy" alt="{{alt.petitdej}}" data-i18n-alt="alt.petitdej"><span class="pola-titre" data-i18n="life.g7.title">{{life.g7.title}}</span></button><p data-i18n="life.g7.text">{{life.g7.text}}</p></li>
+          <li class="pola" data-anim="pop" style="--r:-1deg;--i:3"><button type="button" class="pola-btn"><span class="scotch s-jaune" aria-hidden="true"></span><img src="assets/img/jeux-760.webp" width="1222" height="1500" loading="lazy" alt="{{alt.jeux}}" data-i18n-alt="alt.jeux"><span class="pola-titre" data-i18n="life.g8.title">{{life.g8.title}}</span></button><p data-i18n="life.g8.text">{{life.g8.text}}</p></li>
         </ul>
       </div>
     </section>
 
-    <!-- ═════════════ LE PARCOURS ═════════════ -->
-    <section class="parcours" id="parcours">
-      <div class="parcours-epingle">
-        <div class="parcours-piste">
-          <div class="parcours-intro">
-            <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="journey.kicker">{{journey.kicker}}</span></p>
-            <h2 class="titre-section" data-i18n-html="journey.title" data-split="words">{{{journey.title}}}</h2>
-            <p class="texte" data-i18n="journey.intro" data-reveal>{{journey.intro}}</p>
-            <p class="parcours-indice" aria-hidden="true"><span data-i18n="journey.hint">{{journey.hint}}</span><svg class="ic"><use href="#fleche"/></svg></p>
-          </div>
-          <article class="cycle">
-            <div class="cycle-photo arche"><img src="assets/img/balancoire-760.webp" width="1259" height="1490" loading="lazy" alt="{{alt.balancoire}}" data-i18n-alt="alt.balancoire"></div>
-            <div class="cycle-corps">
-              <span class="cycle-num">01</span>
-              <h3 data-i18n="journey.c1.name">{{journey.c1.name}}</h3>
-              <p class="cycle-sous" data-i18n="journey.c1.sub">{{journey.c1.sub}}</p>
-              <p data-i18n="journey.c1.text">{{journey.c1.text}}</p>
-              <span class="etiquette" data-i18n="journey.c1.tag">{{journey.c1.tag}}</span>
-            </div>
-          </article>
-          <article class="cycle">
-            <div class="cycle-photo arche"><img src="assets/img/ecriture-760.webp" width="810" height="1080" loading="lazy" alt="{{alt.ecriture}}" data-i18n-alt="alt.ecriture"></div>
-            <div class="cycle-corps">
-              <span class="cycle-num">02</span>
-              <h3 data-i18n="journey.c2.name">{{journey.c2.name}}</h3>
-              <p class="cycle-sous" data-i18n="journey.c2.sub">{{journey.c2.sub}}</p>
-              <p data-i18n="journey.c2.text">{{journey.c2.text}}</p>
-              <span class="etiquette" data-i18n="journey.c2.tag">{{journey.c2.tag}}</span>
-            </div>
-          </article>
-          <article class="cycle">
-            <div class="cycle-photo arche"><img src="assets/img/anatomie-760.webp" width="1032" height="1470" loading="lazy" alt="{{alt.anatomie}}" data-i18n-alt="alt.anatomie"></div>
-            <div class="cycle-corps">
-              <span class="cycle-num">03</span>
-              <h3 data-i18n="journey.c3.name">{{journey.c3.name}}</h3>
-              <p class="cycle-sous" data-i18n="journey.c3.sub">{{journey.c3.sub}}</p>
-              <p data-i18n="journey.c3.text">{{journey.c3.text}}</p>
-              <span class="etiquette" data-i18n="journey.c3.tag">{{journey.c3.tag}}</span>
-            </div>
-          </article>
-          <article class="cycle">
-            <div class="cycle-photo arche"><img src="assets/img/squelette-760.webp" width="1230" height="1390" loading="lazy" alt="{{alt.squelette}}" data-i18n-alt="alt.squelette"></div>
-            <div class="cycle-corps">
-              <span class="cycle-num">04</span>
-              <h3 data-i18n="journey.c4.name">{{journey.c4.name}}</h3>
-              <p class="cycle-sous" data-i18n="journey.c4.sub">{{journey.c4.sub}}</p>
-              <p data-i18n="journey.c4.text">{{journey.c4.text}}</p>
-              <span class="etiquette" data-i18n="journey.c4.tag">{{journey.c4.tag}}</span>
-            </div>
-          </article>
+    <!-- ═════════════ LE SUIVI DES ÉLÈVES ═════════════ -->
+    <section class="suivi bloc bloc-corail" id="grandir">
+      <svg class="vague vague-haut" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 38c150-30 300-32 450-12s300 30 450 14 300-30 540-18V0H0z"/></svg>
+      <div class="conteneur suivi-grille">
+        <div class="suivi-texte">
+          <p class="etiquette e-blanc" data-anim><span class="point"></span><span data-i18n="grow.kicker">{{grow.kicker}}</span></p>
+          <h2 class="titre" data-anim><span data-i18n="grow.line1">{{grow.line1}}</span> <span data-i18n-html="grow.line2">{{{grow.line2}}}</span></h2>
+          <p class="texte" data-i18n="grow.text" data-anim>{{grow.text}}</p>
         </div>
-        <div class="parcours-progression" aria-hidden="true"><span></span></div>
-      </div>
-    </section>
-
-    <!-- ═════════════ LA NUIT : LES LANGUES, LES VALEURS, LE VERSET ═════════════ -->
-    <div class="nuit">
-      <canvas class="etoiles" aria-hidden="true"></canvas>
-
-      <section class="langues-sec" id="langues">
-        <div class="conteneur">
-          <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="lang.kicker">{{lang.kicker}}</span></p>
-          <h2 class="titre-section" data-i18n-html="lang.title" data-split="words">{{{lang.title}}}</h2>
-          <ul class="trois-langues">
-            <li class="langue l-ar" data-glisse="1">
-              <span class="langue-mot" lang="ar">العربية</span>
-              <span class="langue-desc" data-i18n="lang.ar.desc">{{lang.ar.desc}}</span>
-            </li>
-            <li class="langue l-fr" data-glisse="-1">
-              <span class="langue-mot" lang="fr">Français</span>
-              <span class="langue-desc" data-i18n="lang.fr.desc">{{lang.fr.desc}}</span>
-            </li>
-            <li class="langue l-en" data-glisse="1">
-              <span class="langue-mot" lang="en">English</span>
-              <span class="langue-desc"><span class="badge" data-i18n="lang.en.badge">{{lang.en.badge}}</span> <span data-i18n="lang.en.desc">{{lang.en.desc}}</span></span>
-            </li>
-          </ul>
-          <p class="texte texte-large" data-i18n="lang.text" data-reveal>{{lang.text}}</p>
-        </div>
-      </section>
-
-      <section class="valeurs" id="valeurs">
-        <div class="conteneur">
-          <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="values.kicker">{{values.kicker}}</span></p>
-          <h2 class="titre-section" data-i18n-html="values.title" data-split="words">{{{values.title}}}</h2>
-          <p class="texte" data-i18n="values.intro" data-reveal>{{values.intro}}</p>
-          <div class="cartes">
-            <article class="carte"><span class="carte-ar" lang="ar">إحسان</span><span class="carte-tr">Iḥsān</span><h3 data-i18n="values.v1.name">{{values.v1.name}}</h3><p data-i18n="values.v1.text">{{values.v1.text}}</p><svg class="carte-etoile" aria-hidden="true"><use href="#etoile"/></svg></article>
-            <article class="carte"><span class="carte-ar" lang="ar">أمانة</span><span class="carte-tr">Amāna</span><h3 data-i18n="values.v2.name">{{values.v2.name}}</h3><p data-i18n="values.v2.text">{{values.v2.text}}</p><svg class="carte-etoile" aria-hidden="true"><use href="#etoile"/></svg></article>
-            <article class="carte"><span class="carte-ar" lang="ar">علم</span><span class="carte-tr">ʿIlm</span><h3 data-i18n="values.v3.name">{{values.v3.name}}</h3><p data-i18n="values.v3.text">{{values.v3.text}}</p><svg class="carte-etoile" aria-hidden="true"><use href="#etoile"/></svg></article>
-            <article class="carte"><span class="carte-ar" lang="ar">شورى</span><span class="carte-tr">Shūrā</span><h3 data-i18n="values.v4.name">{{values.v4.name}}</h3><p data-i18n="values.v4.text">{{values.v4.text}}</p><svg class="carte-etoile" aria-hidden="true"><use href="#etoile"/></svg></article>
-            <article class="carte"><span class="carte-ar" lang="ar">رحمة</span><span class="carte-tr">Raḥma</span><h3 data-i18n="values.v5.name">{{values.v5.name}}</h3><p data-i18n="values.v5.text">{{values.v5.text}}</p><svg class="carte-etoile" aria-hidden="true"><use href="#etoile"/></svg></article>
-            <article class="carte"><span class="carte-ar" lang="ar">عزيمة</span><span class="carte-tr">ʿAzīma</span><h3 data-i18n="values.v6.name">{{values.v6.name}}</h3><p data-i18n="values.v6.text">{{values.v6.text}}</p><svg class="carte-etoile" aria-hidden="true"><use href="#etoile"/></svg></article>
-          </div>
-        </div>
-      </section>
-
-      <section class="verset" aria-labelledby="verset-texte">
-        <svg class="verset-etoile" aria-hidden="true" viewBox="0 0 100 100"><use href="#etoile"/></svg>
-        <div class="conteneur">
-          <p class="verset-ar" id="verset-texte" lang="ar" dir="rtl">وَقُل رَّبِّ زِدْنِي عِلْمًا</p>
-          <p class="verset-trad" data-i18n="verse.translation">{{verse.translation}}</p>
-          <p class="verset-ref" data-i18n="verse.ref">{{verse.ref}}</p>
-          <p class="verset-note" data-i18n="verse.note">{{verse.note}}</p>
-        </div>
-      </section>
-    </div>
-
-    <!-- ═════════════ LA VIE ═════════════ -->
-    <section class="vie" id="vie">
-      <div class="conteneur">
-        <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="life.kicker">{{life.kicker}}</span></p>
-        <h2 class="titre-section" data-i18n-html="life.title" data-split="words">{{{life.title}}}</h2>
-        <div class="galerie">
-          <figure class="g g1" data-cursor="view"><div class="g-img revele"><img src="assets/img/table-ronde-760.webp" srcset="assets/img/table-ronde-760.webp 760w, assets/img/table-ronde-1400.webp 1400w" sizes="(max-width: 900px) 92vw, 55vw" width="1257" height="1520" loading="lazy" alt="{{alt.table}}" data-i18n-alt="alt.table"></div><figcaption><b data-i18n="life.g1.title">{{life.g1.title}}</b><span data-i18n="life.g1.text">{{life.g1.text}}</span></figcaption></figure>
-          <figure class="g g2" data-cursor="view"><div class="g-img arche revele"><img src="assets/img/anniversaire-760.webp" srcset="assets/img/anniversaire-760.webp 760w, assets/img/anniversaire-1400.webp 1400w" sizes="(max-width: 900px) 80vw, 32vw" width="1253" height="1510" loading="lazy" alt="{{alt.anniv}}" data-i18n-alt="alt.anniv"></div><figcaption><b data-i18n="life.g2.title">{{life.g2.title}}</b><span data-i18n="life.g2.text">{{life.g2.text}}</span></figcaption></figure>
-          <figure class="g g3" data-cursor="view"><div class="g-img revele"><img src="assets/img/dessin-1400.webp" width="1020" height="574" loading="lazy" alt="{{alt.dessin}}" data-i18n-alt="alt.dessin"></div><figcaption><b data-i18n="life.g3.title">{{life.g3.title}}</b><span data-i18n="life.g3.text">{{life.g3.text}}</span></figcaption></figure>
-          <figure class="g g4" data-cursor="view"><div class="g-img revele"><img src="assets/img/creme-760.webp" srcset="assets/img/creme-760.webp 760w, assets/img/creme-1400.webp 1400w" sizes="(max-width: 900px) 80vw, 26vw" width="1249" height="1500" loading="lazy" alt="{{alt.creme}}" data-i18n-alt="alt.creme"></div><figcaption><b data-i18n="life.g4.title">{{life.g4.title}}</b><span data-i18n="life.g4.text">{{life.g4.text}}</span></figcaption></figure>
-          <figure class="g g5" data-cursor="view"><div class="g-img revele"><img src="assets/img/fete-nationale-760.webp" srcset="assets/img/fete-nationale-760.webp 760w, assets/img/fete-nationale-1400.webp 1400w" sizes="(max-width: 900px) 92vw, 55vw" width="1600" height="1200" loading="lazy" alt="{{alt.fete}}" data-i18n-alt="alt.fete"></div><figcaption><b data-i18n="life.g5.title">{{life.g5.title}}</b><span data-i18n="life.g5.text">{{life.g5.text}}</span></figcaption></figure>
-          <figure class="g g6" data-cursor="view"><div class="g-img arche revele"><img src="assets/img/piscine-760.webp" srcset="assets/img/piscine-760.webp 760w, assets/img/piscine-1400.webp 1400w" sizes="(max-width: 900px) 80vw, 28vw" width="1267" height="1600" loading="lazy" alt="{{alt.piscine}}" data-i18n-alt="alt.piscine"></div><figcaption><b data-i18n="life.g6.title">{{life.g6.title}}</b><span data-i18n="life.g6.text">{{life.g6.text}}</span></figcaption></figure>
-          <figure class="g g7" data-cursor="view"><div class="g-img revele"><img src="assets/img/petit-dejeuner-760.webp" srcset="assets/img/petit-dejeuner-760.webp 760w, assets/img/petit-dejeuner-1400.webp 1400w" sizes="(max-width: 900px) 92vw, 48vw" width="1286" height="818" loading="lazy" alt="{{alt.petitdej}}" data-i18n-alt="alt.petitdej"></div><figcaption><b data-i18n="life.g7.title">{{life.g7.title}}</b><span data-i18n="life.g7.text">{{life.g7.text}}</span></figcaption></figure>
-          <figure class="g g8" data-cursor="view"><div class="g-img revele"><img src="assets/img/jeux-760.webp" srcset="assets/img/jeux-760.webp 760w, assets/img/jeux-1400.webp 1400w" sizes="(max-width: 900px) 80vw, 26vw" width="1222" height="1500" loading="lazy" alt="{{alt.jeux}}" data-i18n-alt="alt.jeux"></div><figcaption><b data-i18n="life.g8.title">{{life.g8.title}}</b><span data-i18n="life.g8.text">{{life.g8.text}}</span></figcaption></figure>
-        </div>
-      </div>
-    </section>
-
-    <!-- ═════════════ GRANDIR ═════════════ -->
-    <section class="grandir" id="grandir">
-      <div class="conteneur">
-        <p class="surtitre centre" data-reveal><span class="trait"></span><span data-i18n="grow.kicker">{{grow.kicker}}</span><span class="trait"></span></p>
-        <h2 class="grandir-titre">
-          <span class="g-l1" data-i18n="grow.line1" data-split="words">{{grow.line1}}</span>
-          <span class="g-l2" data-i18n-html="grow.line2" data-split="words">{{{grow.line2}}}</span>
-        </h2>
         <div class="toises">
-          <figure class="toise" data-parallax="-6"><div class="cadre revele"><img src="assets/img/toise-2-760.webp" width="1223" height="1600" loading="lazy" alt="{{alt.toise}}" data-i18n-alt="alt.toise"></div></figure>
-          <figure class="toise t-centre" data-parallax="6"><div class="cadre revele"><img src="assets/img/toise-1-760.webp" width="1273" height="1539" loading="lazy" alt="{{alt.toise}}" data-i18n-alt="alt.toise"></div></figure>
-          <figure class="toise" data-parallax="-3"><div class="cadre revele"><img src="assets/img/toise-3-760.webp" width="1129" height="1600" loading="lazy" alt="{{alt.toise}}" data-i18n-alt="alt.toise"></div></figure>
-          <div class="regle" aria-hidden="true"><span class="regle-remplie"></span></div>
+          <svg class="regle" data-anim viewBox="0 0 40 200" preserveAspectRatio="none" aria-hidden="true"><path d="M6 4h28v192H6zM6 24h10M6 44h16M6 64h10M6 84h16M6 104h10M6 124h16M6 144h10M6 164h16M6 184h10"/></svg>
+          <figure class="ph ph-toise" data-anim="pop" style="--r:-3deg;--i:0"><img src="assets/img/toise-2-760.webp" width="1223" height="1600" loading="lazy" alt="{{alt.toise}}" data-i18n-alt="alt.toise"></figure>
+          <figure class="ph ph-toise" data-anim="pop" style="--r:1.5deg;--i:1"><img src="assets/img/toise-1-760.webp" width="1273" height="1539" loading="lazy" alt="{{alt.toise}}" data-i18n-alt="alt.toise"></figure>
+          <figure class="ph ph-toise" data-anim="pop" style="--r:-1deg;--i:2"><img src="assets/img/toise-3-760.webp" width="1129" height="1600" loading="lazy" alt="{{alt.toise}}" data-i18n-alt="alt.toise"></figure>
         </div>
-        <p class="texte centre grandir-texte" data-i18n="grow.text" data-reveal>{{grow.text}}</p>
       </div>
+      <svg class="vague" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 34c160 24 320 30 480 16s320-36 480-30 320 34 480 30V70H0z"/></svg>
     </section>
 
     <!-- ═════════════ LES SERVICES ═════════════ -->
     <section class="services" id="services">
       <div class="conteneur">
-        <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="services.kicker">{{services.kicker}}</span></p>
-        <h2 class="titre-section" data-i18n-html="services.title" data-split="words">{{{services.title}}}</h2>
-        <ol class="liste-services">
-          <li class="svc" data-img="ecriture"><span class="svc-n">01</span><h3 data-i18n="services.s1.title">{{services.s1.title}}</h3><p data-i18n="services.s1.text">{{services.s1.text}}</p><svg class="ic svc-f"><use href="#fleche"/></svg></li>
-          <li class="svc" data-img="petit-dejeuner"><span class="svc-n">02</span><h3 data-i18n="services.s2.title">{{services.s2.title}}</h3><p data-i18n="services.s2.text">{{services.s2.text}}</p><svg class="ic svc-f"><use href="#fleche"/></svg></li>
-          <li class="svc" data-img="piscine"><span class="svc-n">03</span><h3 data-i18n="services.s3.title">{{services.s3.title}}</h3><p data-i18n="services.s3.text">{{services.s3.text}}</p><svg class="ic svc-f"><use href="#fleche"/></svg></li>
-          <li class="svc" data-img="fete-nationale"><span class="svc-n">04</span><h3 data-i18n="services.s4.title">{{services.s4.title}}</h3><p data-i18n="services.s4.text">{{services.s4.text}}</p><svg class="ic svc-f"><use href="#fleche"/></svg></li>
-          <li class="svc" data-img="anatomie"><span class="svc-n">05</span><h3 data-i18n="services.s5.title">{{services.s5.title}}</h3><p data-i18n="services.s5.text">{{services.s5.text}}</p><svg class="ic svc-f"><use href="#fleche"/></svg></li>
-          <li class="svc" data-img="dessin"><span class="svc-n">06</span><h3 data-i18n="services.s6.title">{{services.s6.title}}</h3><p data-i18n="services.s6.text">{{services.s6.text}}</p><svg class="ic svc-f"><use href="#fleche"/></svg></li>
-          <li class="svc" data-img="table-ronde"><span class="svc-n">07</span><h3 data-i18n="services.s7.title">{{services.s7.title}}</h3><p><span data-i18n="services.s7.text">{{services.s7.text}}</span></p><svg class="ic svc-f"><use href="#fleche"/></svg></li>
-        </ol>
+        <header class="tete">
+          <p class="etiquette e-vert" data-anim><span class="point"></span><span data-i18n="services.kicker">{{services.kicker}}</span></p>
+          <h2 class="titre" data-i18n-html="services.title" data-anim>{{{services.title}}}</h2>
+        </header>
+        <ul class="tuiles">
+          <li class="tuile" data-anim style="--i:0"><span class="icone ic-jaune"><svg><use href="#i-horloge"/></svg></span><div><h3 data-i18n="services.s1.title">{{services.s1.title}}</h3><p data-i18n="services.s1.text">{{services.s1.text}}</p></div></li>
+          <li class="tuile" data-anim style="--i:1"><span class="icone ic-corail"><svg><use href="#i-bol"/></svg></span><div><h3 data-i18n="services.s2.title">{{services.s2.title}}</h3><p data-i18n="services.s2.text">{{services.s2.text}}</p></div></li>
+          <li class="tuile" data-anim style="--i:2"><span class="icone ic-ciel"><svg><use href="#i-vagues"/></svg></span><div><h3 data-i18n="services.s3.title">{{services.s3.title}}</h3><p data-i18n="services.s3.text">{{services.s3.text}}</p></div></li>
+          <li class="tuile" data-anim style="--i:3"><span class="icone ic-jaune"><svg><use href="#i-bus"/></svg></span><div><h3 data-i18n="services.s4.title">{{services.s4.title}}</h3><p data-i18n="services.s4.text">{{services.s4.text}}</p></div></li>
+          <li class="tuile" data-anim style="--i:4"><span class="icone ic-vert"><svg><use href="#i-sante"/></svg></span><div><h3 data-i18n="services.s5.title">{{services.s5.title}}</h3><p data-i18n="services.s5.text">{{services.s5.text}}</p></div></li>
+          <li class="tuile" data-anim style="--i:5"><span class="icone ic-corail"><svg><use href="#i-crayon"/></svg></span><div><h3 data-i18n="services.s6.title">{{services.s6.title}}</h3><p data-i18n="services.s6.text">{{services.s6.text}}</p></div></li>
+          <li class="tuile" data-anim style="--i:6"><span class="icone ic-ciel"><svg><use href="#i-appli"/></svg></span><div><h3 data-i18n="services.s7.title">{{services.s7.title}}</h3><p data-i18n="services.s7.text">{{services.s7.text}}</p></div></li>
+        </ul>
       </div>
-      <div class="svc-apercu" aria-hidden="true"><div class="svc-apercu-in">
-        <img data-k="ecriture" src="assets/img/ecriture-760.webp" alt="" loading="lazy">
-        <img data-k="petit-dejeuner" src="assets/img/petit-dejeuner-760.webp" alt="" loading="lazy">
-        <img data-k="piscine" src="assets/img/piscine-760.webp" alt="" loading="lazy">
-        <img data-k="fete-nationale" src="assets/img/fete-nationale-760.webp" alt="" loading="lazy">
-        <img data-k="anatomie" src="assets/img/anatomie-760.webp" alt="" loading="lazy">
-        <img data-k="dessin" src="assets/img/dessin-760.webp" alt="" loading="lazy">
-        <img data-k="table-ronde" src="assets/img/table-ronde-760.webp" alt="" loading="lazy">
-      </div></div>
     </section>
 
-    <!-- ═════════════ L'INSCRIPTION, EN TROIS PAS ═════════════ -->
-    <section class="etapes" id="inscrire">
+    <!-- ═════════════ L'INSCRIPTION ═════════════ -->
+    <section class="inscription" id="inscrire">
       <div class="conteneur">
-        <p class="surtitre centre" data-reveal><span class="trait"></span><span data-i18n="steps.kicker">{{steps.kicker}}</span><span class="trait"></span></p>
-        <h2 class="titre-section centre etapes-titre" data-i18n-html="steps.title" data-split="words">{{{steps.title}}}</h2>
-        <ol class="etapes-liste">
-          <li class="etape"><span class="etape-n">1</span><h3 data-i18n="steps.s1.title">{{steps.s1.title}}</h3><p data-i18n-html="steps.s1.text">{{{steps.s1.text}}}</p></li>
-          <li class="etape"><span class="etape-n">2</span><h3 data-i18n="steps.s2.title">{{steps.s2.title}}</h3><p data-i18n="steps.s2.text">{{steps.s2.text}}</p></li>
-          <li class="etape"><span class="etape-n">3</span><h3 data-i18n="steps.s3.title">{{steps.s3.title}}</h3><p data-i18n="steps.s3.text">{{steps.s3.text}}</p></li>
-          <li class="etapes-ligne" aria-hidden="true"><span></span></li>
-        </ol>
-        <div class="etapes-actions" data-reveal>
-          <a class="bouton bouton-plein" data-mail="visite" href="mailto:infoheavenly24@gmail.com" data-magnetic><span data-i18n="steps.cta">{{steps.cta}}</span><svg class="ic"><use href="#fleche"/></svg></a>
-          <a class="bouton bouton-trait" href="tel:+22238328888" data-magnetic><span data-i18n-html="close.call">{{{close.call}}}</span></a>
+        <div class="carte-couleur carte-ciel">
+          <header class="tete tete-centre">
+            <p class="etiquette e-blanc" data-anim><span class="point"></span><span data-i18n="steps.kicker">{{steps.kicker}}</span></p>
+            <h2 class="titre" data-i18n-html="steps.title" data-anim>{{{steps.title}}}</h2>
+          </header>
+          <ol class="etapes">
+            <li class="etape" data-anim="pop" style="--i:0"><span class="etape-n n-vert">1</span><h3 data-i18n="steps.s1.title">{{steps.s1.title}}</h3><p data-i18n-html="steps.s1.text">{{{steps.s1.text}}}</p></li>
+            <li class="etape-lien" aria-hidden="true"><svg viewBox="0 0 120 40" preserveAspectRatio="none"><path class="trace pointille" pathLength="1" d="M4 30c30-28 80-28 112-6"/></svg></li>
+            <li class="etape" data-anim="pop" style="--i:1"><span class="etape-n n-ciel">2</span><h3 data-i18n="steps.s2.title">{{steps.s2.title}}</h3><p data-i18n="steps.s2.text">{{steps.s2.text}}</p></li>
+            <li class="etape-lien" aria-hidden="true"><svg viewBox="0 0 120 40" preserveAspectRatio="none"><path class="trace pointille" pathLength="1" d="M4 10c30 28 80 28 112 6"/></svg></li>
+            <li class="etape" data-anim="pop" style="--i:2"><span class="etape-n n-jaune">3</span><h3 data-i18n="steps.s3.title">{{steps.s3.title}}</h3><p data-i18n="steps.s3.text">{{steps.s3.text}}</p></li>
+          </ol>
+          <div class="actions-centre" data-anim>
+            <a class="btn btn-vert" data-mail="visite" href="mailto:infoheavenly24@gmail.com"><span data-i18n="steps.cta">{{steps.cta}}</span><svg class="ic sens"><use href="#i-fleche"/></svg></a>
+            <a class="btn btn-blanc" href="tel:+22238328888"><svg class="ic"><use href="#i-appel"/></svg><span data-i18n-html="close.call">{{{close.call}}}</span></a>
+          </div>
         </div>
       </div>
     </section>
@@ -458,67 +364,66 @@
     <!-- ═════════════ LES QUESTIONS ═════════════ -->
     <section class="questions" id="questions">
       <div class="conteneur questions-grille">
-        <div class="questions-tete">
-          <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="faq.kicker">{{faq.kicker}}</span></p>
-          <h2 class="titre-section" data-i18n-html="faq.title" data-split="words">{{{faq.title}}}</h2>
-          <p class="texte" data-i18n="faq.more" data-reveal>{{faq.more}}</p>
-          <a class="bouton bouton-trait questions-appel" href="tel:+22238328888" data-magnetic data-reveal><span data-i18n-html="close.call">{{{close.call}}}</span></a>
-        </div>
+        <header class="tete">
+          <p class="etiquette e-ciel" data-anim><span class="point"></span><span data-i18n="faq.kicker">{{faq.kicker}}</span></p>
+          <h2 class="titre" data-i18n-html="faq.title" data-anim>{{{faq.title}}}</h2>
+          <p class="texte" data-i18n="faq.more" data-anim>{{faq.more}}</p>
+          <a class="btn btn-blanc" href="tel:+22238328888" data-anim><svg class="ic"><use href="#i-appel"/></svg><span data-i18n-html="close.call">{{{close.call}}}</span></a>
+        </header>
         <div class="faq">
-          <details class="q" data-reveal><summary><span data-i18n="faq.q1">{{faq.q1}}</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a1">{{{faq.a1}}}</p></div></details>
-          <details class="q" data-reveal><summary><span data-i18n="faq.q2">{{faq.q2}}</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a2">{{{faq.a2}}}</p></div></details>
-          <details class="q" data-reveal><summary><span data-i18n="faq.q3">{{faq.q3}}</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a3">{{{faq.a3}}}</p></div></details>
-          <details class="q" data-reveal><summary><span data-i18n="faq.q4">{{faq.q4}}</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a4">{{{faq.a4}}}</p></div></details>
-          <details class="q" data-reveal><summary><span data-i18n="faq.q5">{{faq.q5}}</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a5">{{{faq.a5}}}</p></div></details>
-          <details class="q" data-reveal><summary><span data-i18n="faq.q6">{{faq.q6}}</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a6">{{{faq.a6}}}</p></div></details>
-          <details class="q" data-reveal><summary><span data-i18n="faq.q7">{{faq.q7}}</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a7">{{{faq.a7}}}</p></div></details>
+          <details class="q" data-anim><summary><span data-i18n="faq.q1">{{faq.q1}}</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a1">{{{faq.a1}}}</p></div></details>
+          <details class="q" data-anim><summary><span data-i18n="faq.q2">{{faq.q2}}</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a2">{{{faq.a2}}}</p></div></details>
+          <details class="q" data-anim><summary><span data-i18n="faq.q3">{{faq.q3}}</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a3">{{{faq.a3}}}</p></div></details>
+          <details class="q" data-anim><summary><span data-i18n="faq.q4">{{faq.q4}}</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a4">{{{faq.a4}}}</p></div></details>
+          <details class="q" data-anim><summary><span data-i18n="faq.q5">{{faq.q5}}</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a5">{{{faq.a5}}}</p></div></details>
+          <details class="q" data-anim><summary><span data-i18n="faq.q6">{{faq.q6}}</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a6">{{{faq.a6}}}</p></div></details>
+          <details class="q" data-anim><summary><span data-i18n="faq.q7">{{faq.q7}}</span><i aria-hidden="true"></i></summary><div class="q-r"><p data-i18n-html="faq.a7">{{{faq.a7}}}</p></div></details>
         </div>
       </div>
     </section>
 
-    <!-- ═════════════ NOUS TROUVER ═════════════ -->
-    <section class="visite" id="visite">
-      <div class="conteneur visite-grille">
-        <div class="visite-texte">
-          <p class="surtitre" data-reveal><span class="trait"></span><span data-i18n="visit.kicker">{{visit.kicker}}</span></p>
-          <h2 class="titre-section" data-i18n-html="visit.title" data-split="words">{{{visit.title}}}</h2>
-          <p class="texte" data-i18n="visit.text" data-reveal>{{visit.text}}</p>
-          <dl class="coordonnees">
-            <div data-reveal><dt data-i18n="visit.address.label">{{visit.address.label}}</dt><dd data-i18n="visit.address">{{visit.address}}</dd></div>
-            <div data-reveal><dt data-i18n="visit.code.label">{{visit.code.label}}</dt><dd dir="ltr">4268+JWX Nouakchott</dd></div>
-            <div data-reveal><dt data-i18n="visit.phone.label">{{visit.phone.label}}</dt><dd><a href="tel:+22238328888" dir="ltr">+222 38 32 88 88</a></dd></div>
-            <div data-reveal><dt data-i18n="visit.email.label">{{visit.email.label}}</dt><dd><a href="mailto:infoheavenly24@gmail.com">infoheavenly24@gmail.com</a></dd></div>
-          </dl>
-          <div class="visite-actions" data-reveal>
-            <a class="bouton bouton-plein" data-mail="visite" href="mailto:infoheavenly24@gmail.com" data-magnetic><span data-i18n="visit.request">{{visit.request}}</span><svg class="ic"><use href="#fleche"/></svg></a>
-            <a class="bouton bouton-trait" href="https://www.google.com/maps/search/?api=1&amp;query=4268%2BJWX%20Nouakchott" target="_blank" rel="noopener" data-magnetic><span data-i18n="visit.directions">{{visit.directions}}</span></a>
-            <a class="bouton bouton-trait" href="tel:+22238328888" data-magnetic><span data-i18n="visit.call">{{visit.call}}</span></a>
+    <!-- ═════════════ CONTACT ═════════════ -->
+    <section class="contact" id="visite">
+      <div class="conteneur contact-grille">
+        <div class="contact-texte">
+          <p class="etiquette e-jaune" data-anim><span class="point"></span><span data-i18n="visit.kicker">{{visit.kicker}}</span></p>
+          <h2 class="titre" data-i18n-html="visit.title" data-anim>{{{visit.title}}}</h2>
+          <p class="texte" data-i18n="visit.text" data-anim>{{visit.text}}</p>
+          <ul class="coord" data-anim>
+            <li><span class="icone-p ic-vert"><svg><use href="#i-lieu"/></svg></span><div><small data-i18n="visit.address.label">{{visit.address.label}}</small><span data-i18n="visit.address">{{visit.address}}</span></div></li>
+            <li><span class="icone-p ic-jaune"><svg><use href="#i-code"/></svg></span><div><small data-i18n="visit.code.label">{{visit.code.label}}</small><span dir="ltr">4268+JWX Nouakchott</span></div></li>
+            <li><span class="icone-p ic-corail"><svg><use href="#i-appel"/></svg></span><div><small data-i18n="visit.phone.label">{{visit.phone.label}}</small><a href="tel:+22238328888" dir="ltr">+222 38 32 88 88</a></div></li>
+            <li><span class="icone-p ic-ciel"><svg><use href="#i-mail"/></svg></span><div><small data-i18n="visit.email.label">{{visit.email.label}}</small><a href="mailto:infoheavenly24@gmail.com">infoheavenly24@gmail.com</a></div></li>
+          </ul>
+          <div class="contact-actions" data-anim>
+            <a class="btn btn-vert" data-mail="visite" href="mailto:infoheavenly24@gmail.com"><span data-i18n="visit.request">{{visit.request}}</span><svg class="ic sens"><use href="#i-fleche"/></svg></a>
+            <a class="btn btn-blanc" href="https://www.google.com/maps/search/?api=1&amp;query=4268%2BJWX%20Nouakchott" target="_blank" rel="noopener"><svg class="ic"><use href="#i-lieu"/></svg><span data-i18n="visit.directions">{{visit.directions}}</span></a>
           </div>
         </div>
-        <div class="visite-carte">
-          <div class="arche-cadre">
-            <div class="arche carte-arche revele">
-              <iframe data-src="https://www.google.com/maps/embed?origin=mfe&amp;pb=!1m3!2m1!1s4268%2BJWX+Nouakchott!6i16" title="{{visit.map.title}}" data-i18n-attr="title:visit.map.title" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-            </div>
-          </div>
-          <span class="carte-code" dir="ltr">4268+JWX · Nouakchott</span>
+        <div class="carte-geo" data-anim="pop" style="--r:1.5deg">
+          <span class="scotch s-ciel" aria-hidden="true"></span>
+          <iframe data-src="https://www.google.com/maps/embed?origin=mfe&amp;pb=!1m3!2m1!1s4268%2BJWX+Nouakchott!6i16" title="{{visit.map.title}}" data-i18n-attr="title:visit.map.title" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
       </div>
     </section>
 
     <!-- ═════════════ LE MOT DE LA FIN ═════════════ -->
     <section class="fin" id="inscription">
-      <canvas class="etoiles" aria-hidden="true"></canvas>
-      <svg class="fin-etoile" aria-hidden="true" viewBox="0 0 100 100"><use href="#etoile"/></svg>
-      <div class="conteneur centre">
-        <h2 class="fin-titre">
-          <span data-i18n="close.line1" data-split="words">{{close.line1}}</span>
-          <span class="or" data-i18n-html="close.line2" data-split="words">{{{close.line2}}}</span>
-        </h2>
-        <p class="texte fin-texte" data-i18n="close.text" data-reveal>{{close.text}}</p>
-        <div class="fin-actions" data-reveal>
-          <a class="bouton bouton-or" data-mail="inscription" href="mailto:infoheavenly24@gmail.com" data-magnetic><span data-i18n="close.cta">{{close.cta}}</span><svg class="ic"><use href="#fleche"/></svg></a>
-          <a class="bouton bouton-clair" href="tel:+22238328888" data-magnetic><span data-i18n-html="close.call">{{{close.call}}}</span></a>
+      <div class="conteneur">
+        <div class="carte-couleur carte-verte fin-carte">
+          <div class="croquis" aria-hidden="true" data-anim>
+            <svg class="d d-fin-soleil" viewBox="0 0 120 120"><use href="#d-soleil-rayons" class="rayons"/><use href="#d-soleil-coeur"/></svg>
+            <svg class="d d-fin-avion" viewBox="0 0 100 80"><use href="#d-avion"/></svg>
+            <svg class="d d-fin-etoile1" viewBox="0 0 50 50"><use href="#d-etoile"/></svg>
+            <svg class="d d-fin-etoile2" viewBox="0 0 50 50"><use href="#d-etoile"/></svg>
+            <svg class="d d-fin-nuage" viewBox="0 0 100 60"><use href="#d-nuage"/></svg>
+          </div>
+          <h2 class="fin-titre" data-anim><span data-i18n="close.line1">{{close.line1}}</span> <span data-i18n-html="close.line2">{{{close.line2}}}</span></h2>
+          <p class="fin-texte" data-i18n="close.text" data-anim>{{close.text}}</p>
+          <div class="actions-centre" data-anim>
+            <a class="btn btn-jaune" data-mail="inscription" href="mailto:infoheavenly24@gmail.com"><span data-i18n="close.cta">{{close.cta}}</span><svg class="ic sens"><use href="#i-fleche"/></svg></a>
+            <a class="btn btn-contour" href="tel:+22238328888"><svg class="ic"><use href="#i-appel"/></svg><span data-i18n-html="close.call">{{{close.call}}}</span></a>
+          </div>
         </div>
       </div>
     </section>
@@ -526,36 +431,33 @@
 
   <div class="visionneuse" role="dialog" aria-modal="true" aria-hidden="true" data-i18n-attr="aria-label:life.kicker" aria-label="{{life.kicker}}">
     <button type="button" class="visionneuse-fermer" data-i18n-attr="aria-label:nav.close" aria-label="{{nav.close}}"><span></span><span></span></button>
-    <figure class="visionneuse-cadre">
-      <img alt="">
-      <figcaption><b></b><span></span></figcaption>
-    </figure>
+    <figure class="visionneuse-cadre"><img alt=""><figcaption><b></b><span></span></figcaption></figure>
     <div class="visionneuse-nav">
-      <button type="button" class="vn-prec" aria-label="‹"><svg class="ic"><use href="#fleche"/></svg></button>
+      <button type="button" class="vn-prec" aria-label="‹"><svg class="ic"><use href="#i-fleche"/></svg></button>
       <span class="vn-compte" dir="ltr"></span>
-      <button type="button" class="vn-suiv" aria-label="›"><svg class="ic"><use href="#fleche"/></svg></button>
+      <button type="button" class="vn-suiv" aria-label="›"><svg class="ic"><use href="#i-fleche"/></svg></button>
     </div>
   </div>
 
   <div class="barre-mobile" aria-hidden="true">
-    <a class="bouton bouton-trait" href="tel:+22238328888" tabindex="-1"><span data-i18n="bar.call">{{bar.call}}</span></a>
-    <a class="bouton bouton-or" href="#visite" tabindex="-1"><span data-i18n="bar.visit">{{bar.visit}}</span><svg class="ic"><use href="#fleche"/></svg></a>
+    <a class="btn btn-blanc" href="tel:+22238328888" tabindex="-1"><svg class="ic"><use href="#i-appel"/></svg><span data-i18n="bar.call">{{bar.call}}</span></a>
+    <a class="btn btn-vert" href="#visite" tabindex="-1"><span data-i18n="bar.visit">{{bar.visit}}</span></a>
   </div>
 
   <footer class="pied">
+    <svg class="vague vague-pied" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true"><path d="M0 70V34c140-24 280-32 420-16s280 32 420 18 280-34 420-28 120 14 180 16V70z"/></svg>
     <div class="conteneur">
       <div class="pied-haut">
         <div class="pied-marque">
-          <svg class="marque-signe grand" viewBox="0 0 100 100" aria-hidden="true"><use href="#etoile" class="o"/><use href="#etoile-int" class="i"/><circle cx="50" cy="50" r="4.5" class="c"/></svg>
-          <p class="pied-nom"><span class="brand-word">Heavenly</span> <span lang="ar" class="pied-ar">جنان</span></p>
+          <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><use href="#etoile" class="o"/><use href="#etoile-int" class="i"/><circle cx="50" cy="50" r="5" class="c"/></svg>
+          <p class="pied-nom">Heavenly Educational Institution<span lang="ar" dir="rtl">مؤسسة جنان للتعليم</span></p>
           <p class="pied-tag" data-i18n="footer.tagline">{{footer.tagline}}</p>
         </div>
         <div class="pied-col">
           <h4 data-i18n="footer.explore">{{footer.explore}}</h4>
-          <a href="#pourquoi" data-i18n="nav.why">{{nav.why}}</a>
           <a href="#ecole" data-i18n="nav.school">{{nav.school}}</a>
+          <a href="#pourquoi" data-i18n="nav.why">{{nav.why}}</a>
           <a href="#parcours" data-i18n="nav.journey">{{nav.journey}}</a>
-          <a href="#valeurs" data-i18n="nav.values">{{nav.values}}</a>
           <a href="#vie" data-i18n="nav.life">{{nav.life}}</a>
           <a href="#services" data-i18n="nav.services">{{nav.services}}</a>
           <a href="#inscrire" data-i18n="nav.enrol">{{nav.enrol}}</a>
@@ -564,7 +466,6 @@
           <h4 data-i18n="footer.contact">{{footer.contact}}</h4>
           <a href="tel:+22238328888" dir="ltr">+222 38 32 88 88</a>
           <a href="mailto:infoheavenly24@gmail.com">infoheavenly24@gmail.com</a>
-          <span dir="ltr">4268+JWX Nouakchott</span>
           <span data-i18n="visit.address">{{visit.address}}</span>
         </div>
         <div class="pied-col">
@@ -574,7 +475,6 @@
           <button type="button" data-lang="ar" lang="ar">العربية</button>
         </div>
       </div>
-      <div class="pied-geant brand-word" aria-hidden="true">Heavenly</div>
       <div class="pied-bas">
         <span data-i18n="footer.rights">{{footer.rights}}</span>
         <span class="credit"><span data-i18n="footer.credit">{{footer.credit}}</span> <a href="mailto:25038@supnum.mr"><b>EduPlateforme</b></a> · <a href="mailto:25038@supnum.mr">25038@supnum.mr</a> · <a href="tel:+22247331944" dir="ltr">47 33 19 44</a></span>
@@ -584,9 +484,6 @@
   </footer>
 
   <script src="assets/js/i18n.js"></script>
-  <script src="assets/vendor/gsap.min.js"></script>
-  <script src="assets/vendor/ScrollTrigger.min.js"></script>
-  <script src="assets/vendor/lenis.min.js"></script>
   <script src="assets/js/site.js"></script>
 </body>
 </html>

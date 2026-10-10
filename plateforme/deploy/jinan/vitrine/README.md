@@ -1,4 +1,4 @@
-# Le site vitrine de Heavenly (جنان)
+# Le site vitrine de Heavenly (مؤسسة جنان للتعليم)
 
 Un site d'une page, en **français, anglais et arabe** (bouton en haut à droite),
 pour présenter Heavenly Educational Institution aux familles. Tout est
@@ -11,11 +11,11 @@ vitrine/
 ├── favicon.svg
 ├── assets/
 │   ├── css/site.css        ← le style
-│   ├── js/site.js          ← les animations, le changement de langue
+│   ├── js/site.js          ← le comportement (langues, apparitions, FAQ, visionneuse)
 │   ├── js/i18n.js          ← les textes (GÉNÉRÉ depuis src/i18n.json)
 │   ├── img/                ← les photos (WebP, 760 px et 1400 px)
-│   ├── fonts/              ← Fraunces, Manrope, Amiri, IBM Plex Sans Arabic, Aref Ruqaa
-│   └── vendor/             ← GSAP 3.15 + ScrollTrigger, Lenis 1.3
+│   └── fonts/              ← Young Serif, Figtree, Caveat ; El Messiri,
+│                             IBM Plex Sans Arabic, Aref Ruqaa ; Amiri (le verset)
 ├── src/
 │   ├── i18n.json           ← TOUS les textes, dans les trois langues
 │   └── index.template.html ← la structure de la page
@@ -24,12 +24,28 @@ vitrine/
 
 ## Ce que la page dit, dans l'ordre
 
-L'accueil (la promesse, quatre preuves, « Réserver une visite ») · le défilé des
-mots · **Pourquoi Heavenly** (six raisons) · le nom (Heavenly / جنان) · le
-parcours de la maternelle au lycée · les trois langues · les valeurs · le verset ·
-la vie à l'école · grandir · les services · **trois pas jusqu'à la rentrée** ·
-**les questions des parents** · nous trouver · le mot de la fin. Sur téléphone,
-une barre « Appeler · Réserver une visite » suit le lecteur.
+L'accueil · la présentation (le nom, les chiffres vrais : 3 langues, 4 cycles,
+2 formules horaires, 1 programme officiel) · le projet éducatif (six piliers) ·
+le cursus de la maternelle au baccalauréat · le verset · la vie scolaire · le
+suivi des élèves · les services · l'inscription en trois étapes · les questions
+fréquentes · le contact et la carte · le mot de la fin. Sur téléphone, une barre
+« Appeler · Rendez-vous » apparaît après l'accueil.
+
+## Le dessin
+
+Un cahier d'écolier plutôt qu'une plaquette : papier chaud, photos tirées sur
+papier et scotchées, croquis à main levée (soleil, avion en papier, étoiles,
+cœur, nuage), étiquettes écrites à la main, mots surlignés au feutre, boutons
+« en relief » comme des jouets. Le projet éducatif est une feuille de cahier,
+les services des notes autocollantes, la vie scolaire un mur de polaroïds
+(cliquer ouvre la photo en grand).
+
+**Aucune bibliothèque JavaScript.** Les animations sont légères et ne touchent
+que `transform` et `opacity` : apparitions au défilement, traits qui se
+dessinent, soleil qui tourne, avion qui plane, étoiles qui scintillent ; dans
+le cursus, un avion en papier descend le chemin avec la page. Elles s'arrêtent
+quand elles sortent de l'écran. Première visite : ~490 Ko en tout (polices
+comprises).
 
 ## Changer un texte
 
@@ -48,6 +64,18 @@ python3 -m http.server 8080      # puis http://localhost:8080
 
 Un aperçu en **un seul fichier** (images et scripts intégrés, polices depuis
 Google Fonts) : `python3 construire.py --apercu heavenly-apercu.html`.
+
+La police du verset (`assets/fonts/amiri-verset-*.woff2`) ne contient que les
+lettres du verset (15 Ko au lieu de 106). Si le verset change, refaire le
+sous-ensemble à partir de la police Amiri complète :
+
+```bash
+pip install fonttools brotli
+pyftsubset Amiri-Regular.ttf --text="وَقُل رَّبِّ زِدْنِي عِلْمًا" \
+  --layout-features='*' --flavor=woff2 --output-file=assets/fonts/amiri-verset-NOUVEAU.woff2
+```
+
+puis mettre le nouveau nom dans `assets/fonts/fonts.css`.
 
 ## Le mettre en ligne — sur SON PROPRE domaine
 
@@ -94,11 +122,14 @@ par l'école avant publication : les intitulés des classes (« 1re → 4e AS »
 
 ## Sobriété et accessibilité
 
-- « Réduire les animations » (réglage du téléphone ou de l'ordinateur) : pas de
-  rideau, pas de défilement doux, tout est visible d'emblée.
-- Sans JavaScript : la page s'affiche en français, entière.
-- Arabe : mise en page de droite à gauche (`dir="rtl"`), mots jamais coupés en
-  lettres (les liaisons restent intactes).
+- « Réduire les animations » (réglage du téléphone ou de l'ordinateur) : rien
+  ne bouge, tout est visible d'emblée.
+- Sans JavaScript : la page s'affiche en français, entière (FAQ comprise). Si
+  le script ne se charge pas, tout s'affiche quand même après 3 secondes.
+- Arabe : mise en page de droite à gauche (`dir="rtl"`) par les propriétés
+  logiques ; changer de langue garde la section lue à sa place.
+- La visionneuse de photos se pilote au clavier (flèches, Échap) et garde le
+  focus.
 - La carte Google ne se charge que lorsqu'on s'en approche.
 
 Conçu et réalisé par **EduPlateforme** — 25038@supnum.mr · 47 33 19 44.

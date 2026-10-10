@@ -61,14 +61,13 @@ def apercu(page, sortie):
 
     google = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
               '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-              '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..600,0..100;1,9..144,300..600,0..100'
-              '&family=Manrope:wght@300..700&family=Amiri:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600'
-              '&family=Aref+Ruqaa:wght@400;700&display=swap">')
+              '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400..700'
+              '&family=Caveat:wght@500..700&family=El+Messiri:wght@500..700&family=IBM+Plex+Sans+Arabic:wght@400;500;600'
+              '&family=Amiri&family=Aref+Ruqaa:wght@700&display=swap">')
     page = re.sub(r'<!--FONTS-->.*?<!--/FONTS-->', google, page, flags=re.S)
     css = (ICI / 'assets/css/site.css').read_text(encoding='utf-8')
     page = page.replace('<link rel="stylesheet" href="assets/css/site.css">', f'<style>\n{css}\n</style>')
-    for src in ['assets/js/i18n.js', 'assets/vendor/gsap.min.js', 'assets/vendor/ScrollTrigger.min.js',
-                'assets/vendor/lenis.min.js', 'assets/js/site.js']:
+    for src in ['assets/js/i18n.js', 'assets/js/site.js']:
         js = (ICI / src).read_text(encoding='utf-8').replace('</script>', '<\\/script>')
         page = page.replace(f'<script src="{src}"></script>', f'<script>\n{js}\n</script>')
     page = re.sub(r'\s(srcset|sizes)="[^"]*"', '', page)
@@ -81,7 +80,9 @@ def apercu(page, sortie):
         chemin = petit if petit.exists() else ICI / f'assets/img/{nom}-1400.webp'
         return 'src="' + data_uri(chemin.relative_to(ICI), 'image/webp') + '"'
 
-    page = re.sub(r'src="assets/img/([\w-]+)-(?:760|1400)\.webp"', image, page)
+    page = re.sub(r'src="assets/img/([\w-]+?)-(?:760|1400)\.webp"', image, page)
+    page = re.sub(r'src="assets/img/([\w-]+\.webp)"',
+                  lambda m: 'src="' + data_uri(f'assets/img/{m.group(1)}', 'image/webp') + '"', page)
     page = page.replace('content="assets/img/og.jpg"', 'content=""')
     Path(sortie).write_text(page, encoding='utf-8')
     print(f'aperçu : {sortie} — {len(page.encode()) // 1024} Ko')

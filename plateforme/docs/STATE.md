@@ -77,6 +77,36 @@ courriel infoheavenly24@gmail.com, et la mention d'EduPlateforme en bas.
   titre, ligne sous le logo, pied de page, courriel d'inscription.
 - **À faire relire par l'école** : les intitulés de classes (1re → 4e AS…).
   Rien d'inventé : ni chiffres, ni témoignages, ni date de fondation.
+- **Nouveau dessin, 2026-10-10** (le propriétaire : « delete the valeurs
+  section and langues section… this still looks like AI made… add children
+  animations, don't overanimate… conserve the presentation, just change the
+  UI into something more human »). Sections Langues et Valeurs supprimées
+  (leurs clés retirées de `i18n.json` : 175 clés × 3). Les textes
+  professionnels sont gardés tels quels (seules deux étiquettes changent pour
+  ne plus répéter le titre : « Vos questions », « Nous rendre visite »).
+  Dessin « cahier d'écolier » : papier chaud, photos tirées sur papier et
+  scotchées, croquis à main levée, étiquettes manuscrites (Caveat / Aref
+  Ruqaa), mots surlignés au feutre, boutons en relief ; projet éducatif sur une
+  feuille de cahier, services en notes autocollantes, vie scolaire en mur de
+  polaroïds, cursus le long d'un chemin qu'un avion en papier descend avec la
+  page. Polices : Young Serif, Figtree, Caveat ; El Messiri, IBM Plex Sans
+  Arabic, Aref Ruqaa ; Amiri réduite aux lettres du verset (15 Ko au lieu de
+  106). **GSAP, ScrollTrigger et Lenis supprimés** : `site.js` (14 Ko, sans
+  bibliothèque) pose `.vu` par IntersectionObserver ; animations en
+  transform/opacity seulement, arrêtées hors écran. Première visite ~490 Ko
+  (contre ~700). Filet de sécurité : si `site.js` ne se charge pas, la classe
+  `js` est retirée après 3 s et tout s'affiche.
+- **Vérifié** (Chromium ; fr/en/ar ; 1440 × 900, 1366 × 768, 390 × 844) :
+  25 contrôles d'interaction passent — changement de langue (titre, `dir`,
+  courriels, URL, double clic rapide, section lue gardée en place même quand
+  les polices arabes arrivent après), FAQ en accordéon, visionneuse (grande
+  image, flèches, focus gardé, Échap rend le focus), carte chargée à
+  l'approche, toutes les apparitions déclenchées, menu du téléphone, barre
+  d'appel (cachée en haut et au contact), aucun débordement horizontal en
+  arabe, « réduire les animations » (rien de caché, aucune animation), sans
+  JavaScript, script bloqué. Aucune erreur de console. CLS 0,002.
+- **En attente du propriétaire** : le nom de domaine de la vitrine
+  (`VITRINE_DOMAIN`).
 
 ## LA PLATEFORME À TOUS LES INSCRITS — 2026-10-06 (soir)
 
