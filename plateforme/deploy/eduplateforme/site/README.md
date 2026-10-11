@@ -154,16 +154,17 @@ violation de CSP avec ou sans JavaScript.
 
 | Page | Performance | Accessibilité | Bonnes pratiques | SEO |
 |---|---:|---:|---:|---:|
-| Accueil | 98 | 100 | 100 | 100 |
+| Accueil | 100 | 100 | 100 | 100 |
 | Accueil anglais | 100 | 100 | 100 | 100 |
 | Accueil arabe | 98 | 100 | 100 | 100 |
-| Produits | 100 | 100 | 100 | 100 |
 | Produits, arabe | 99 | 100 | 100 | 100 |
 | Contact | 100 | 100 | 100 | 100 |
-| Contact, anglais | 100 | 100 | 100 | 100 |
 
-Accueil : **14 Ko** transférés hors polices (HTML 4,5 Ko, style 7 Ko, script
-2,4 Ko, compressés) ; polices 67 Ko en français et en anglais, 158 Ko en arabe.
+Mesuré après la mise en scène de l'accueil (sceau, bandeau, monument, maquette,
+grain). Le sceau est dessiné à l'échelle 3 pour que ses lettres aient une taille
+calculée lisible (100 % de texte lisible au sens de Lighthouse).
+
+Accueil : **≈ 17 Ko** transférés hors polices (HTML, style et script compressés) ; polices 67 Ko en français et en anglais, 158 Ko en arabe.
 CLS ≤ 0,005, aucun temps de blocage. Amiri est réduite par `polices.py` aux
 lettres que le site écrit (41 Ko par graisse au lieu de 100). Les animations ne
 touchent que `transform` et `opacity` ; les feuilles du cèdre s'arrêtent quand

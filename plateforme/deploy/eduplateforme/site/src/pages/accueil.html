@@ -10,16 +10,27 @@
       </div>
     </div>
     <div class="hero-cedre" aria-hidden="true">
+      <svg class="sceau" viewBox="0 0 600 600" focusable="false"><defs><path id="sceau-cercle" d="M300 300m-264 0a264 264 0 1 1 528 0a264 264 0 1 1-528 0"/></defs><circle class="sceau-filet" cx="300" cy="300" r="291"/><circle class="sceau-filet" cx="300" cy="300" r="237"/><text><textPath href="#sceau-cercle"{% if p.sceau_ajuste %} textLength="1644" lengthAdjust="spacing"{% endif %}>{{ p.sceau }}{{ p.sceau }}</textPath></text></svg>
       <svg class="cedre-grand" viewBox="0 0 120 120" focusable="false"><path class="arbre" d="{{ marque.bois }}"/><path class="arbre" d="{{ marque.plateaux }}"/></svg>
       <div class="chute">
         <svg class="f"><use href="#feuille"/></svg><svg class="f"><use href="#feuille"/></svg><svg class="f"><use href="#feuille"/></svg><svg class="f"><use href="#feuille"/></svg><svg class="f"><use href="#feuille"/></svg><svg class="f"><use href="#feuille"/></svg><svg class="f"><use href="#feuille"/></svg><svg class="f"><use href="#feuille"/></svg>
       </div>
     </div>
   </div>
+  <a class="defiler" href="#chiffres-titre"><span>{{ p.defiler }}</span><i aria-hidden="true"></i></a>
 </section>
+
+<div class="bandeau" aria-hidden="true">
+  <div class="bandeau-piste">{% for x in p.bandeau %}<span>{{ x }}</span><svg class="bandeau-f"><use href="#feuille"/></svg>{% endfor %}{% for x in p.bandeau %}<span>{{ x }}</span><svg class="bandeau-f"><use href="#feuille"/></svg>{% endfor %}</div>
+</div>
 
 <section class="chiffres" aria-labelledby="chiffres-titre">
   <h2 class="sr" id="chiffres-titre">{{ p.chiffres.titre }}</h2>
+  <div class="cadre monument reveal">
+    <p class="monument-prefixe">{{ p.monument.prefixe }}</p>
+    <p class="monument-valeur" data-compte="{{ p.monument.compte }}">{{ p.monument.valeur }}</p>
+    <p class="monument-libelle">{{ p.monument.libelle }}</p>
+  </div>
   <ul class="cadre chiffres-liste">
     {% for c in p.chiffres.items %}<li class="chiffre reveal">
       <p class="chiffre-prefixe">{{ c.prefixe }}</p>
@@ -64,6 +75,26 @@
     <ol class="vitrine-liste cascade">
       {% for x in p.produit.points %}<li class="reveal">{{ x }}</li>{% endfor %}
     </ol>
+    <figure class="maquette reveal">
+      <div class="maquette-scene" aria-hidden="true">
+        <div class="ecran">
+          <div class="ecran-barre"><i></i><i></i><i></i><span>{{ p.maquette.adresse }}</span></div>
+          <div class="ecran-corps">
+            <ul class="ecran-menu">{% for x in p.maquette.menu %}<li>{{ x }}</li>{% endfor %}</ul>
+            <div class="ecran-page">
+              <p class="ecran-titre">{{ p.maquette.titre }}</p>
+              <div class="ecran-cartes">{% for x in p.maquette.cartes %}<div><span>{{ x }}</span><b></b><i></i></div>{% endfor %}</div>
+              <div class="ecran-tableau"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="tel">
+          <p class="tel-titre"><svg class="tel-cedre" viewBox="0 0 120 120"><path d="{{ marque.bois }}"/><path d="{{ marque.plateaux }}"/></svg>{{ p.maquette.tel_titre }}</p>
+          {% for x in p.maquette.tel %}<div class="tel-carte"><span>{{ x }}</span><i></i></div>{% endfor %}
+        </div>
+      </div>
+      <figcaption>{{ p.maquette.legende }}</figcaption>
+    </figure>
   </div>
 </section>
 

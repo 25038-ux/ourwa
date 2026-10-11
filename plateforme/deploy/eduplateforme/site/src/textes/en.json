@@ -34,10 +34,23 @@
       "chapo": "EduPlateforme is a studio of a few Mauritanian engineers. We design exceptional websites and open, on request, access to our exclusive products — the ones that run nearly 3,000 students today.",
       "cta_acces": "Request access",
       "cta_produits": "Discover our products",
+      "sceau": "Access by request · Reserved for a few · Nouakchott · ",
+      "sceau_ajuste": "yes",
+      "defiler": "Discover",
+      "bandeau": ["Bespoke websites", "School management platform", "The families’ app", "Bilingual report cards", "Français · English · العربية", "Crafted in Nouakchott"],
+      "monument": {"prefixe": "Nearly", "valeur": "3,000", "compte": "3000", "libelle": "students run on our products today."},
+      "maquette": {
+        "legende": "A stylised view. The real interface is unveiled in a private demonstration.",
+        "adresse": "Dashboard · restricted access",
+        "menu": ["Enrolment", "Grades & report cards", "Cash desk & unpaid fees", "Staff & payroll", "Evening classes", "Network"],
+        "titre": "Official report card",
+        "cartes": ["Enrolments", "Payments received", "Unpaid fees"],
+        "tel_titre": "Family space",
+        "tel": ["Grades & report card", "Payment status", "Absences & remarks", "Homework"]
+      },
       "chiffres": {
         "titre": "In figures",
         "items": [
-          { "prefixe": "Nearly", "valeur": "3,000", "compte": "3000", "libelle": "students run on our products today" },
           { "prefixe": "", "valeur": "0", "compte": "", "libelle": "discrepancies across 88 checks against real figures before going live" },
           { "prefixe": "", "valeur": "3", "compte": "", "libelle": "languages on our sites: French, English, Arabic" },
           { "prefixe": "", "valeur": "100%", "compte": "", "libelle": "designed and built in Mauritania" }

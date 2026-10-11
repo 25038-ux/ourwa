@@ -34,10 +34,23 @@
       "chapo": "EduPlateforme est un atelier de quelques ingénieurs mauritaniens. Nous concevons des sites web d’exception et ouvrons, sur demande, l’accès à nos produits exclusifs — ceux qui gèrent aujourd’hui près de 3 000 élèves.",
       "cta_acces": "Demander un accès",
       "cta_produits": "Découvrir nos produits",
+      "sceau": "Accès sur demande · Réservé à quelques-uns · Nouakchott · ",
+      "sceau_ajuste": "oui",
+      "defiler": "Découvrir",
+      "bandeau": ["Sites web sur mesure", "Plateforme de gestion scolaire", "Application des familles", "Bulletins bilingues", "Français · English · العربية", "Conçu à Nouakchott"],
+      "monument": {"prefixe": "Près de", "valeur": "3 000", "compte": "3000", "libelle": "élèves gérés aujourd’hui par nos produits."},
+      "maquette": {
+        "legende": "Vue stylisée. L’interface réelle se découvre en démonstration privée.",
+        "adresse": "Tableau de bord · accès réservé",
+        "menu": ["Scolarité", "Notes et bulletins", "Caisse et impayés", "Personnel et paie", "Cours du soir", "Réseau"],
+        "titre": "Bulletin officiel",
+        "cartes": ["Inscriptions", "Encaissements", "Impayés"],
+        "tel_titre": "Espace famille",
+        "tel": ["Notes et bulletin", "État des paiements", "Absences et remarques", "Exercices"]
+      },
       "chiffres": {
         "titre": "Quelques chiffres",
         "items": [
-          { "prefixe": "Près de", "valeur": "3 000", "compte": "3000", "libelle": "élèves gérés aujourd’hui par nos produits" },
           { "prefixe": "", "valeur": "0", "compte": "", "libelle": "écart sur 88 contrôles menés contre les chiffres réels avant la mise en service" },
           { "prefixe": "", "valeur": "3", "compte": "", "libelle": "langues sur nos sites : français, anglais, arabe" },
           { "prefixe": "", "valeur": "100 %", "compte": "", "libelle": "conçu et développé en Mauritanie" }

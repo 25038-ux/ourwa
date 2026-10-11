@@ -2,7 +2,8 @@
  * EduPlateforme — le comportement du site. Aucune bibliothèque, aucun traceur.
  *
  *  0. Le compteur (« près de 3 000 ») monte une fois quand il paraît ; les
- *     feuilles du cèdre s'arrêtent de tomber quand on ne les voit plus.
+ *     feuilles et le sceau du cèdre s'arrêtent quand on ne les voit plus ; une
+ *     lumière suit la souris sur l'ouverture.
  *
  *  1. Apparitions au défilement : ce qui est déjà à l'écran au chargement est
  *     marqué « vu » AVANT que la classe `js` ne cache le reste — rien ne
@@ -68,6 +69,22 @@
   const cedre = document.querySelector('.hero-cedre');
   if (cedre && io) {
     new IntersectionObserver((e) => cedre.classList.toggle('endormi', !e[0].isIntersecting)).observe(cedre);
+  }
+
+  /* 1 ter. Une lumière suit la souris sur l'ouverture et l'appel final */
+  if (!calme && window.matchMedia('(pointer: fine)').matches) {
+    document.querySelectorAll('.hero, .appel').forEach((zone) => {
+      let image = 0;
+      zone.addEventListener('pointermove', (e) => {
+        if (image) return;
+        image = requestAnimationFrame(() => {
+          image = 0;
+          const r = zone.getBoundingClientRect();
+          zone.style.setProperty('--mx', `${Math.round(e.clientX - r.left)}px`);
+          zone.style.setProperty('--my', `${Math.round(e.clientY - r.top)}px`);
+        });
+      });
+    });
   }
 
   /* 2. Le menu du téléphone */

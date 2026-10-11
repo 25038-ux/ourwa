@@ -80,7 +80,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   font-family: var(--titre);
   font-weight: 500;
 }
-.titre-hero { font-size: clamp(2.8rem, 5.3vw, 5.8rem); line-height: 1; letter-spacing: -.02em; }
+.titre-hero { font-size: clamp(2.8rem, 5vw, 5.6rem); line-height: 1; letter-spacing: -.02em; }
 .titre-hero .l1, .titre-hero .l2 { display: block; }
 .titre-hero .l2 { font-style: italic; color: var(--or-clair); }
 .titre-page { font-size: clamp(2.8rem, 6vw, 6rem); }
@@ -204,7 +204,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* ── Accueil : les chiffres ───────────────────────────────────────────── */
 
 .chiffres { border-block: 1px solid var(--filet-or); background: var(--nuit); }
-.chiffres-liste { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.chiffres-liste { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--filet-or); }
 .chiffre { padding: clamp(36px, 4.4vw, 64px) clamp(16px, 2vw, 32px); }
 .chiffre + .chiffre { border-inline-start: 1px solid var(--filet-or); }
 .chiffre:first-child { padding-inline-start: 0; }
@@ -240,7 +240,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .badge {
   display: inline-block; margin-block: 30px 26px; padding: 9px 16px;
   border: 1px solid var(--or);
-  font: 500 .72rem/1.3 var(--texte); letter-spacing: .26em; text-transform: uppercase; color: var(--or);
+  font: 500 .75rem/1.3 var(--texte); letter-spacing: .26em; text-transform: uppercase; color: var(--or);
 }
 :root[lang='ar'] .badge { letter-spacing: 0; font-size: .95rem; }
 .vitrine-tete .badge + .lien-trait { display: table; }
@@ -252,7 +252,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   font-size: clamp(1.05rem, 1.4vw, 1.2rem);
 }
 .vitrine-liste li:last-child { border-bottom: 1px solid var(--filet-or); }
-.vitrine-liste li::before { content: counter(v, decimal-leading-zero); font: italic 500 1.15rem/1 'Bodoni Moda', serif; color: var(--or); }
+.vitrine-liste li::before { content: counter(v, decimal-leading-zero); font: 500 .8rem/1 var(--texte); letter-spacing: .18em; color: var(--or); }
 
 /* ── Accueil : l'atelier ──────────────────────────────────────────────── */
 
@@ -346,7 +346,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .canaux { margin-top: clamp(40px, 5vw, 64px); }
 .canaux div { padding-block: 18px; border-top: 1px solid var(--filet-or); }
 .canaux div:last-child { border-bottom: 1px solid var(--filet-or); }
-.canaux dt { font: 500 .72rem/1.4 var(--texte); letter-spacing: .28em; text-transform: uppercase; color: var(--or); }
+.canaux dt { font: 500 .75rem/1.4 var(--texte); letter-spacing: .28em; text-transform: uppercase; color: var(--or); }
 :root[lang='ar'] .canaux dt { letter-spacing: 0; font-size: .95rem; }
 .canaux dd { margin-top: 6px; font-size: clamp(1.3rem, 2vw, 1.65rem); line-height: 1.3; }
 .canaux a { font: 400 clamp(1.1rem, 1.6vw, 1.3rem)/1.4 var(--texte); letter-spacing: .02em; text-decoration: none; border-bottom: 1px solid var(--filet-or); overflow-wrap: anywhere; transition: border-color .25s; }
@@ -355,7 +355,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .formulaire { grid-column: 7 / -1; padding: clamp(28px, 4vw, 56px); background: var(--nuit-2); border: 1px solid var(--filet-or); }
 .formulaire .titre-m { margin-bottom: 32px; }
 .champ { margin-bottom: 24px; }
-.champ label { display: block; font: 500 .72rem/1.4 var(--texte); letter-spacing: .24em; text-transform: uppercase; color: var(--or); }
+.champ label { display: block; font: 500 .75rem/1.4 var(--texte); letter-spacing: .24em; text-transform: uppercase; color: var(--or); }
 :root[lang='ar'] .champ label { letter-spacing: 0; font-size: .95rem; }
 .facultatif { color: var(--lisible); letter-spacing: .1em; text-transform: none; }
 .champ input, .champ select, .champ textarea {
@@ -406,7 +406,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .pied { padding-block: clamp(64px, 8vw, 104px) 32px; background: var(--nuit-3); border-top: 1px solid var(--filet-or); }
 .pied-grille { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 40px; }
 .pied-marque p { margin-top: 18px; max-width: 34ch; color: var(--lisible); font-size: .975rem; }
-.pied h2 { margin-bottom: 14px; font: 500 .72rem/1.4 var(--texte); letter-spacing: .28em; text-transform: uppercase; color: var(--or); }
+.pied h2 { margin-bottom: 14px; font: 500 .75rem/1.4 var(--texte); letter-spacing: .28em; text-transform: uppercase; color: var(--or); }
 :root[lang='ar'] .pied h2 { letter-spacing: 0; font-size: .95rem; }
 .pied-col li { padding-block: 5px; }
 .pied-col a { color: var(--lisible); text-decoration: none; overflow-wrap: anywhere; transition: color .25s; }
@@ -489,9 +489,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .hero-texte, .hero-cedre, .vitrine-tete, .vitrine-liste, .atelier-grille > header, .atelier-corps,
   .produit-tete, .domaines, .produit .liste-large, .contact-tete, .formulaire, .legal-tete, .legal-corps { grid-column: 1 / -1; }
   .hero-cedre { grid-row: 2; width: min(86%, 460px); margin: 40px auto 0; }
-  .chiffres-liste { grid-template-columns: 1fr 1fr; }
-  .chiffre:nth-child(odd) { padding-inline-start: 0; border-inline-start: 0; }
-  .chiffre:nth-child(n+3) { border-top: 1px solid var(--filet-or); }
   .metiers-grille, .etapes, .domaines { grid-template-columns: 1fr; }
   .metier, .metier + .metier { padding-inline: 0; border: 0; }
   .metier + .metier { margin-top: 64px; padding-top: 64px; border-top: 1px solid var(--filet-sombre); }
@@ -534,3 +531,191 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .entete, .pied, .hero-cedre, .appel, .menu-btn { display: none; }
   body, .clair { background: #fff; color: #000; }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   LA MISE EN SCÈNE — grain, lumière, sceau, bandeau, monument, maquette.
+   Tout ce qui bouge est dans « prefers-reduced-motion: no-preference » ;
+   le défilement piloté (animation-timeline) n'est qu'un supplément.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Le grain de film, sur tout le site (une tuile de bruit, jamais animée). */
+body::after {
+  content: ''; position: fixed; inset: 0; z-index: 90; pointer-events: none; opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.2 -.15'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+/* La lumière qui suit le pointeur (variables posées par site.js). */
+.hero::before, .appel::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(520px circle at var(--mx, 72%) var(--my, 42%), rgba(232, 212, 166, .09), transparent 62%);
+}
+.hero > .cadre, .appel > .cadre { position: relative; }
+
+/* Le grand titre : un reflet d'or passe sur la deuxième ligne. */
+.titre-hero .l2 {
+  background: linear-gradient(100deg, var(--or-clair) 0 42%, #FFF6DC 50%, var(--or-clair) 58% 100%) 100% 0 / 260% 100% no-repeat;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  padding-inline-end: .14em; padding-bottom: .1em; margin-bottom: -.1em;
+}
+
+/* Le sceau qui tourne autour du cèdre. */
+.hero-cedre { isolation: isolate; }
+.sceau { position: absolute; left: 54%; top: 47%; z-index: -1; width: 104%; height: auto; translate: -50% -50%; overflow: visible; }
+.sceau text { font: 500 22.2px/1 var(--texte); letter-spacing: .3em; text-transform: uppercase; fill: var(--or); }
+/* En arabe : base gauche-à-droite (sinon Chromium n'affiche rien sur un chemin), sans textLength (qui casse la liaison des lettres). */
+:root[lang='ar'] .sceau { direction: ltr; }
+:root[lang='ar'] .sceau text { font: 500 40.2px/1 'Tajawal', sans-serif; letter-spacing: 0; text-transform: none; }
+.sceau-filet { fill: none; stroke: var(--or); stroke-opacity: .28; stroke-width: 1.05; }
+
+/* L'invitation à défiler. */
+.defiler {
+  position: absolute; left: 50%; bottom: 26px; translate: -50% 0; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  font: 500 .75rem/1 var(--texte); letter-spacing: .32em; text-transform: uppercase; color: var(--or); text-decoration: none;
+}
+:root[lang='ar'] .defiler { letter-spacing: 0; font-size: .9rem; }
+.defiler i { position: relative; width: 1px; height: 54px; overflow: hidden; background: linear-gradient(var(--filet-or), transparent); }
+.defiler i::after { content: ''; position: absolute; left: 0; top: -40%; width: 1px; height: 40%; background: var(--or-clair); }
+
+/* Le bandeau : les métiers défilent sans fin, en lettres creuses et pleines. */
+.bandeau { overflow: hidden; padding-block: clamp(20px, 2.6vw, 34px); background: var(--nuit-3); border-block: 1px solid var(--filet-or); }
+.bandeau-piste { display: flex; align-items: center; gap: clamp(28px, 3.4vw, 56px); width: max-content; padding-inline-end: clamp(28px, 3.4vw, 56px); }
+.bandeau span { font: italic 500 clamp(2rem, 4.4vw, 4.2rem)/1.15 var(--titre); white-space: nowrap; color: transparent; -webkit-text-stroke: 1px var(--or); }
+.bandeau span:nth-of-type(2n) { color: var(--or-clair); -webkit-text-stroke: 0; }
+:root[lang='ar'] .bandeau span { font-style: normal; font-weight: 700; }
+.bandeau-f { flex: none; width: 24px; height: 24px; fill: var(--cuivre); rotate: -28deg; }
+
+/* Le monument : « près de 3 000 », en or massif. */
+.monument { padding-block: clamp(72px, 10vw, 150px) clamp(44px, 5vw, 76px); text-align: center; }
+.monument-prefixe { display: inline-flex; align-items: center; gap: 18px; font: 500 .8rem/1 var(--texte); letter-spacing: .42em; text-transform: uppercase; color: var(--or); }
+.monument-prefixe::before, .monument-prefixe::after { content: ''; width: 56px; height: 1px; background: var(--or); }
+:root[lang='ar'] .monument-prefixe { letter-spacing: 0; font-size: 1.2rem; text-transform: none; }
+.monument-valeur {
+  margin-block: 18px 24px;
+  font: 500 clamp(5.4rem, 23vw, 21rem)/.86 'Bodoni Moda', Georgia, serif; letter-spacing: -.045em;
+  font-variant-numeric: lining-nums;
+  background: linear-gradient(180deg, #F6E8C4 0%, var(--or) 52%, #85642B 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  padding-inline: .06em;
+}
+.monument-libelle { font: 300 clamp(1.15rem, 1.7vw, 1.5rem)/1.5 var(--texte); color: var(--lisible); }
+
+/* La maquette stylisée de la plateforme et de l'application. */
+.maquette { grid-column: 1 / -1; margin-top: clamp(48px, 7vw, 110px); }
+.maquette-scene { position: relative; padding-bottom: 7%; }
+.ecran {
+  width: 80%; overflow: hidden; border: 1px solid rgba(201, 162, 91, .4); border-radius: 14px;
+  background: linear-gradient(180deg, #102019, #0A1411);
+  box-shadow: 0 50px 120px -40px rgba(0, 0, 0, .75), inset 0 1px 0 rgba(232, 212, 166, .08);
+}
+.ecran-barre { display: flex; align-items: center; gap: 7px; padding: 12px 16px; border-bottom: 1px solid var(--filet-clair); }
+.ecran-barre i { width: 9px; height: 9px; border-radius: 50%; background: rgba(201, 162, 91, .35); }
+.ecran-barre span { margin-inline-start: 14px; padding: 4px 14px; border: 1px solid var(--filet-clair); border-radius: 99px; font-size: .75rem; letter-spacing: .06em; color: rgba(245, 239, 228, .55); }
+.ecran-corps { display: grid; grid-template-columns: 26% 1fr; min-height: 360px; }
+.ecran-menu { padding-block: 20px; border-inline-end: 1px solid var(--filet-clair); }
+.ecran-menu li { padding: 10px 22px; font-size: .8rem; color: rgba(245, 239, 228, .58); border-inline-start: 2px solid transparent; }
+.ecran-menu li:nth-child(2) { color: var(--or-clair); border-inline-start-color: var(--or); background: linear-gradient(90deg, rgba(201, 162, 91, .14), transparent); }
+[dir='rtl'] .ecran-menu li:nth-child(2) { background: linear-gradient(270deg, rgba(201, 162, 91, .14), transparent); }
+.ecran-page { padding: 24px 30px; }
+.ecran-titre { margin-bottom: 18px; font: 500 1.5rem/1.2 var(--titre); color: var(--ivoire); }
+.ecran-cartes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+.ecran-cartes div { padding: 14px 16px; border: 1px solid var(--filet-clair); border-radius: 10px; background: rgba(245, 239, 228, .02); }
+.ecran-cartes span { display: block; font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--or); }
+:root[lang='ar'] .ecran-cartes span { letter-spacing: 0; font-size: .85rem; }
+.ecran-cartes b { display: block; width: 62%; height: 20px; margin-top: 12px; border-radius: 4px; background: linear-gradient(90deg, var(--or-clair), var(--or)); }
+.ecran-cartes div:nth-child(2) b { width: 76%; }
+.ecran-cartes div:nth-child(3) b { width: 40%; background: linear-gradient(90deg, #E9A57A, var(--cuivre)); }
+.ecran-cartes i { display: block; width: 86%; height: 6px; margin-top: 12px; border-radius: 3px; background: rgba(245, 239, 228, .12); }
+.ecran-tableau i {
+  display: block; height: 34px; border-bottom: 1px solid var(--filet-clair);
+  background: linear-gradient(90deg, rgba(245, 239, 228, .13) 0 20%, transparent 20% 28%, rgba(245, 239, 228, .07) 28% 56%, transparent 56% 66%, rgba(201, 162, 91, .4) 66% 73%, transparent 73% 82%, rgba(245, 239, 228, .07) 82% 94%, transparent 94%) 0 50% / 100% 7px no-repeat;
+}
+.ecran-tableau i:nth-child(even) { background-size: 92% 7px; }
+.ecran-tableau i:nth-child(3n) { background-size: 84% 7px; }
+.tel {
+  position: absolute; inset-inline-end: 3%; bottom: 0; width: 22%; min-width: 170px; aspect-ratio: 9 / 18.5;
+  padding: 36px 13px 13px; border: 1px solid rgba(201, 162, 91, .55); border-radius: 30px;
+  background: linear-gradient(180deg, #14251E, #0B1512);
+  box-shadow: 0 50px 100px -30px rgba(0, 0, 0, .85), inset 0 0 0 5px #08100D;
+}
+.tel::before { content: ''; position: absolute; top: 13px; left: 50%; width: 32%; height: 13px; translate: -50% 0; border-radius: 99px; background: #040806; }
+.tel-titre { display: flex; align-items: center; gap: 8px; margin: 6px 4px 12px; font: 500 1rem/1.2 var(--titre); color: var(--ivoire); }
+.tel-cedre { flex: none; width: 20px; height: 20px; fill: var(--or); }
+.tel-carte { margin-top: 9px; padding: 11px 12px; border: 1px solid var(--filet-clair); border-radius: 12px; background: rgba(245, 239, 228, .03); }
+.tel-carte:first-of-type { border-color: rgba(201, 162, 91, .55); background: rgba(201, 162, 91, .09); }
+.tel-carte span { display: block; font-size: .75rem; line-height: 1.3; color: rgba(245, 239, 228, .78); }
+:root[lang='ar'] .tel-carte span { font-size: .85rem; }
+.tel-carte i { display: block; width: 68%; height: 6px; margin-top: 9px; border-radius: 3px; background: rgba(201, 162, 91, .45); }
+.tel-carte:nth-of-type(3) i { width: 46%; }
+.maquette figcaption { margin-top: 28px; font-size: .875rem; color: rgba(245, 239, 228, .58); }
+
+/* Les boutons d'or : un éclat passe au survol. */
+.btn-or { position: relative; overflow: hidden; isolation: isolate; }
+.btn-or::after {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 250, 235, .55) 50%, transparent 70%);
+  transform: translateX(-130%); transition: transform .9s var(--sortie);
+}
+.btn-or:hover::after, .btn-or:focus-visible::after { transform: translateX(130%); }
+
+/* La citation de l'atelier, en grand, et les numéros des produits en lettres creuses. */
+.citation p { font-size: clamp(2.1rem, 3.8vw, 3.4rem); background: linear-gradient(180deg, var(--ivoire), var(--or-clair)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; padding-inline-end: .12em; }
+.produit-n { font-style: italic; font-size: clamp(5rem, 9vw, 8.5rem); color: transparent; -webkit-text-stroke: 1px var(--or); }
+.produit-plateforme .produit-n { color: transparent; -webkit-text-stroke-color: var(--or-fonce); }
+
+/* La ligne d'or qui relie les trois étapes. */
+.etapes { position: relative; }
+.etapes::before { content: ''; position: absolute; top: -1px; inset-inline: 0; height: 2px; background: var(--or); transform-origin: left; }
+[dir='rtl'] .etapes::before { transform-origin: right; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .sceau { animation: tourne 80s linear infinite; }
+  [dir='rtl'] .sceau { animation-direction: reverse; }
+  .titre-hero .l2 { animation: reflet 8s ease-in-out 1.2s infinite; }
+  .defiler i::after { animation: goutte 2.4s var(--sortie) infinite; }
+  .bandeau-piste { animation: defile 55s linear infinite; }
+  [dir='rtl'] .bandeau-piste { animation-name: defile-rtl; }
+  .bandeau:hover .bandeau-piste { animation-play-state: paused; }
+  .tel { animation: flotte 7s ease-in-out infinite; }
+  .endormi .sceau { animation-play-state: paused; }
+}
+@keyframes tourne { to { rotate: 360deg; } }
+@keyframes reflet { 0%, 55% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+@keyframes goutte { to { top: 100%; } }
+@keyframes defile { to { translate: -50% 0; } }
+@keyframes defile-rtl { to { translate: 50% 0; } }
+@keyframes flotte { 50% { translate: 0 -12px; } }
+
+/* Le défilement pilote la profondeur (Chromium) ; ailleurs, tout est déjà en place. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .ecran { animation: redresse linear both; animation-timeline: view(); animation-range: entry 0% cover 42%; }
+    .monument-valeur { animation: approche linear both; animation-timeline: view(); animation-range: entry 0% cover 40%; }
+    .vitrine .filigrane, .tete-page .filigrane { animation: derive linear both; animation-timeline: view(); }
+    .etapes::before { animation: trace linear both; animation-timeline: view(); animation-range: entry 30% cover 55%; }
+  }
+}
+@keyframes redresse { from { transform: perspective(1600px) rotateX(16deg) scale(.93); opacity: .35; } }
+@keyframes approche { from { transform: scale(.86); opacity: .2; } }
+@keyframes derive { from { translate: 0 12%; } to { translate: 0 -8%; } }
+@keyframes trace { from { transform: scaleX(0); } }
+
+@media (max-width: 960px) {
+  .defiler { display: none; }
+  .sceau { width: 118%; }
+  .ecran { width: 100%; }
+  .ecran-corps { grid-template-columns: 1fr; min-height: 0; }
+  .ecran-menu { display: none; }
+  .ecran-page { padding: 18px; }
+  .tel { width: 38%; min-width: 140px; inset-inline-end: -2%; bottom: -6%; padding: 30px 10px 10px; border-radius: 24px; }
+  .maquette-scene { padding-bottom: 30%; }
+}
+@media (max-width: 560px) {
+  .ecran-cartes { grid-template-columns: 1fr 1fr; }
+  .ecran-cartes div:nth-child(3) { display: none; }
+  .tel { width: 46%; }
+  .tel-carte:nth-of-type(n+4) { display: none; }
+  .monument-prefixe::before, .monument-prefixe::after { width: 28px; }
+}
+@media (max-height: 760px) { .defiler { display: none; } }
+@media print { body::after, .bandeau, .defiler, .maquette { display: none; } }

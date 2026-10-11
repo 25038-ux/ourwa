@@ -59,6 +59,26 @@ section sur la moitié gauche, le contenu sur l'autre ; des sections hautes
 filets fins plutôt que des puces. Sur téléphone, une seule colonne, le menu se
 replie derrière un bouton « Menu ».
 
+## La mise en scène de l'accueil (ajoutée le 11/10, « crazy designs »)
+
+- **Le sceau** : un anneau d'or tourne lentement autour du cèdre — « Accès sur
+  demande · Réservé à quelques-uns · Nouakchott ». En arabe, le texte garde sa
+  longueur naturelle (forcer la longueur casserait la liaison des lettres).
+- **Le reflet** : un éclat de lumière passe sur la deuxième ligne du grand titre.
+- **La lumière** : un halo doré suit la souris sur l'ouverture et l'appel final.
+- **Le bandeau** : les métiers défilent sans fin, en Bodoni italique, une ligne
+  creuse, une ligne pleine, séparées par une feuille de cuivre.
+- **Le monument** : « près de 3 000 » en chiffres d'or massif (jusqu'à 21 rem),
+  qui s'approchent au défilement et comptent jusqu'au nombre exact.
+- **La maquette** : un tableau de bord et un téléphone dessinés en CSS, avec les
+  vrais noms des fonctions (Scolarité, Notes et bulletins, Caisse et impayés…)
+  et des barres à la place des données — légendée « vue stylisée » : rien n'est
+  présenté comme une capture réelle. Le tableau se redresse au défilement, le
+  téléphone flotte.
+- **Le grain** : une tuile de bruit très légère sur tout le site, comme un tirage.
+- Les numéros des produits en lettres creuses ; un éclat d'or sur les boutons ;
+  la ligne d'or des trois étapes se trace au défilement.
+
 ## Le mouvement
 
 - **Les feuilles du cèdre tombent** dans l'ouverture de l'accueil : huit feuilles
