@@ -57,6 +57,14 @@ export interface RotatedSession extends IssuedSession {
 const REFRESH_TTL_DAYS = 90;
 
 /**
+ * La fenêtre de grâce d'une rotation répétée — voir `rotate()`. Courte : elle
+ * couvre deux requêtes parties ensemble et une réponse perdue, pas davantage.
+ */
+const GRACE_SECONDS = 30;
+/** Successeurs qu'un même jeton dépensé peut donner (le gagnant compris). */
+const GRACE_MAX = 6;
+
+/**
  * Refresh-token lifecycle: issue, rotate, revoke.
  *
  * `refresh_tokens` is a platform table (a user is global), so these run outside
@@ -169,8 +177,48 @@ export class SessionsService {
       tx.query('UPDATE refresh_tokens SET used_at = now() WHERE id = $1 AND used_at IS NULL', [existing.id]),
     );
     if ((gagne.rowCount ?? 0) === 0) {
-      await this.revokeFamily(existing.family_id, 'refresh_token_reuse_detected');
-      throw new UnauthorizedException('Session réutilisée : toutes les sessions ont été révoquées par sécurité. Reconnectez-vous.');
+      // ⚠ LA FENÊTRE DE GRÂCE — et ses quatre conditions, toutes requises.
+      //
+      // Deux onglets, ou un deuxième clic avant la réponse du premier,
+      // présentent le MÊME jeton à quelques millisecondes d'écart ; une
+      // navigation interrompue jette le Set-Cookie de la rotation et le
+      // navigateur représente le jeton dépensé une seconde plus tard. Ce n'est
+      // pas un vol, et le traiter comme tel renvoyait tout le bureau à la page
+      // de connexion un quart d'heure après s'y être connecté.
+      //
+      //   1. le jeton a été dépensé il y a moins de GRACE_SECONDS ;
+      //   2. une empreinte a été enregistrée à l'émission ET celle présentée
+      //      lui correspond — même appareil, même réseau. Sans identité des
+      //      deux côtés, aucune grâce ;
+      //   3. ni le jeton ni sa famille n'ont été révoqués entre-temps ;
+      //   4. le jeton dépensé n'a pas déjà donné GRACE_MAX successeurs.
+      //
+      // Hors de ces conditions, rien ne change : toute la famille est révoquée.
+      // Le jeton est haché au repos, on ne peut donc pas rendre « le même »
+      // successeur : on en émet un frère, dans la même famille — un rejeu
+      // ultérieur de l'un ou de l'autre révoque toujours tout.
+      const memeAppareil = Boolean(existing.fingerprint) && Boolean(presentee) &&
+        (existing.fingerprint === presentee || existing.fingerprint === presenteeSansAdresse);
+      const etat = memeAppareil
+        ? await this.db.registry(async (tx) => {
+            const { rows } = await tx.query<{ recent: boolean; revoked: boolean; successeurs: string }>(
+              `SELECT (t.used_at > now() - make_interval(secs => $2)) AS recent,
+                      (t.revoked_at IS NOT NULL) AS revoked,
+                      (SELECT count(*)::text FROM refresh_tokens s
+                        WHERE s.family_id = t.family_id AND s.id <> t.id
+                          AND s.issued_at >= t.used_at) AS successeurs
+                 FROM refresh_tokens t WHERE t.id = $1`,
+              [existing.id, GRACE_SECONDS],
+            );
+            return rows[0];
+          })
+        : undefined;
+      if (etat?.revoked) throw new UnauthorizedException('Session révoquée. Reconnectez-vous.');
+      const grace = Boolean(etat?.recent) && Number(etat?.successeurs ?? '0') < GRACE_MAX;
+      if (!grace) {
+        await this.revokeFamily(existing.family_id, 'refresh_token_reuse_detected');
+        throw new UnauthorizedException('Session réutilisée : toutes les sessions ont été révoquées par sécurité. Reconnectez-vous.');
+      }
     }
 
     // Le jeton suivant garde la nature de l'empreinte du précédent : une
