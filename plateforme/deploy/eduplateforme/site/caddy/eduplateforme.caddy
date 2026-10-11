@@ -1,0 +1,50 @@
+# Le site public d'EduPlateforme — bloc Caddy.
+#
+# À ajouter à la configuration de Caddy du serveur qui l'héberge, après avoir
+# copié le dossier `site/` dans /srv/eduplateforme (ou ailleurs : changer `root`).
+# Remplacer eduplateforme.example par le vrai domaine (deux enregistrements A :
+# le domaine et www). Caddy obtient et renouvelle le certificat HTTPS tout seul.
+#
+# Rien de ce bloc ne touche à l'application : la console reste sur son propre
+# domaine (admin.<domaine de la plateforme>) ; ce site ne fait qu'un lien vers elle.
+
+www.eduplateforme.example {
+	redir https://eduplateforme.example{uri} permanent
+}
+
+eduplateforme.example {
+	root * /srv/eduplateforme
+	encode zstd gzip
+
+	# Les sources et les outils ne sont jamais servis.
+	@prive path /src/* /caddy/* /*.py /*.md
+	respond @prive 404
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), interest-cohort=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		# Aucun script ni style en ligne dans les pages : la politique n'a besoin ni
+		# de nonce ni de 'unsafe-inline'. `form-action mailto:` : le formulaire de
+		# contact, sans JavaScript, part par la messagerie.
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self' mailto:; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
+		-Server
+	}
+
+	# Les ressources changent d'adresse à chaque version (?v=…) : un an de cache.
+	@ressources path /assets/*
+	header @ressources Cache-Control "public, max-age=31536000, immutable"
+	@pages not path /assets/*
+	header @pages Cache-Control "no-cache"
+
+	file_server
+
+	handle_errors {
+		@ar expression `{http.request.uri.path}.startsWith("/ar/")`
+		rewrite @ar /ar/404.html
+		rewrite * /404.html
+		file_server
+	}
+}

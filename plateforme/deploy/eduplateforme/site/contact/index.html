@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="fr" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact — EduPlateforme</title>
+<meta name="description" content="Contacter EduPlateforme : courriel, téléphone, WhatsApp, ou un message préparé depuis le formulaire.">
+<link rel="canonical" href="/contact/">
+<link rel="alternate" hreflang="fr" href="/contact/">
+<link rel="alternate" hreflang="ar" href="/ar/contact/">
+<link rel="alternate" hreflang="x-default" href="/contact/">
+<meta name="theme-color" content="#F2EDE4">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="EduPlateforme">
+<meta property="og:title" content="Contact — EduPlateforme">
+<meta property="og:description" content="Contacter EduPlateforme : courriel, téléphone, WhatsApp, ou un message préparé depuis le formulaire.">
+<meta property="og:locale" content="fr_FR">
+<link rel="icon" href="/assets/logo/marque.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/source-serif-4-latin-36fa28.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/ibm-plex-sans-latin-fe6cf4.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/css/site.css?v=bccbad6e">
+<script src="/assets/js/site.js?v=bccbad6e" defer></script>
+</head>
+<body>
+<a class="saut" href="#contenu">Aller au contenu</a>
+
+<header class="entete">
+  <div class="cadre entete-in">
+    <a class="marque" href="/">
+      <svg class="marque-arc" viewBox="0 0 100 122" aria-hidden="true" focusable="false"><path d="M14 118V55A54 54 0 0 1 50 4.1A54 54 0 0 1 86 55V118Z"/><rect class="p1" x="26" y="96" width="16" height="7"/><rect class="p2" x="42" y="82" width="16" height="7"/><rect class="p3" x="58" y="68" width="16" height="7"/></svg>
+      <span class="marque-nom">EduPlateforme</span>
+    </a>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="navigation">Menu</button>
+    <nav class="nav" id="navigation" aria-label="Navigation principale">
+      <ul class="nav-liens">
+        <li><a href="/plateforme/">La plateforme</a></li>
+        <li><a href="/initiative/">L’initiative</a></li>
+        <li><a href="/contact/" aria-current="page">Contact</a></li>
+      </ul>
+      <a class="langue" href="/ar/contact/" lang="ar" hreflang="ar">العربية</a>
+      <a class="btn btn-encre btn-petit" href="/contact/?sujet=demo">Demander une démonstration</a>
+    </nav>
+  </div>
+</header>
+
+<main id="contenu">
+<section class="contact">
+  <div class="cadre contact-grille">
+    <div class="contact-tete">
+      <p class="surtitre">Contact</p>
+      <h1 class="titre-xl">Parlons de votre établissement.</h1>
+      <p class="chapo">Pour une démonstration, une question ou un premier échange, écrivez-nous ou appelez directement.</p>
+      <dl class="canaux">
+        <div><dt>Courriel</dt><dd><a href="mailto:25038@supnum.mr">25038@supnum.mr</a></dd></div>
+        <div><dt>Téléphone</dt><dd><a href="tel:+22247331944" dir="ltr">+222 47 33 19 44</a></dd></div>
+        <div><dt>WhatsApp</dt><dd><a href="https://wa.me/22247331944" rel="noopener" dir="ltr">+222 47 33 19 44</a></dd></div>
+      </dl>
+    </div>
+
+    <form class="formulaire" id="formulaire" action="mailto:25038@supnum.mr" method="post" enctype="text/plain"
+          data-courriel="25038@supnum.mr" data-whatsapp="22247331944"
+          data-bonjour="Bonjour," data-l-objet="Objet" data-l-nom="Nom"
+          data-l-etab="Établissement" data-l-tel="Téléphone">
+      <h2 class="titre-m">Préparer un message</h2>
+      <div class="champ">
+        <label for="f-objet">Objet</label>
+        <select id="f-objet" name="objet">
+          <option value="demo">Demande de démonstration</option>
+          <option value="question">Question sur la plateforme</option>
+          <option value="autre">Autre</option>
+          
+        </select>
+      </div>
+      <div class="champ">
+        <label for="f-nom">Votre nom</label>
+        <input id="f-nom" name="nom" type="text" autocomplete="name" required maxlength="120">
+      </div>
+      <div class="champ">
+        <label for="f-etab">Établissement <span class="facultatif">(facultatif)</span></label>
+        <input id="f-etab" name="etablissement" type="text" autocomplete="organization" maxlength="160">
+      </div>
+      <div class="champ">
+        <label for="f-tel">Téléphone <span class="facultatif">(facultatif)</span></label>
+        <input id="f-tel" name="telephone" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" dir="ltr">
+      </div>
+      <div class="champ">
+        <label for="f-msg">Message</label>
+        <textarea id="f-msg" name="message" rows="6" required maxlength="3000"></textarea>
+      </div>
+      <div class="envois">
+        <button class="btn btn-encre" type="submit" name="canal" value="whatsapp">Envoyer par WhatsApp</button>
+        <button class="btn btn-contour" type="submit" name="canal" value="courriel">Envoyer par courriel</button>
+      </div>
+      <p class="form-note">Ce formulaire n’enregistre rien sur ce site. Il prépare votre message dans WhatsApp ou dans votre messagerie : vous le relisez, puis vous l’envoyez.</p>
+    </form>
+  </div>
+</section>
+
+</main>
+
+<footer class="pied">
+  <div class="cadre pied-grille">
+    <div class="pied-marque">
+      <a class="marque marque-claire" href="/">
+        <svg class="marque-arc" viewBox="0 0 100 122" aria-hidden="true" focusable="false"><path d="M14 118V55A54 54 0 0 1 50 4.1A54 54 0 0 1 86 55V118Z"/><rect class="p1" x="26" y="96" width="16" height="7"/><rect class="p2" x="42" y="82" width="16" height="7"/><rect class="p3" x="58" y="68" width="16" height="7"/></svg>
+        <span class="marque-nom">EduPlateforme</span>
+      </a>
+      <p>Des solutions technologiques pour améliorer la qualité de l’éducation en Mauritanie.</p>
+    </div>
+    <nav class="pied-col" aria-label="Pages">
+      <h2>Pages</h2>
+      <ul>
+        <li><a href="/">Accueil</a></li>
+        <li><a href="/plateforme/">La plateforme</a></li>
+        <li><a href="/initiative/">L’initiative</a></li>
+        <li><a href="/contact/">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="pied-col">
+      <h2>Nous joindre</h2>
+      <ul>
+        <li><a href="mailto:25038@supnum.mr">25038@supnum.mr</a></li>
+        <li><a href="tel:+22247331944" dir="ltr">+222 47 33 19 44</a></li>
+        <li><a href="https://wa.me/22247331944" rel="noopener">WhatsApp</a></li>
+      </ul>
+    </div>
+    <div class="pied-col">
+      <h2>Informations</h2>
+      <ul>
+        <li><a href="/mentions-legales/">Mentions légales</a></li>
+        <li><a href="/confidentialite/">Confidentialité</a></li>
+        <li><a href="/ar/contact/" lang="ar" hreflang="ar">العربية</a></li>
+        
+      </ul>
+    </div>
+  </div>
+  <div class="cadre pied-bas">
+    <p>© 2026 EduPlateforme — Nouakchott, Mauritanie.</p>
+  </div>
+</footer>
+</body>
+</html>

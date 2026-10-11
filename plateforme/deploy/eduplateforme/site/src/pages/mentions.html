@@ -1,0 +1,16 @@
+<article class="legal">
+  <div class="cadre legal-grille">
+    <header class="legal-tete">
+      <h1 class="titre-l">{{ p.titre }}</h1>
+      <p class="legal-date">{{ p.date }}</p>
+    </header>
+    <div class="legal-corps">
+      {% for s in p.sections %}<section aria-labelledby="m-{{ boucle.n }}">
+        <h2 id="m-{{ boucle.n }}">{{ s.titre }}</h2>
+        {% for para in s.paragraphes %}<p>{{{ para }}}</p>
+        {% endfor %}
+      </section>
+      {% endfor %}
+    </div>
+  </div>
+</article>

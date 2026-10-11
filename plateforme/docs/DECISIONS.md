@@ -4065,3 +4065,47 @@ automatically ». Enregistrer le prix de la plateforme sur « Frais »
 Les autres services ne changent pas : leur prix ne s'applique qu'aux nouvelles
 souscriptions. Tests : `apps/api/test/plateforme-fournitures.spec.ts`
 (« la plateforme pour tous les inscrits »).
+
+## ADR-0083 — Le site public d'EduPlateforme : statique, bilingue, et sans seconde console
+
+**Date** : 2026-10-11. **Statut** : accepté (livré, non publié).
+
+**Contexte.** Le propriétaire a fourni un prompt « site web » : le site public
+d'EduPlateforme (accueil, plateforme, initiative, contact, pages légales), en
+français avec une structure arabe complète, et « une page cachée pour donner
+accès à n'importe quelle école sans soumettre une mise à jour ». Le prompt
+demande de vérifier d'abord si une console existe dans le dépôt applicatif et,
+si oui, de ne pas la dupliquer.
+
+**Décisions.**
+
+1. **Pas de console sur le site.** Elle existe : `apps/api/src/platform/`,
+   `apps/web/app/(app)/platform/` (créer un établissement, nommer son
+   administrateur, suspendre, administrateurs de plateforme). Une seconde
+   surface sur les mêmes données doublerait le risque ; une URL cachée n'est
+   pas une protection. Le site fait un lien (`console_url`), rien de plus.
+2. **Les écarts de la console avec le prompt sont remontés, pas corrigés ici** :
+   pas de TOTP, session de 90 jours pour un administrateur de plateforme, IP
+   absente de trois actions du journal, logo réduit à un emoji, fuseau non
+   réglable, périmètre plus large que « créer et activer ». Toucher à
+   l'authentification relève de l'application et d'une décision du
+   propriétaire (règle 16) ; détail dans `deploy/eduplateforme/site/CONSOLE.md`.
+3. **Statique, sans dépendance.** Un script Python génère chaque page dans
+   chaque langue (le français à la racine, l'arabe sous `/ar/`) depuis deux
+   fichiers de textes aux clés identiques — le script refuse un écart. Pas de
+   framework : la page d'accueil pèse 11 Ko hors polices.
+4. **Le formulaire de contact ne stocke rien** : il compose le message et
+   l'ouvre dans WhatsApp ou la messagerie. Pas de serveur, pas de donnée
+   personnelle conservée par le site — la politique de confidentialité le dit.
+5. **Rien d'inventé.** Le catalogue vient de `docs/FEATURES.md` ; la politique
+   de confidentialité reprend celle de l'application (l'établissement
+   responsable, la loi n° 2017-020) ; ce qui manque (forme juridique,
+   hébergeurs, durée des journaux) s'affiche surligné et le script le liste.
+   Le logo est provisoire, dessiné d'après sa description.
+6. **CSP stricte possible** : aucun script ni style en ligne dans les pages
+   (même pas d'attribut `style`), donc ni nonce ni `unsafe-inline`.
+
+**Conséquences.** Publier = copier le dossier et ajouter le bloc Caddy fourni,
+après accord du propriétaire. Le catalogue des 167 capacités, quand il arrive,
+remplace les listes de `pages.plateforme.domaines` sans toucher au gabarit.
+

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>اتصل بنا — EduPlateforme</title>
+<meta name="description" content="تواصلوا مع EduPlateforme: البريد الإلكتروني، الهاتف، واتساب، أو رسالة تُعَدّ من الاستمارة.">
+<link rel="canonical" href="/ar/contact/">
+<link rel="alternate" hreflang="fr" href="/contact/">
+<link rel="alternate" hreflang="ar" href="/ar/contact/">
+<link rel="alternate" hreflang="x-default" href="/contact/">
+<meta name="theme-color" content="#F2EDE4">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="EduPlateforme">
+<meta property="og:title" content="اتصل بنا — EduPlateforme">
+<meta property="og:description" content="تواصلوا مع EduPlateforme: البريد الإلكتروني، الهاتف، واتساب، أو رسالة تُعَدّ من الاستمارة.">
+<meta property="og:locale" content="ar_AR">
+<link rel="icon" href="/assets/logo/marque.svg" type="image/svg+xml">
+<link rel="preload" href="/assets/fonts/noto-naskh-arabic-arabic-bc6122.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/ibm-plex-sans-arabic-arabic-a9cefd.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/css/site.css?v=bccbad6e">
+<script src="/assets/js/site.js?v=bccbad6e" defer></script>
+</head>
+<body>
+<a class="saut" href="#contenu">الانتقال إلى المحتوى</a>
+
+<header class="entete">
+  <div class="cadre entete-in">
+    <a class="marque" href="/ar/">
+      <svg class="marque-arc" viewBox="0 0 100 122" aria-hidden="true" focusable="false"><path d="M14 118V55A54 54 0 0 1 50 4.1A54 54 0 0 1 86 55V118Z"/><rect class="p1" x="26" y="96" width="16" height="7"/><rect class="p2" x="42" y="82" width="16" height="7"/><rect class="p3" x="58" y="68" width="16" height="7"/></svg>
+      <span class="marque-nom">EduPlateforme</span>
+    </a>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="navigation">القائمة</button>
+    <nav class="nav" id="navigation" aria-label="التنقل الرئيسي">
+      <ul class="nav-liens">
+        <li><a href="/ar/plateforme/">المنصة</a></li>
+        <li><a href="/ar/initiative/">المبادرة</a></li>
+        <li><a href="/ar/contact/" aria-current="page">اتصل بنا</a></li>
+      </ul>
+      <a class="langue" href="/contact/" lang="fr" hreflang="fr">Français</a>
+      <a class="btn btn-encre btn-petit" href="/ar/contact/?sujet=demo">اطلبوا عرضًا توضيحيًا</a>
+    </nav>
+  </div>
+</header>
+
+<main id="contenu">
+<section class="contact">
+  <div class="cadre contact-grille">
+    <div class="contact-tete">
+      <p class="surtitre">اتصل بنا</p>
+      <h1 class="titre-xl">لنتحدث عن مؤسستكم.</h1>
+      <p class="chapo">لعرضٍ توضيحي أو سؤالٍ أو تواصلٍ أول، راسلونا أو اتصلوا مباشرة.</p>
+      <dl class="canaux">
+        <div><dt>البريد الإلكتروني</dt><dd><a href="mailto:25038@supnum.mr">25038@supnum.mr</a></dd></div>
+        <div><dt>الهاتف</dt><dd><a href="tel:+22247331944" dir="ltr">+222 47 33 19 44</a></dd></div>
+        <div><dt>WhatsApp</dt><dd><a href="https://wa.me/22247331944" rel="noopener" dir="ltr">+222 47 33 19 44</a></dd></div>
+      </dl>
+    </div>
+
+    <form class="formulaire" id="formulaire" action="mailto:25038@supnum.mr" method="post" enctype="text/plain"
+          data-courriel="25038@supnum.mr" data-whatsapp="22247331944"
+          data-bonjour="السلام عليكم،" data-l-objet="الموضوع" data-l-nom="الاسم"
+          data-l-etab="المؤسسة" data-l-tel="الهاتف">
+      <h2 class="titre-m">إعداد رسالة</h2>
+      <div class="champ">
+        <label for="f-objet">الموضوع</label>
+        <select id="f-objet" name="objet">
+          <option value="demo">طلب عرض توضيحي</option>
+          <option value="question">سؤال عن المنصة</option>
+          <option value="autre">موضوع آخر</option>
+          
+        </select>
+      </div>
+      <div class="champ">
+        <label for="f-nom">الاسم</label>
+        <input id="f-nom" name="nom" type="text" autocomplete="name" required maxlength="120">
+      </div>
+      <div class="champ">
+        <label for="f-etab">المؤسسة <span class="facultatif">(اختياري)</span></label>
+        <input id="f-etab" name="etablissement" type="text" autocomplete="organization" maxlength="160">
+      </div>
+      <div class="champ">
+        <label for="f-tel">الهاتف <span class="facultatif">(اختياري)</span></label>
+        <input id="f-tel" name="telephone" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" dir="ltr">
+      </div>
+      <div class="champ">
+        <label for="f-msg">الرسالة</label>
+        <textarea id="f-msg" name="message" rows="6" required maxlength="3000"></textarea>
+      </div>
+      <div class="envois">
+        <button class="btn btn-encre" type="submit" name="canal" value="whatsapp">الإرسال عبر واتساب</button>
+        <button class="btn btn-contour" type="submit" name="canal" value="courriel">الإرسال بالبريد الإلكتروني</button>
+      </div>
+      <p class="form-note">لا تحفظ هذه الاستمارة شيئًا على هذا الموقع. إنها تُعِدّ رسالتكم في واتساب أو في بريدكم الإلكتروني: تراجعونها، ثم ترسلونها.</p>
+    </form>
+  </div>
+</section>
+
+</main>
+
+<footer class="pied">
+  <div class="cadre pied-grille">
+    <div class="pied-marque">
+      <a class="marque marque-claire" href="/ar/">
+        <svg class="marque-arc" viewBox="0 0 100 122" aria-hidden="true" focusable="false"><path d="M14 118V55A54 54 0 0 1 50 4.1A54 54 0 0 1 86 55V118Z"/><rect class="p1" x="26" y="96" width="16" height="7"/><rect class="p2" x="42" y="82" width="16" height="7"/><rect class="p3" x="58" y="68" width="16" height="7"/></svg>
+        <span class="marque-nom">EduPlateforme</span>
+      </a>
+      <p>حلولٌ تكنولوجية لتحسين جودة التعليم في موريتانيا.</p>
+    </div>
+    <nav class="pied-col" aria-label="الصفحات">
+      <h2>الصفحات</h2>
+      <ul>
+        <li><a href="/ar/">الرئيسية</a></li>
+        <li><a href="/ar/plateforme/">المنصة</a></li>
+        <li><a href="/ar/initiative/">المبادرة</a></li>
+        <li><a href="/ar/contact/">اتصل بنا</a></li>
+      </ul>
+    </nav>
+    <div class="pied-col">
+      <h2>للتواصل</h2>
+      <ul>
+        <li><a href="mailto:25038@supnum.mr">25038@supnum.mr</a></li>
+        <li><a href="tel:+22247331944" dir="ltr">+222 47 33 19 44</a></li>
+        <li><a href="https://wa.me/22247331944" rel="noopener">WhatsApp</a></li>
+      </ul>
+    </div>
+    <div class="pied-col">
+      <h2>معلومات</h2>
+      <ul>
+        <li><a href="/ar/mentions-legales/">الإشعار القانوني</a></li>
+        <li><a href="/ar/confidentialite/">الخصوصية</a></li>
+        <li><a href="/contact/" lang="fr" hreflang="fr">Français</a></li>
+        
+      </ul>
+    </div>
+  </div>
+  <div class="cadre pied-bas">
+    <p>© 2026 EduPlateforme — نواكشوط، موريتانيا.</p>
+  </div>
+</footer>
+</body>
+</html>

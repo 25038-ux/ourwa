@@ -8,6 +8,42 @@ every session, even short or unproductive ones.
 
 
 
+## LE SITE PUBLIC D'EDUPLATEFORME — 2026-10-11
+
+**Demande du propriétaire** : un prompt « site web » (site public d'EduPlateforme
+en français et en arabe, cinq pages, et une console d'administration protégée),
+« deliver me the final deliverables ». Détail : **ADR-0083**.
+
+- **Fait** : `deploy/eduplateforme/site/` — pages statiques, français à la
+  racine, arabe sous `/ar/` (droite à gauche complet) : accueil, la plateforme
+  (huit domaines, d'après `docs/FEATURES.md`, rien d'inventé), l'initiative,
+  contact (le formulaire compose le message dans WhatsApp ou la messagerie,
+  rien n'est stocké), mentions légales, confidentialité (alignée sur la
+  politique de l'application, `apps/web/content/legal/`), 404. Palette et
+  polices du prompt (Source Serif 4, IBM Plex Sans ; Noto Naskh Arabic, IBM Plex
+  Sans Arabic), auto-hébergées. `python3 construire.py` (sans dépendance) ;
+  `--apercu DOSSIER` pour une copie hors serveur. `DIRECTION.md` (direction
+  visuelle), `CONSOLE.md` (la console), `caddy/eduplateforme.caddy`.
+- **La console n'est pas dupliquée** : elle existe dans l'application
+  (`/platform/*`, `admin.<domaine>`). Le site ne fait qu'un lien vers elle
+  (`console_url`). Écarts relevés avec les exigences du prompt, **à trancher
+  côté application** (rien modifié) : pas de second facteur TOTP ; session de
+  90 jours renouvelable pour un administrateur de plateforme ; IP absente du
+  journal pour la création, la nomination, la suspension ; logo = emoji ;
+  fuseau non réglable ; périmètre plus large (cumul, entrée dans une école).
+- **Logo provisoire** : les quatre SVG n'étaient pas joints ; dessinés d'après la
+  description (arc brisé, trois plateaux), à remplacer un pour un.
+- **Vérifié** : Lighthouse 12 mobile, cinq pages : performance 98–99,
+  accessibilité 100, bonnes pratiques 100, SEO 100 avec `site_url` (83 sans).
+  Accueil : 11 Ko hors polices. 1440 × 900, 1280 × 720, 390 × 844, fr et ar ;
+  menu du téléphone ; formulaire (validation, `?sujet=demo`, lien WhatsApp
+  composé) ; copie hors serveur ; bloc Caddy dans un vrai Caddy (CSP stricte
+  sans violation, 404 dans la bonne langue, `src/` et `.py` refusés).
+- **En attente du propriétaire** : le domaine (`site_url`), l'adresse de la
+  console (`console_url`), les fichiers du logo, le catalogue des 167
+  capacités, forme juridique et immatriculation, hébergeurs, durée des
+  journaux ; relecture juridique et relecture de l'arabe. **Rien n'est publié.**
+
 ## LE SITE VITRINE DE HEAVENLY (جنان) — 2026-10-09
 
 **Demande du propriétaire** : un site de présentation « marketing », animé,

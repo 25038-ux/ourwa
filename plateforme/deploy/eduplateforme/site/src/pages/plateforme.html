@@ -1,0 +1,44 @@
+<section class="tete-page">
+  <div class="cadre tete-page-grille">
+    <p class="surtitre">{{ p.surtitre }}</p>
+    <h1 class="titre-xl">{{{ p.titre }}}</h1>
+    <p class="chapo">{{ p.chapo }}</p>
+  </div>
+</section>
+
+<div class="cadre catalogue">
+  <nav class="sommaire" aria-label="{{ p.sommaire }}">
+    <p class="sommaire-titre">{{ p.sommaire }}</p>
+    <ol>
+      {% for d in p.domaines %}<li><a href="#{{ d.id }}"><span class="sommaire-n">{{ d.n }}</span>{{ d.titre }}</a></li>
+      {% endfor %}
+    </ol>
+  </nav>
+  <div class="domaines">
+    {% for d in p.domaines %}<section class="domaine domaine-{{ d.ton }}" id="{{ d.id }}" aria-labelledby="{{ d.id }}-titre">
+      <header class="domaine-tete reveal">
+        <span class="domaine-n" aria-hidden="true">{{ d.n }}</span>
+        <h2 class="titre-m" id="{{ d.id }}-titre">{{ d.titre }}</h2>
+        <p>{{ d.texte }}</p>
+      </header>
+      <ul class="fonctions cascade">
+        {% for f in d.fonctions %}<li class="reveal">{{ f }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endfor %}
+    <p class="catalogue-note">{{ p.note }}</p>
+  </div>
+</div>
+
+<section class="appel appel-court" aria-labelledby="appel-titre">
+  <div class="cadre appel-grille">
+    <svg class="appel-fenetre" viewBox="0 0 100 230" aria-hidden="true" focusable="false"><path d="M0 230V74A80 80 0 0 1 50 0A80 80 0 0 1 100 74V230Z"/></svg>
+    <div class="appel-texte">
+      <h2 id="appel-titre" class="titre-l">{{ p.appel }}</h2>
+      <div class="actions">
+        <a class="btn btn-sable" href="{{ u.demo }}">{{ t.nav.cta }}</a>
+      </div>
+    </div>
+  </div>
+</section>

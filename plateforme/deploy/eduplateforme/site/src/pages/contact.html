@@ -1,0 +1,49 @@
+<section class="contact">
+  <div class="cadre contact-grille">
+    <div class="contact-tete">
+      <p class="surtitre">{{ p.surtitre }}</p>
+      <h1 class="titre-xl">{{{ p.titre }}}</h1>
+      <p class="chapo">{{ p.chapo }}</p>
+      <dl class="canaux">
+        <div><dt>{{ p.canaux.courriel }}</dt><dd><a href="mailto:{{ cfg.courriel }}">{{ cfg.courriel }}</a></dd></div>
+        <div><dt>{{ p.canaux.telephone }}</dt><dd><a href="tel:{{ cfg.telephone_lien }}" dir="ltr">{{ cfg.telephone }}</a></dd></div>
+        <div><dt>WhatsApp</dt><dd><a href="{{ cfg.whatsapp }}" rel="noopener" dir="ltr">{{ cfg.telephone }}</a></dd></div>
+      </dl>
+    </div>
+
+    <form class="formulaire" id="formulaire" action="mailto:{{ cfg.courriel }}" method="post" enctype="text/plain"
+          data-courriel="{{ cfg.courriel }}" data-whatsapp="{{ cfg.whatsapp_numero }}"
+          data-bonjour="{{ p.form.message_bonjour }}" data-l-objet="{{ p.form.objet }}" data-l-nom="{{ p.form.message_nom }}"
+          data-l-etab="{{ p.form.etablissement }}" data-l-tel="{{ p.form.telephone }}">
+      <h2 class="titre-m">{{ p.form.titre }}</h2>
+      <div class="champ">
+        <label for="f-objet">{{ p.form.objet }}</label>
+        <select id="f-objet" name="objet">
+          {% for o in p.form.objets %}<option value="{{ o.v }}">{{ o.l }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="champ">
+        <label for="f-nom">{{ p.form.nom }}</label>
+        <input id="f-nom" name="nom" type="text" autocomplete="name" required maxlength="120">
+      </div>
+      <div class="champ">
+        <label for="f-etab">{{ p.form.etablissement }} <span class="facultatif">{{ p.form.facultatif }}</span></label>
+        <input id="f-etab" name="etablissement" type="text" autocomplete="organization" maxlength="160">
+      </div>
+      <div class="champ">
+        <label for="f-tel">{{ p.form.telephone }} <span class="facultatif">{{ p.form.facultatif }}</span></label>
+        <input id="f-tel" name="telephone" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" dir="ltr">
+      </div>
+      <div class="champ">
+        <label for="f-msg">{{ p.form.message }}</label>
+        <textarea id="f-msg" name="message" rows="6" required maxlength="3000"></textarea>
+      </div>
+      <div class="envois">
+        <button class="btn btn-encre" type="submit" name="canal" value="whatsapp">{{ p.form.envoyer_whatsapp }}</button>
+        <button class="btn btn-contour" type="submit" name="canal" value="courriel">{{ p.form.envoyer_courriel }}</button>
+      </div>
+      <p class="form-note">{{ p.form.note }}</p>
+    </form>
+  </div>
+</section>
