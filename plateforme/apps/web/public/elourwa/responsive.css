@@ -360,3 +360,12 @@ img, video { height: auto; }
    passe sur plusieurs lignes : l'interligne hérité les espaçait d'une ligne
    vide. Serré ici ; un nom d'une ligne (El Mourad) ne change pas. */
 .sidebar-logo span { line-height: 1.2; }
+
+/* Le bulletin d'un élève sur un téléphone (balayage du 11/10/2026) : son tableau
+   dépassait l'écran de 123 px à 375 px de large, et la page — qui masque tout
+   débordement horizontal — ne permettait pas de le faire défiler : les dernières
+   colonnes étaient illisibles. Le bulletin défile maintenant dans son propre cadre.
+   À l'écran seulement : l'impression garde sa feuille entière. */
+@media screen and (max-width: 640px) {
+  .bulletin-off { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}

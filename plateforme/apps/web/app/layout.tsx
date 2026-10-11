@@ -7,7 +7,10 @@ import { MARQUE } from '@/lib/brand';
 export async function generateMetadata(): Promise<Metadata> {
   const school = await currentSchool();
   return {
-    title: school ? `${school.name} — ${MARQUE.nom}` : MARQUE.nom,
+    // En école unique l'école et la marque portent le même nom : une fois suffit
+    // (« El Ourwa — El Ourwa » sur tous les onglets, balayage du 11/10/2026). Le titre
+    // de chaque page est posé par son en-tête (components/titre-onglet.tsx).
+    title: school && school.name !== MARQUE.nom ? `${school.name} — ${MARQUE.nom}` : MARQUE.nom,
     description: `${MARQUE.nom} — ${MARQUE.sousTitre}`,
   };
 }

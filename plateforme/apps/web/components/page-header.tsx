@@ -1,6 +1,8 @@
 import { apiFetch } from '@/lib/session';
 import { anneeConsultee } from '@/lib/annee';
 import { SelecteurAnnee } from './selecteur-annee';
+import { TitreOnglet } from './titre-onglet';
+import { MARQUE } from '@/lib/brand';
 
 /**
  * El Ourwa's page header — `includes/layout_header.php`.
@@ -52,6 +54,8 @@ export async function PageHeader({
 
   return (
     <header className="page-header">
+      {/* Le titre de l'onglet : « <page> — El Ourwa », comme son layout_header.php. */}
+      <TitreOnglet titre={titre} marque={MARQUE.nom} />
       <div className="page-header-left">
         <h1 className="page-title">{titre}</h1>
         {sousTitre && <p className="page-subtitle">{sousTitre}</p>}
