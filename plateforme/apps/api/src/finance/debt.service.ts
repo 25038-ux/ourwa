@@ -337,8 +337,16 @@ export class DebtService {
              ON d.student_id = s.id AND d.calendar_month = m.calendar_month
             AND d.calendar_year = m.calendar_year
            LEFT JOIN (
+             -- ⚠ LES PAIEMENTS DE CETTE FAMILLE, pas ceux de toute l'école
+             -- (10/10/2026). Sans le WHERE, Postgres additionnait les 15 989
+             -- paiements de la table pour n'en garder que ceux des enfants de
+             -- la famille : 50 ms à chaque fiche ouverte. La jointure ne
+             -- retient de toute façon que « p.student_id = s.id », et s est
+             -- un enfant de la famille : mêmes lignes, mêmes sommes.
              SELECT student_id, calendar_month, calendar_year, SUM(amount) AS total
-               FROM payments GROUP BY student_id, calendar_month, calendar_year
+               FROM payments
+              WHERE student_id IN (SELECT id FROM students WHERE guardian_id = $1)
+              GROUP BY student_id, calendar_month, calendar_year
            ) p ON p.student_id = s.id AND p.calendar_month = m.calendar_month
               AND p.calendar_year = m.calendar_year
            LEFT JOIN exemptions fx ON fx.student_id = s.id AND fx.kind = 'full'
@@ -460,8 +468,11 @@ export class DebtService {
                  ON d.student_id = s.id AND d.calendar_month = m.calendar_month
                 AND d.calendar_year = m.calendar_year
                LEFT JOIN (
+                 -- Les paiements des familles du lot seulement (voir forGuardian).
                  SELECT student_id, calendar_month, calendar_year, SUM(amount) AS total
-                   FROM payments GROUP BY student_id, calendar_month, calendar_year
+                   FROM payments
+                  WHERE student_id IN (SELECT id FROM students WHERE guardian_id = ANY($1::uuid[]))
+                  GROUP BY student_id, calendar_month, calendar_year
                ) p ON p.student_id = s.id AND p.calendar_month = m.calendar_month
                   AND p.calendar_year = m.calendar_year
                LEFT JOIN exemptions fx ON fx.student_id = s.id AND fx.kind = 'full'
@@ -637,8 +648,12 @@ export class DebtService {
              ON d.student_id = s.id AND d.calendar_month = m.calendar_month
             AND d.calendar_year = m.calendar_year
            LEFT JOIN (
+             -- Les paiements des familles du lot seulement (voir forGuardian) :
+             -- « Dérogations » additionnait toute la table sept fois, une par lot.
              SELECT student_id, calendar_month, calendar_year, SUM(amount) AS total
-               FROM payments GROUP BY student_id, calendar_month, calendar_year
+               FROM payments
+              WHERE student_id IN (SELECT id FROM students WHERE guardian_id = ANY($1::uuid[]))
+              GROUP BY student_id, calendar_month, calendar_year
            ) p ON p.student_id = s.id AND p.calendar_month = m.calendar_month
               AND p.calendar_year = m.calendar_year
            LEFT JOIN exemptions fx ON fx.student_id = s.id AND fx.kind = 'full'
@@ -2308,7 +2323,16 @@ export class DebtService {
     // mêmes requêtes que pour une famille, pour toutes à la fois (voir là-bas)
     // — par lots de 200. « Toutes » attendait encore chaque famille à son tour,
     // six de front : 7 secondes sur les 1 372 familles d'El Ourwa.
-    const LOT = 200;
+    //
+    // ⚠ 2 000 PAR LOT, ET NON PLUS 200 (10/10/2026). Chaque lot relit ce qui ne
+    // dépend pas des familles — le périmètre, la configuration, le nombre
+    // d'inscrits par année — et repasse sur la table des paiements : sept lots
+    // pour les 1 255 familles de l'école, c'était sept fois ce travail fixe
+    // (« Dérogations » : 340 à 420 ms d'API, dont 290 dans ces répétitions).
+    // Un seul lot pour l'école ; une école de 5 000 familles en ferait trois.
+    // Le calcul de chaque famille ne dépend pas de ses voisines de lot : le
+    // relevé complet des données réelles est identique à l'octet avant/après.
+    const LOT = 2000;
     for (let i = 0; i < guardians.length; i += LOT) {
       const lot = guardians.slice(i, i + LOT);
       let calculs: {

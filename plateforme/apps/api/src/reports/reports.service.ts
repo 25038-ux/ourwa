@@ -17,6 +17,7 @@ import { BillingModelService } from '../finance/billing-model.service.js';
 import { AcademicYearService, moisNominaux } from '../academic/academic-year.service.js';
 import { ecritureRetenue, ligneRetenue } from '../finance/annulations.js';
 import { parsePlage, type Plage } from './periode.js';
+import { horsDesPlages, lendemain, reunirPlages } from './plages.js';
 
 /*
  * ⚠ UN PAIEMENT ANNULÉ N'EST PLUS DANS LES RAPPORTS (propriétaire, octobre 2026).
@@ -48,6 +49,34 @@ import { parsePlage, type Plage } from './periode.js';
 const vive = ecritureRetenue;
 const ligneVive = ligneRetenue;
 
+/*
+ * L'ANNÉE SCOLAIRE QUE PORTE UNE LIGNE DE CAISSE — celle du paiement qu'elle
+ * règle, quand ce paiement en porte une (10/10/2026, synthèse de l'année).
+ *
+ * Les origines (`tender_lines.source_type`) et leur grand livre :
+ *
+ *   AVEC une année (`academic_year_id NOT NULL`) :
+ *     paiement      → payments              (mensualités)
+ *     frais_annuel  → family_fee_payments   (inscription, photocopie)
+ *     service_*     → service_payments      (école « services », frais de plateforme)
+ *
+ *   SANS année — la date seule les situe :
+ *     cours_soir, cours_soir_prof, depense, salaire / salaire_prof /
+ *     salaire_staff, pret_personnel, pret_remb, dette, dette_creation,
+ *     admin_retrait.
+ *
+ * `JOINTURES_ANNEE_DU_PAIEMENT` pose les trois jointures (une seule répond par
+ * ligne) ; `ANNEE_DU_PAIEMENT` est l'année, ou NULL. `services` : le paramètre
+ * qui porte `SOURCES_SERVICES` (text[]).
+ */
+const JOINTURES_ANNEE_DU_PAIEMENT = (alias: string, services: string): string => {
+  if (!/^[a-z_]+$/.test(alias) || !/^\$\d+$/.test(services)) throw new Error('jointures : alias ou paramètre invalide');
+  return `LEFT JOIN payments ap ON ${alias}.source_type = 'paiement' AND ap.id = ${alias}.source_id
+                   LEFT JOIN family_fee_payments af ON ${alias}.source_type = 'frais_annuel' AND af.id = ${alias}.source_id
+                   LEFT JOIN service_payments asv ON ${alias}.source_type = ANY(${services}::text[]) AND asv.id = ${alias}.source_id`;
+};
+const ANNEE_DU_PAIEMENT = 'COALESCE(ap.academic_year_id, af.academic_year_id, asv.academic_year_id)';
+
 /** Une ligne de la « Synthèse par moyen de paiement ». */
 export interface SyntheseMoyen {
   name: string;
@@ -59,13 +88,49 @@ export interface SyntheseMoyen {
 /** Un mois civil, ou une période de jours bornes comprises : deux paramètres dans les deux cas. */
 type Periode = { month: number; year: number } | Plage;
 
+/*
+ * ⚠ LES BORNES SE POSENT SUR LA COLONNE, JAMAIS SUR UN CALCUL DE LA COLONNE
+ * (10/10/2026, « the site is still kinda slow » — /finance/revenue).
+ *
+ * `created_at::date BETWEEN $1 AND $2` et `EXTRACT(MONTH FROM created_at) = $1`
+ * désignent exactement les mêmes lignes que les bornes ci-dessous ; mais
+ * devant un calcul, Postgres ne peut ni se servir de l'index
+ * `(school_id, created_at)`, ni estimer combien de lignes passent. Il lisait
+ * donc TOUTE la caisse pour un seul jour, croyait n'y trouver qu'une ligne ou
+ * deux, et choisissait là-dessus des jointures en boucle sur des tables lues
+ * en entier : le journal d'un mois de 740 lignes relisait 740 fois les
+ * salaires et 740 fois le personnel (270 ms). Avec les bornes, il sait.
+ *
+ * Mêmes lignes, au fuseau de la session dans les deux écritures :
+ *   col::date >= d1   ⟺   col >= d1          (minuit du jour d1)
+ *   col::date <= d2   ⟺   col <  d2 + 1      (minuit du lendemain de d2)
+ * et un mois civil va de son 1er à minuit au 1er du mois suivant, exclu.
+ * `'infinity'::date + 1` reste l'infini : une borne ouverte passe telle quelle.
+ *
+ * ⚠ LES BORNES SONT DES `timestamptz`, COMME LA COLONNE — le `::timestamptz`
+ * n'est pas décoratif. Sous RLS, Postgres n'accepte dans une condition d'index
+ * (et ne lit ses statistiques) que pour des opérateurs « leakproof » :
+ * `timestamptz >= timestamptz` l'est, `timestamptz >= date` ne l'est pas.
+ * Comparée à une date, la colonne restait un simple filtre après lecture de
+ * toute la table (vérifié par EXPLAIN sous `app_user` : 17 ms contre 0,03).
+ *
+ * `du`, `au`, `mois`, `annee` : des paramètres (`$1`…), jamais des valeurs.
+ */
+const PARAM = /^\$\d+$/;
+function entreJours(colonne: string, du: string, au: string): string {
+  if (!PARAM.test(du) || !PARAM.test(au)) throw new Error('entreJours : paramètres attendus');
+  return `${colonne} >= ${du}::date::timestamptz AND ${colonne} < (${au}::date + 1)::timestamptz`;
+}
+function dansLeMois(colonne: string, mois: string, annee: string): string {
+  if (!PARAM.test(mois) || !PARAM.test(annee)) throw new Error('dansLeMois : paramètres attendus');
+  const premier = `make_date(${annee}::int, ${mois}::int, 1)`;
+  return `${colonne} >= ${premier}::timestamptz AND ${colonne} < (${premier} + interval '1 month')::timestamptz`;
+}
+
 function filtrePeriode(colonne: string, p: Periode): { sql: string; params: [unknown, unknown] } {
   return 'from' in p
-    ? { sql: `${colonne}::date BETWEEN $1::date AND $2::date`, params: [p.from, p.to] }
-    : {
-        sql: `EXTRACT(MONTH FROM ${colonne}) = $1 AND EXTRACT(YEAR FROM ${colonne}) = $2`,
-        params: [p.month, p.year],
-      };
+    ? { sql: entreJours(colonne, '$1', '$2'), params: [p.from, p.to] }
+    : { sql: dansLeMois(colonne, '$1', '$2'), params: [p.month, p.year] };
 }
 
 /**
@@ -590,6 +655,34 @@ export class ReportsService {
       const du = input.day ?? input.from ?? null;
       const au = input.day ?? input.to ?? null;
       const byDay = Boolean(du && au);
+      // Le filtre de dates, posé sur la colonne (voir `entreJours`) : des jours,
+      // un mois civil entier — ou, comme avant, un mois de toutes les années /
+      // une année entière / tout, quand il manque le mois ou l'année.
+      const filtre: { sql: string; params: [unknown, unknown] } = byDay
+        ? { sql: entreJours('tl.created_at', '$3', '$4'), params: [du, au] }
+        : input.month != null && input.year != null
+          ? { sql: dansLeMois('tl.created_at', '$3', '$4'), params: [input.month, input.year] }
+          : {
+              sql: `($3::int IS NULL OR EXTRACT(MONTH FROM tl.created_at) = $3)
+            AND ($4::int IS NULL OR EXTRACT(YEAR  FROM tl.created_at) = $4)`,
+              params: [input.month ?? null, input.year ?? null],
+            };
+      /*
+       * ⚠ L'ORDRE DES JOINTURES EST CELUI QU'ON A ÉCRIT (10/10/2026). Cette
+       * requête joint une trentaine de tables — une ligne de caisse, puis par
+       * sa clé le reçu, l'élève, l'auteur… de chacune des douze origines. Laissé
+       * libre, Postgres passait plus de temps à CHERCHER le meilleur ordre qu'à
+       * lire les lignes : 100 à 300 ms de planification à chaque appel, pour
+       * une exécution de 1 à 60 ms — et la page des revenus l'appelle deux
+       * fois. Il n'y a rien à chercher : on part des lignes de la période et
+       * on suit leurs clés, dans l'ordre du texte. Planification mesurée
+       * ensuite : une dizaine de millisecondes.
+       *
+       * `set_config(…, true)` : LOCAL à cette transaction, comme le contexte
+       * d'école — jamais un SET nu, qui resterait sur la connexion rendue au
+       * pool. Un réglage de planification, pas de lecture : RLS n'en dépend pas.
+       */
+      await tx.query("SELECT set_config('join_collapse_limit', '1', true)");
       const { rows } = await tx.query<{
         at: string;
         jour: string;
@@ -715,27 +808,27 @@ export class ReportsService {
            -- École « services » (ADR-0073) : l'encaissement d'un service, ou son
            -- annulation (ses lignes « out » portent l'écriture négative).
            LEFT JOIN service_payments svc
-             ON tl.source_type = ANY($5::text[]) AND svc.id = tl.source_id
+             ON tl.source_type = ANY($2::text[]) AND svc.id = tl.source_id
            LEFT JOIN student_services svc_ss ON svc_ss.id = svc.student_service_id
            LEFT JOIN students svs ON svs.id = svc.student_id
            LEFT JOIN users u_svc ON u_svc.id = svc.recorded_by
 
-          WHERE ($1::date IS NULL OR tl.created_at::date BETWEEN $1::date AND $6::date)
-            AND ($2::int  IS NULL OR EXTRACT(MONTH FROM tl.created_at) = $2)
-            AND ($3::int  IS NULL OR EXTRACT(YEAR  FROM tl.created_at) = $3)
+          WHERE ${filtre.sql}
             -- Un mouvement annulé ne laisse aucune ligne : ni la sienne, ni
             -- celle de son annulation (chez lui, DELETE FROM paiement_lignes).
             AND ${ligneVive('tl')}
-          ORDER BY tl.created_at DESC
-          LIMIT $4`,
-        [
-          byDay ? du : null,
-          byDay ? null : (input.month ?? null),
-          byDay ? null : (input.year ?? null),
-          input.limit ?? 100000,
-          [...SOURCES_SERVICES],
-          byDay ? au : null,
-        ],
+          -- Son ORDER BY pl.date_creation DESC. Les critères suivants ne
+          -- départagent que les lignes du MÊME instant (les moyens d'un même
+          -- reçu, les mois réglés d'un coup — une ligne sur deux à l'école) :
+          -- sans eux leur ordre dépendait du plan choisi par Postgres et
+          -- changeait avec lui. La plus récemment écrite d'abord : pour une
+          -- ligne reprise, son numéro chez lui (paiement_lignes.id, l'ordre où
+          -- il l'a écrite — l'identifiant d'ici a été tiré à l'import, et ne
+          -- le suit pas dans un instant partagé sur cinq) ; pour une ligne
+          -- d'ici, son identifiant, qui avance avec l'horloge.
+          ORDER BY tl.created_at DESC, tl.legacy_id DESC NULLS FIRST, tl.id DESC
+          LIMIT $1`,
+        [input.limit ?? 100000, [...SOURCES_SERVICES], ...filtre.params],
       );
 
       return rows.map((r) => ({
@@ -766,7 +859,7 @@ export class ReportsService {
       const { rows: parMoyen } = await tx.query<{ moyen: string; total: string }>(
         `SELECT mp.name AS moyen, COALESCE(SUM(pl.amount), 0)::numeric(14,2)::text AS total
            FROM tender_lines pl JOIN payment_methods mp ON pl.payment_method_id = mp.id
-          WHERE pl.direction = 'in' AND pl.created_at::date BETWEEN $1::date AND $2::date
+          WHERE pl.direction = 'in' AND ${entreJours('pl.created_at', '$1', '$2')}
             AND ${ligneVive('pl')}
           GROUP BY mp.id, mp.name ORDER BY SUM(pl.amount) DESC`,
         [jour, jusquAu],
@@ -774,7 +867,7 @@ export class ReportsService {
       const { rows: parSource } = await tx.query<{ source_type: string; total: string }>(
         `SELECT pl.source_type, COALESCE(SUM(pl.amount), 0)::numeric(14,2)::text AS total
            FROM tender_lines pl
-          WHERE pl.direction = 'in' AND pl.created_at::date BETWEEN $1::date AND $2::date
+          WHERE pl.direction = 'in' AND ${entreJours('pl.created_at', '$1', '$2')}
             AND ${ligneVive('pl')}
           GROUP BY pl.source_type ORDER BY SUM(pl.amount) DESC`,
         [jour, jusquAu],
@@ -812,7 +905,7 @@ export class ReportsService {
               COALESCE(SUM(pl.amount) FILTER (WHERE pl.direction = 'in'), 0)::numeric(14,2)::text AS entrant,
               COALESCE(SUM(pl.amount) FILTER (WHERE pl.direction = 'out'), 0)::numeric(14,2)::text AS sortant
          FROM tender_lines pl JOIN payment_methods mp ON pl.payment_method_id = mp.id
-        WHERE pl.created_at::date BETWEEN $1::date AND $2::date
+        WHERE ${entreJours('pl.created_at', '$1', '$2')}
           AND ${ligneVive('pl')}
         GROUP BY mp.id, mp.name
         ORDER BY mp.name`,
@@ -828,7 +921,7 @@ export class ReportsService {
               COALESCE(SUM(pl.amount) FILTER (WHERE pl.direction = 'in'), 0)::numeric(14,2)::text AS entrant,
               COALESCE(SUM(pl.amount) FILTER (WHERE pl.direction = 'out'), 0)::numeric(14,2)::text AS sortant
          FROM tender_lines pl
-        WHERE pl.created_at::date BETWEEN $1::date AND $2::date
+        WHERE ${entreJours('pl.created_at', '$1', '$2')}
           AND ${ligneVive('pl')}
         GROUP BY pl.source_type
         ORDER BY SUM(pl.amount) DESC`,
@@ -864,7 +957,7 @@ export class ReportsService {
                 COALESCE(SUM(pl.amount) FILTER (WHERE pl.direction = 'in'), 0)::numeric(14,2)::text AS entrant,
                 COALESCE(SUM(pl.amount) FILTER (WHERE pl.direction = 'out'), 0)::numeric(14,2)::text AS sortant
            FROM tender_lines pl JOIN payment_methods mp ON pl.payment_method_id = mp.id
-          WHERE pl.created_at::date BETWEEN $1::date AND $2::date
+          WHERE ${entreJours('pl.created_at', '$1', '$2')}
             AND ${ligneVive('pl')}
           GROUP BY 1, mp.name
           ORDER BY 1, mp.name`,
@@ -948,6 +1041,28 @@ export class ReportsService {
    *
    * Les chiffres d'ARCHIVE (reçus repris, compte 560011) gardent ses bornes
    * nominales : ce sont eux qui ont été rapprochés d'El Ourwa, à ces dates-là.
+   *
+   * ⚠ ET DANS L'ÉTÉ, C'EST L'ANNÉE DU PAIEMENT QUI FAIT FOI (propriétaire,
+   * 10/10/2026, jour de la mise en ligne : « the 569k in synthèse d'année which
+   * is a lie cuz 2026-2027 the school recorded no money »). Il avait raison au
+   * centime : 569 000,00 de lignes de caisse de juillet et août 2026 — toutes
+   * des mensualités EN RETARD de 2025-2026 et de 2024-2025, aucune de
+   * 2026-2027. La règle du dessus les donnait à 2026-2027 parce qu'elle possède
+   * cet été-là. Posséder une DATE ne dit pas pour QUELLE année l'argent est
+   * entré ; le paiement, lui, le dit (`academic_year_id`). Donc :
+   *
+   *   - une ligne datée hors des mois nominaux de TOUTE année (l'été, la
+   *     rentrée, l'après-dernière-année) et qui règle un paiement rattaché à
+   *     une année appartient à cette année-là — les retards à l'année qu'ils
+   *     règlent, l'argent de la rentrée à la nouvelle ;
+   *   - une ligne sans année (dépense, salaire, dette, prêt, retrait, cours du
+   *     soir) garde l'attribution du dessus : l'année qui possède sa date ;
+   *   - dans les mois nominaux d'une année, la date fait foi, comme chez lui
+   *     (`bilan_annee_scolaire()` ne connaît que ces mois-là).
+   *
+   * Toujours aucune ligne comptée deux fois, aucune perdue — et une de moins :
+   * l'argent d'avance d'une année seulement créée n'est plus AUSSI dans l'année
+   * ouverte (synthese-annee-rattachement.spec.ts).
    */
   async bilanAnneeScolaire(annee: {
     id: string;
@@ -971,7 +1086,7 @@ export class ReportsService {
 
       const { rows: recus } = await tx.query<{ n: string; m: string }>(
         `SELECT COUNT(*)::text AS n, COALESCE(SUM(amount_paid), 0)::numeric(14,2)::text AS m
-           FROM legacy_receipts WHERE received_at::date BETWEEN $1::date AND $2::date`,
+           FROM legacy_receipts WHERE ${entreJours('received_at', '$1', '$2')}`,
         [du, au],
       );
       const caisseEntre = async (debut: string, fin: string) => {
@@ -979,7 +1094,7 @@ export class ReportsService {
           `SELECT COALESCE(SUM(l.amount) FILTER (WHERE l.direction = 'in'), 0)::numeric(14,2)::text AS e,
                   COALESCE(SUM(l.amount) FILTER (WHERE l.direction = 'out'), 0)::numeric(14,2)::text AS s
              FROM tender_lines l
-            WHERE l.created_at::date BETWEEN $1::date AND $2::date
+            WHERE ${entreJours('l.created_at', '$1', '$2')}
               -- Un mouvement annulé ne compte ni en entrée ni en sortie.
               AND ${ligneVive('l')}`,
           [debut, fin],
@@ -1010,7 +1125,55 @@ export class ReportsService {
                 return { encaisse: caisse[0]!.e, depense: caisse[0]!.s, nb: 0, source: 'caisse' as const, du, au };
               }
               const [debut, fin] = possede;
-              const c = await caisseEntre(debut, fin);
+              // Hors des mois nominaux, l'année du paiement fait foi (voir plus haut).
+              // Les mois nominaux de TOUTES les années : celle-ci telle qu'on la
+              // consulte, les autres telles qu'elles sont en base — comme
+              // `periodeAttribuee` lit ses voisines.
+              const { rows: autres } = await tx.query<{ start_year: number; start_month: number; end_month: number }>(
+                'SELECT start_year, start_month, end_month FROM academic_years WHERE id <> $1',
+                [annee!.id],
+              );
+              const nominaux = [annee!, ...autres].map((a) => moisNominaux(a));
+              // Ce qu'il suffit de LIRE : les jours que l'année possède, et les
+              // jours hors de tout mois nominal (où une ligne peut lui être
+              // rattachée). Une ligne datée dans les mois nominaux d'une AUTRE
+              // année ne peut pas compter ici : inutile de la lire. Des plages
+              // qui ne se chevauchent pas — aucune ligne lue deux fois ; la
+              // règle, elle, reste entière dans le CASE.
+              // `MATERIALIZED` : les lignes de ces plages sont lues D'ABORD, par
+              // l'index des dates ; laissé libre, Postgres relisait toute la
+              // caisse et tous les paiements avant de regarder les plages.
+              // ⚠ Les bornes arrivent DÉJÀ en `timestamptz` (minuit du jour,
+              // et minuit du lendemain de la fin, exclu) : sous RLS, une
+              // conversion écrite dans la jointure (`plage.debut::timestamptz`)
+              // n'est pas « leakproof » et interdit l'index — voir `entreJours`.
+              const aLire = reunirPlages([[debut, fin], ...horsDesPlages(nominaux)]);
+              const { rows: sommes } = await tx.query<{ e: string; s: string }>(
+                `WITH l AS MATERIALIZED (
+                   SELECT t.amount, t.direction, t.source_type, t.source_id, t.created_at
+                     FROM unnest($7::timestamptz[], $8::timestamptz[]) AS plage(debut, fin_exclue)
+                     JOIN tender_lines t
+                       ON t.created_at >= plage.debut AND t.created_at < plage.fin_exclue
+                 )
+                 SELECT COALESCE(SUM(l.amount) FILTER (WHERE l.direction = 'in'), 0)::numeric(14,2)::text AS e,
+                        COALESCE(SUM(l.amount) FILTER (WHERE l.direction = 'out'), 0)::numeric(14,2)::text AS s
+                   FROM l
+                   ${JOINTURES_ANNEE_DU_PAIEMENT('l', '$6')}
+                  WHERE CASE
+                          WHEN ${ANNEE_DU_PAIEMENT} IS NOT NULL
+                           AND NOT EXISTS (SELECT 1 FROM unnest($4::date[], $5::date[]) AS nominal(debut, fin)
+                                            WHERE l.created_at::date BETWEEN nominal.debut AND nominal.fin)
+                          THEN ${ANNEE_DU_PAIEMENT} = $3::uuid
+                          ELSE ${entreJours('l.created_at', '$1', '$2')}
+                        END
+                    -- Un mouvement annulé ne compte ni en entrée ni en sortie.
+                    AND ${ligneVive('l')}`,
+                [
+                  debut, fin, annee!.id, nominaux.map((n) => n[0]), nominaux.map((n) => n[1]), [...SOURCES_SERVICES],
+                  aLire.map((p) => p[0]), aLire.map((p) => lendemain(p[1])),
+                ],
+              );
+              const c = sommes[0]!;
               // Sans année suivante ouverte, l'année court toujours : la borne
               // affichée est sa fin nominale, ou aujourd'hui si elle est passée.
               const [, finNominale] = moisNominaux(annee!);
@@ -1021,32 +1184,38 @@ export class ReportsService {
       // Contrôle de cohérence : chaque paiement doit être intégralement
       // ventilé en lignes de caisse, sinon les totaux sont faux sans que rien
       // ne le signale.
-      const w = annee ? 'WHERE p.academic_year_id = $1' : '';
-      const arg = annee ? [annee.id] : [];
-      const { rows: nbP } = await tx.query<{ n: string }>(
-        `SELECT COUNT(*)::text AS n FROM payments p ${w}`,
-        arg,
-      );
-      const { rows: sansLigne } = await tx.query<{ n: string }>(
-        `SELECT COUNT(*)::text AS n FROM payments p ${w ? w + ' AND' : 'WHERE'} NOT EXISTS (
-            SELECT 1 FROM tender_lines l WHERE l.source_type = 'paiement' AND l.source_id = p.id)`,
-        arg,
-      );
-      const { rows: ecarts } = await tx.query<{ n: string; m: string }>(
-        `SELECT COUNT(*)::text AS n, COALESCE(SUM(ABS(ecart)), 0)::numeric(14,2)::text AS m FROM (
-            -- Signé, comme tillConsistency : une annulation écrit des lignes « out ».
-            SELECT p.id, p.amount - COALESCE((SELECT SUM(CASE WHEN l.direction = 'out' THEN -l.amount ELSE l.amount END)
-                     FROM tender_lines l
-                     WHERE l.source_type = 'paiement' AND l.source_id = p.id), 0) AS ecart
-              FROM payments p ${w}) x WHERE ABS(ecart) > 0.009`,
-        arg,
+      /*
+       * EN UNE LECTURE (10/10/2026) — c'étaient trois requêtes sur les mêmes
+       * paiements : les compter, compter ceux sans ligne, mesurer les écarts ;
+       * la troisième refaisait, PAR PAIEMENT, la somme de ses lignes (7 835
+       * sous-requêtes pour 2025-2026). Les trois chiffres sont les mêmes,
+       * calculés pareil : `ventile` est la somme signée des lignes du paiement
+       * (une annulation écrit des lignes « out », comme tillConsistency) ; pas
+       * de ligne du tout = `sans_ligne` ; `amount − ventile` au-delà du
+       * centime = un écart.
+       */
+      const { rows: ctl } = await tx.query<{ n: string; sans: string; ecart_n: string; ecart_m: string }>(
+        `SELECT COUNT(*)::text AS n,
+                COUNT(*) FILTER (WHERE v.source_id IS NULL)::text AS sans,
+                COUNT(*) FILTER (WHERE ABS(p.amount - COALESCE(v.ventile, 0)) > 0.009)::text AS ecart_n,
+                COALESCE(SUM(ABS(p.amount - COALESCE(v.ventile, 0)))
+                           FILTER (WHERE ABS(p.amount - COALESCE(v.ventile, 0)) > 0.009), 0)::numeric(14,2)::text AS ecart_m
+           FROM payments p
+           LEFT JOIN (
+             SELECT l.source_id, SUM(CASE WHEN l.direction = 'out' THEN -l.amount ELSE l.amount END) AS ventile
+               FROM tender_lines l
+              WHERE l.source_type = 'paiement'
+              GROUP BY l.source_id
+           ) v ON v.source_id = p.id
+          ${annee ? 'WHERE p.academic_year_id = $1' : ''}`,
+        annee ? [annee.id] : [],
       );
 
       const controle = {
-        paiements: Number(nbP[0]!.n),
-        sans_ligne: Number(sansLigne[0]!.n),
-        ecart_nb: Number(ecarts[0]!.n),
-        ecart_montant: ecarts[0]!.m,
+        paiements: Number(ctl[0]!.n),
+        sans_ligne: Number(ctl[0]!.sans),
+        ecart_nb: Number(ctl[0]!.ecart_n),
+        ecart_montant: ctl[0]!.ecart_m,
       };
 
       /*

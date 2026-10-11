@@ -6,6 +6,7 @@ import { PaymentsService } from '../src/finance/payments.service.js';
 import { ExpensesService } from '../src/finance/expenses.service.js';
 import { EnrollmentService } from '../src/academic/enrollment.service.js';
 import { ReportsService } from '../src/reports/reports.service.js';
+import { money, toStorage } from '@elourwa/shared';
 import { parsePlage } from '../src/reports/periode.js';
 import { runInTenant } from '../src/tenant/tenant.context.js';
 
@@ -399,6 +400,58 @@ describe('1. une période de plusieurs jours, bornes comprises', () => {
     expect(() => parsePlage('10/03/2021', '11/03/2021')).toThrow('Date invalide');
     expect(() => parsePlage("2021-03-10'; DROP TABLE payments;--", '2021-03-11')).toThrow('Date invalide');
     expect(() => parsePlage('2021-01-01', '2022-01-02')).toThrow('ne peut pas dépasser 366 jours');
+  });
+
+  it('⚠ des lignes du MÊME instant sortent dans un ordre fixe — le même par jour, par période et par mois', async () => {
+    // 10/10/2026 : le journal n'était trié que par date. Les lignes d'un même
+    // instant (les moyens d'un reçu, les mois réglés d'un coup) sortaient dans
+    // l'ordre du plan que Postgres choisissait — sur les données de l'école,
+    // novembre 2025 demandé comme un mois et comme une période donnait deux
+    // ordres. Désormais : la plus récemment écrite d'abord (`id` décroissant).
+    // Deux dépenses à deux moyens, les quatre lignes au même instant, un jour
+    // qu'aucun autre test ne regarde (et hors de l'année : la synthèse l'ignore).
+    for (const [a, b] of [['100.00', '200.00'], ['300.00', '400.00']] as const) {
+      const e = await inTenant(() =>
+        expenses.record(
+          {
+            amount: toStorage(money(a).plus(money(b))),
+            description: 'Même instant',
+            tender: [{ paymentMethodId: cashId, amount: a }, { paymentMethodId: bankilyId, amount: b }],
+          },
+          ACTOR,
+        ),
+      );
+      await owner.query(`UPDATE tender_lines SET created_at = '2020-02-10 12:00:00' WHERE source_id = $1`, [e.id]);
+      await owner.query(`UPDATE expenses SET spent_at = '2020-02-10 12:00:00' WHERE id = $1`, [e.id]);
+    }
+    const { rows } = await owner.query<{ id: string; amount: string }>(
+      `SELECT id, amount::text FROM tender_lines
+        WHERE school_id = $1 AND created_at = '2020-02-10 12:00:00' ORDER BY id DESC`,
+      [schoolId],
+    );
+    const attendu = rows.map((r) => r.amount);
+    expect([...attendu].sort()).toEqual(['100.00', '200.00', '300.00', '400.00']);
+
+    const parJour = await inTenant(() => reports.transactions({ day: '2020-02-10' }));
+    const parPeriode = await inTenant(() => reports.transactions({ from: '2020-02-10', to: '2020-02-10' }));
+    const parMois = await inTenant(() => reports.transactions({ month: 2, year: 2020 }));
+    expect(parJour.map((l) => l.amount)).toEqual(attendu);
+    expect(parPeriode).toEqual(parJour);
+    expect(parMois).toEqual(parJour);
+
+    // Et pour des lignes REPRISES d'El Ourwa, c'est SON numéro qui départage
+    // (`legacy_id`, l'ordre où il les a écrites) : l'identifiant d'ici a été
+    // tiré à l'import et ne suit pas cet ordre (867 instants partagés sur 3 968
+    // dans les données de l'école). On donne donc aux deux lignes que `id`
+    // classait EN TÊTE les numéros chez lui, le plus petit à la première : les
+    // lignes d'ici (sans numéro, les plus récentes) restent devant, puis les
+    // reprises, numéro décroissant — l'inverse de leur ordre par `id`.
+    await owner.query('UPDATE tender_lines SET legacy_id = 990001 WHERE id = $1', [rows[0]!.id]);
+    await owner.query('UPDATE tender_lines SET legacy_id = 990002 WHERE id = $1', [rows[1]!.id]);
+    const avecReprises = [attendu[2], attendu[3], attendu[1], attendu[0]];
+    const jourRepris = await inTenant(() => reports.transactions({ day: '2020-02-10' }));
+    expect(jourRepris.map((l) => l.amount)).toEqual(avecReprises);
+    expect(await inTenant(() => reports.transactions({ month: 2, year: 2020 }))).toEqual(jourRepris);
   });
 });
 

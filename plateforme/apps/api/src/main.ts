@@ -16,6 +16,7 @@ import { corsEnv, isAllowedOrigin } from './cors.js';
 import { applyApiSecurityHeaders } from './security-headers.js';
 import { AppModule } from './app.module.js';
 import { MAX_BYTES } from './attachments/storage.js';
+import { DbService } from './db/db.service.js';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -95,6 +96,11 @@ async function bootstrap() {
     origin: async (origin: string | undefined) => isAllowedOrigin(origin, cors),
     credentials: true,
   });
+
+  // Les connexions gardées, ouvertes et réchauffées AVANT d'écouter : la
+  // première page servie ne paie pas leur ouverture (voir DbService).
+  const rechauffees = await app.get(DbService).rechauffer();
+  console.log(`[db] ${rechauffees} connexion(s) ouverte(s) et réchauffée(s)`);
 
   const port = Number(process.env.API_PORT ?? 3001);
   await app.listen(port, '0.0.0.0');

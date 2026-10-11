@@ -47,14 +47,53 @@ const liste = (xs: readonly string[]) => xs.map((x) => `'${x.replace(/'/g, "''")
  * `source_type` sont des constantes du code : les écrire dans la requête la
  * laisse lisible et servie par l'index `(school_id, source_type, source_id)`.
  */
+/*
+ * ⚠ LA MÊME RÈGLE, ÉCRITE POUR ÊTRE LUE PAR LES ANNULATIONS ET NON PAR LES
+ * LIGNES (10/10/2026, « the site is still kinda slow »).
+ *
+ * L'écriture d'avant (gardée mot pour mot dans ligne-retenue.spec.ts, qui
+ * prouve que les deux retiennent les mêmes lignes) partait de la ligne de
+ * caisse : « son écriture est-elle une annulation, ou a-t-elle été annulée ? »
+ * — et Postgres allait donc chercher, POUR CHAQUE LIGNE, son écriture par sa
+ * clé puis une annulation éventuelle. Sur les 7 458 lignes d'une année :
+ * quinze mille recherches pour ne rien trouver, l'école n'ayant à ce jour
+ * aucune annulation. C'était le plus gros poste de la synthèse de l'année et
+ * de chaque rapport.
+ *
+ * Les annulations sont RARES ; les lignes ne le sont pas. On part donc d'elles,
+ * par leur index partiel (`…_reverses_idx … WHERE reverses_id IS NOT NULL`) :
+ *
+ *   (a) la ligne est celle d'une ANNULATION   : son écriture porte `reverses_id` ;
+ *   (b) la ligne est celle d'une ANNULÉE      : une annulation la désigne ;
+ *   (c) et, pour les grands livres à drapeau, son écriture est marquée `reversed`.
+ *
+ * (b) ne relit plus l'écriture d'origine : la clé étrangère composite
+ * `(school_id, reverses_id) → (school_id, id)` — présente sur les six grands
+ * livres — garantit qu'elle existe, dans la même école.
+ *
+ * Le tout en UN seul ensemble — « les écritures écartées », chacune avec
+ * l'origine de ses lignes — et une seule exclusion : Postgres le lit une fois
+ * par requête (quelques lignes) et y cherche chaque ligne de caisse par
+ * hachage, au lieu de planifier une quinzaine d'exclusions à part.
+ */
+function ecrituresEcartees(): string {
+  return LIVRES.flatMap(({ table, origines, drapeau }) => {
+    // Un grand livre peut servir plusieurs origines (les salaires, les services).
+    const o = `(VALUES ${origines.map((x) => `('${x.replace(/'/g, "''")}')`).join(', ')}) AS o(origine)`;
+    return [
+      `SELECT o.origine, a.id AS ecriture FROM ${table} a CROSS JOIN ${o} WHERE a.reverses_id IS NOT NULL`,
+      `SELECT o.origine, a.reverses_id FROM ${table} a CROSS JOIN ${o} WHERE a.reverses_id IS NOT NULL`,
+      ...(drapeau ? [`SELECT o.origine, a.id FROM ${table} a CROSS JOIN ${o} WHERE a.reversed`] : []),
+    ];
+  }).join('\n              UNION ALL ');
+}
+
 export function ligneRetenue(alias = 'tl'): string {
   if (!/^[a-z_]+$/.test(alias)) throw new Error(`alias invalide : ${alias}`);
-  return LIVRES.map(
-    ({ table, origines, drapeau }) =>
-      `NOT EXISTS (SELECT 1 FROM ${table} src WHERE ${alias}.source_type IN (${liste(origines)}) AND src.id = ${alias}.source_id` +
-      ` AND (src.reverses_id IS NOT NULL${drapeau ? ' OR src.reversed' : ''}` +
-      ` OR EXISTS (SELECT 1 FROM ${table} annul WHERE annul.reverses_id = src.id)))`,
-  ).join('\n            AND ');
+  return (
+    `NOT EXISTS (SELECT 1 FROM (${ecrituresEcartees()}) ecartee` +
+    ` WHERE ecartee.origine = ${alias}.source_type AND ecartee.ecriture = ${alias}.source_id)`
+  );
 }
 
 /**
