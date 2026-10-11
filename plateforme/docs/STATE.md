@@ -39,6 +39,13 @@ Détail : **ADR-0084** (remplace les décisions 3 et 5 de l'ADR-0083).
   réduit, 404 par langue, copie hors serveur) ; sans JavaScript ; 320 à 430 px ;
   bloc Caddy dans `caddy:2-alpine` (404 dans la langue de l'adresse, aucune
   violation de CSP, sources refusées).
+- **Mise en scène de l'accueil** (demande suivante : « crazy designs and UI »,
+  contenu « authentic and professional ») : sceau d'or tournant autour du
+  cèdre, reflet sur le titre, lumière qui suit la souris, bandeau sans fin,
+  monument « près de 3 000 », maquette stylisée (tableau de bord + téléphone,
+  vrais noms de fonctions, légendée « vue stylisée »), grain de film, numéros
+  creux, défilement piloté (Chromium). Lighthouse inchangé : 98–100 / 100 /
+  100 / 100 ; 35/35 essais ; aucune violation de CSP. `DIRECTION.md`.
 - **En attente du propriétaire** : le domaine (`site_url`), l'adresse de la
   console (`console_url`), forme juridique et immatriculation, hébergeurs,
   durée des journaux ; relecture juridique, relecture de l'anglais et de
