@@ -1,0 +1,12 @@
+@media (max-width: 960px) {
+.menu-btn { display: none; }
+.entete-in { flex-wrap: wrap; }
+.nav {
+display: flex; position: static; width: 100%;
+flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 24px;
+padding: 0 0 14px; margin-inline-start: 0;
+background: none; border: 0;
+}
+.nav-liens { flex-direction: row; flex-wrap: wrap; gap: 4px 22px; }
+.nav-liens a { display: inline-block; padding-block: 6px; border-bottom: 1px solid transparent; font: 400 .9375rem/1.4 var(--texte); color: var(--lisible); }
+}

@@ -2,106 +2,110 @@
   <div class="cadre hero-grille">
     <div class="hero-texte">
       <p class="surtitre">{{ p.surtitre }}</p>
-      <h1 class="titre-xl">{{{ p.titre }}}</h1>
+      <h1 class="titre-hero"><span class="l1">{{ p.titre_1 }}</span> <span class="l2">{{ p.titre_2 }}</span></h1>
       <p class="chapo">{{ p.chapo }}</p>
       <div class="actions">
-        <a class="btn btn-encre" href="{{ u.demo }}">{{ p.cta_demo }}</a>
-        <a class="lien-fleche" href="{{ u.plateforme }}">{{ p.cta_plateforme }}<span class="fleche" aria-hidden="true">→</span></a>
+        <a class="btn btn-or" href="{{ u.acces }}">{{ p.cta_acces }}</a>
+        <a class="lien-trait" href="{{ u.produits }}">{{ p.cta_produits }}</a>
       </div>
     </div>
-    <div class="porte" aria-hidden="true">
-      <svg viewBox="0 0 480 600" preserveAspectRatio="xMidYMax meet" focusable="false">
-        <defs><clipPath id="arche"><path d="M172 600V328.48A176 176 0 0 1 162 270A176 176 0 0 1 272 106.84A176 176 0 0 1 382 270A176 176 0 0 1 372 328.48V600Z"/></clipPath></defs>
-        <rect class="po-fond" x="150" y="90" width="250" height="510"/>
-        <g clip-path="url(#arche)">
-          <path class="po-marche" d="M184 600V490H242.67V380H301.33V270H360V600Z"/>
-          <path class="po-ombre" d="M120 60H338L196 600H120Z"/>
-        </g>
-        <path class="po-face" fill-rule="evenodd" d="M64 0H480V600H64Z M172 600V328.48A176 176 0 0 1 162 270A176 176 0 0 1 272 106.84A176 176 0 0 1 382 270A176 176 0 0 1 372 328.48V600Z"/>
-        <path class="po-cote" d="M0 48L64 0V600H0Z"/>
-      </svg>
+    <div class="hero-cedre" aria-hidden="true">
+      <svg class="cedre-grand" viewBox="0 0 120 120" focusable="false"><path class="arbre" d="{{ marque.bois }}"/><path class="arbre" d="{{ marque.plateaux }}"/></svg>
+      <div class="chute">
+        <svg class="f"><use href="#feuille"/></svg><svg class="f"><use href="#feuille"/></svg><svg class="f"><use href="#feuille"/></svg><svg class="f"><use href="#feuille"/></svg><svg class="f"><use href="#feuille"/></svg><svg class="f"><use href="#feuille"/></svg><svg class="f"><use href="#feuille"/></svg><svg class="f"><use href="#feuille"/></svg>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="temps" aria-labelledby="temps-titre">
-  <div class="cadre temps-tete">
-    <h2 id="temps-titre" class="titre-l reveal">{{ p.temps.titre }}</h2>
-    <p class="temps-intro reveal">{{ p.temps.intro }}</p>
-  </div>
-  <ol class="paliers">
-    {% for x in p.temps.paliers %}<li class="palier palier-{{ x.ton }}">
-      <div class="cadre palier-in">
-        <p class="palier-num" aria-hidden="true">{{ x.num }}</p>
-        <div class="palier-tete reveal">
-          <h3 class="titre-m">{{ x.titre }}</h3>
-          <p>{{ x.texte }}</p>
-        </div>
-        <ul class="palier-points cascade">
-          {% for y in x.points %}<li class="reveal">{{ y }}</li>{% endfor %}
-        </ul>
-      </div>
+<section class="chiffres" aria-labelledby="chiffres-titre">
+  <h2 class="sr" id="chiffres-titre">{{ p.chiffres.titre }}</h2>
+  <ul class="cadre chiffres-liste">
+    {% for c in p.chiffres.items %}<li class="chiffre reveal">
+      <p class="chiffre-prefixe">{{ c.prefixe }}</p>
+      <p class="chiffre-valeur"{% if c.compte %} data-compte="{{ c.compte }}"{% endif %}>{{ c.valeur }}</p>
+      <p class="chiffre-libelle">{{ c.libelle }}</p>
     </li>
     {% endfor %}
-  </ol>
+  </ul>
 </section>
 
-<section class="regles" aria-labelledby="regles-titre">
-  <div class="cadre regles-grille">
-    <div class="regles-tete">
-      <h2 id="regles-titre" class="titre-l reveal">{{ p.regles.titre }}</h2>
-      <p class="reveal">{{ p.regles.intro }}</p>
-    </div>
-    <ol class="regles-liste">
-      {% for x in p.regles.items %}<li class="regle reveal">
-        <span class="regle-n" aria-hidden="true">{{ x.n }}</span>
-        <h3>{{ x.titre }}</h3>
-        <p>{{ x.texte }}</p>
-      </li>
+<section class="metiers clair" id="metiers" aria-labelledby="metiers-titre">
+  <div class="cadre">
+    <header class="tete reveal">
+      <p class="kicker">{{ p.services.kicker }}</p>
+      <h2 class="titre-l" id="metiers-titre">{{ p.services.titre }}</h2>
+    </header>
+    <div class="metiers-grille">
+      {% for s in p.services.items %}<article class="metier reveal">
+        <p class="metier-n" aria-hidden="true">{{ s.n }}</p>
+        <h3 class="titre-m">{{ s.titre }}</h3>
+        <p class="metier-texte">{{ s.texte }}</p>
+        <ul class="liste-fine">
+          {% for x in s.points %}<li>{{ x }}</li>{% endfor %}
+        </ul>
+        <a class="lien-trait" href="{{ u.contact }}?sujet={{ s.cible }}">{{ s.lien }}</a>
+      </article>
       {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="vitrine" aria-labelledby="vitrine-titre">
+  <svg class="filigrane" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><path d="{{ marque.bois }}"/><path d="{{ marque.plateaux }}"/></svg>
+  <div class="cadre vitrine-grille">
+    <div class="vitrine-tete reveal">
+      <p class="kicker">{{ p.produit.kicker }}</p>
+      <h2 class="titre-l" id="vitrine-titre">{{ p.produit.titre }}</h2>
+      <p>{{ p.produit.texte }}</p>
+      <p class="badge">{{ p.produit.badge }}</p>
+      <a class="lien-trait" href="{{ u.produits }}">{{ p.produit.lien }}</a>
+    </div>
+    <ol class="vitrine-liste cascade">
+      {% for x in p.produit.points %}<li class="reveal">{{ x }}</li>{% endfor %}
     </ol>
   </div>
-  <div class="cadre preuve reveal">
-    <p class="preuve-chiffre"><span class="preuve-n">{{ p.regles.preuve_n }}</span><span class="preuve-l">{{ p.regles.preuve_l }}</span></p>
-    <p class="preuve-texte">{{ p.regles.preuve_texte }}</p>
+</section>
+
+<section class="atelier" id="atelier" aria-labelledby="atelier-titre">
+  <div class="cadre atelier-grille">
+    <header class="reveal">
+      <p class="kicker">{{ p.atelier.kicker }}</p>
+      <h2 class="titre-l" id="atelier-titre">{{ p.atelier.titre }}</h2>
+    </header>
+    <div class="atelier-corps reveal">
+      {% for x in p.atelier.paragraphes %}<p>{{ x }}</p>{% endfor %}
+      <blockquote class="citation"><p>{{ p.atelier.citation }}</p></blockquote>
+    </div>
   </div>
 </section>
 
-<section class="bilingue" aria-labelledby="bilingue-titre">
-  <div class="cadre bilingue-grille">
-    <div class="bilingue-tete">
-      <h2 id="bilingue-titre" class="titre-l reveal">{{ p.bilingue.titre }}</h2>
-      <p class="reveal">{{ p.bilingue.texte }}</p>
-    </div>
-    <figure class="specimen reveal">
-      <div class="specimen-cadre" dir="ltr">
-      <div class="specimen-col" lang="fr" dir="ltr">
-        <p class="sp-1">République Islamique de Mauritanie</p>
-        <p class="sp-2">Honneur – Fraternité – Justice</p>
-        <p class="sp-3">Ministère de l'Éducation Nationale</p>
-      </div>
-      <div class="specimen-col" lang="ar" dir="rtl">
-        <p class="sp-1">الجمهورية الإسلامية الموريتانية</p>
-        <p class="sp-2">شرف – إخاء – عدل</p>
-        <p class="sp-3">وزارة التربية الوطنية</p>
-      </div>
-      <p class="specimen-bande"><span lang="ar" dir="rtl">بطاقة الأعداد</span><span aria-hidden="true">—</span><span lang="fr">BULLETIN DE NOTES</span></p>
-      </div>
-      <figcaption dir="{{ dir }}">{{ p.bilingue.legende }}</figcaption>
-    </figure>
+<section class="acces clair" aria-labelledby="acces-titre">
+  <div class="cadre">
+    <header class="tete reveal">
+      <p class="kicker">{{ p.acces.kicker }}</p>
+      <h2 class="titre-l" id="acces-titre">{{ p.acces.titre }}</h2>
+    </header>
+    <ol class="etapes cascade">
+      {% for e in p.acces.etapes %}<li class="etape reveal">
+        <p class="etape-n" aria-hidden="true">{{ e.n }}</p>
+        <h3>{{ e.titre }}</h3>
+        <p>{{ e.texte }}</p>
+      </li>{% endfor %}
+    </ol>
   </div>
 </section>
 
 <section class="appel" aria-labelledby="appel-titre">
-  <div class="cadre appel-grille">
-    <svg class="appel-fenetre" viewBox="0 0 100 230" aria-hidden="true" focusable="false"><path d="M4.7 230V101.22A80 80 0 0 1 0 74.2A80 80 0 0 1 50 0.04A80 80 0 0 1 100 74.2A80 80 0 0 1 95.3 101.22V230Z"/></svg>
-    <div class="appel-texte">
-      <h2 id="appel-titre" class="titre-l reveal">{{ p.appel.titre }}</h2>
-      <p class="reveal">{{ p.appel.texte }}</p>
-      <div class="actions reveal">
-        <a class="btn btn-sable" href="{{ u.demo }}">{{ p.cta_demo }}</a>
-        <a class="lien-fleche lien-clair" href="{{ cfg.whatsapp }}" rel="noopener">{{ p.appel.whatsapp }}<span class="fleche" aria-hidden="true">→</span></a>
-      </div>
+  <div class="cadre appel-in">
+    <div class="appel-cedre" aria-hidden="true">
+      <svg class="cedre" viewBox="0 0 120 120" focusable="false"><path class="arbre" d="{{ marque.bois }}"/><path class="arbre" d="{{ marque.plateaux }}"/><path class="feuilles" d="{{ marque.feuilles }}"/></svg>
+    </div>
+    <h2 class="titre-l reveal" id="appel-titre">{{ p.appel.titre }}</h2>
+    <p class="reveal">{{ p.appel.texte }}</p>
+    <div class="actions reveal">
+      <a class="btn btn-or" href="{{ u.acces }}">{{ t.nav.cta }}</a>
+      <a class="lien-trait" href="{{ cfg.whatsapp }}" rel="noopener">{{ p.appel.whatsapp }}</a>
     </div>
   </div>
 </section>

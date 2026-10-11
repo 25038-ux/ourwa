@@ -1,0 +1,50 @@
+<section class="tete-page">
+  <svg class="filigrane" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><path d="{{ marque.bois }}"/><path d="{{ marque.plateaux }}"/><path class="feuilles" d="{{ marque.feuilles }}"/></svg>
+  <div class="cadre">
+    <p class="surtitre">{{ p.surtitre }}</p>
+    <h1 class="titre-hero titre-page"><span class="l1">{{ p.titre_1 }}</span> <span class="l2">{{ p.titre_2 }}</span></h1>
+    <p class="chapo">{{ p.chapo }}</p>
+  </div>
+</section>
+
+{% for pr in p.produits %}<section class="produit produit-{{ pr.id }}" id="{{ pr.id }}" aria-labelledby="{{ pr.id }}-titre">
+  <div class="cadre produit-grille">
+    <header class="produit-tete reveal">
+      <p class="produit-n" aria-hidden="true">{{ pr.n }}</p>
+      <h2 class="titre-l" id="{{ pr.id }}-titre">{{ pr.nom }}</h2>
+      <p class="produit-accroche">{{ pr.accroche }}</p>
+    </header>
+    {% if pr.domaines %}<div class="domaines">
+      {% for d in pr.domaines %}<div class="domaine reveal">
+        <h3>{{ d.titre }}</h3>
+        <ul class="liste-fine">{% for x in d.fonctions %}<li>{{ x }}</li>{% endfor %}</ul>
+      </div>{% endfor %}
+    </div>{% else %}<ul class="liste-fine liste-large cascade">
+      {% for x in pr.fonctions %}<li class="reveal">{{ x }}</li>{% endfor %}
+    </ul>{% endif %}
+  </div>
+</section>
+{% endfor %}
+
+<section class="garanties clair" aria-labelledby="garanties-titre">
+  <div class="cadre">
+    <h2 class="titre-l reveal" id="garanties-titre">{{ p.garanties.titre }}</h2>
+    <ul class="garanties-liste cascade">
+      {% for g in p.garanties.items %}<li class="reveal"><h3>{{ g.titre }}</h3><p>{{ g.texte }}</p></li>{% endfor %}
+    </ul>
+  </div>
+</section>
+
+<section class="appel" aria-labelledby="appel-titre">
+  <div class="cadre appel-in">
+    <div class="appel-cedre" aria-hidden="true">
+      <svg class="cedre" viewBox="0 0 120 120" focusable="false"><path class="arbre" d="{{ marque.bois }}"/><path class="arbre" d="{{ marque.plateaux }}"/><path class="feuilles" d="{{ marque.feuilles }}"/></svg>
+    </div>
+    <h2 class="titre-l reveal" id="appel-titre">{{ p.appel.titre }}</h2>
+    <p class="reveal">{{ p.appel.texte }}</p>
+    <div class="actions reveal">
+      <a class="btn btn-or" href="{{ u.acces }}">{{ t.nav.cta }}</a>
+      <a class="lien-trait" href="{{ cfg.whatsapp }}" rel="noopener">{{ p.appel.whatsapp }}</a>
+    </div>
+  </div>
+</section>

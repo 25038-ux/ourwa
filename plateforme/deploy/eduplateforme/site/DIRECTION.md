@@ -1,82 +1,79 @@
-# Direction visuelle — en une page
+# Direction artistique — en une page
 
-> La commande demandait de proposer cette direction et d'attendre sa validation
-> avant de construire. Le propriétaire a demandé ensuite les livrables finaux
-> directement : la direction ci-dessous est donc **celle qui a été construite**.
-> Toute remarque sur elle se traite dans `src/style.css` et `src/pages/`, sans
-> refonte.
+> 11/10/2026. Le propriétaire a rejeté la direction précédente (« architecture
+> saharienne », porte et escalier) : EduPlateforme n'est pas une application,
+> c'est un **atelier de quelques ingénieurs**, à Nouakchott, qui conçoit des
+> sites web et **ouvre l'accès** à ses produits exclusifs. Il a demandé un site
+> très orienté vente, convaincant, avec une aura **VIP, exclusive** — et un logo
+> d'arbre : un cèdre du Liban, d'une couleur séduisante, aux feuilles qui
+> tombent. Cette page décrit ce qui a été construit.
 
-## Le parti pris : l'architecture saharienne
+## L'idée : un cercle fermé
 
-Des **masses pleines** (aplats de couleur unie, jamais de carte blanche à ombre
-portée), des **ouvertures franches** (l'arc brisé du logo, la porte de l'école,
-la fenêtre étroite), une **ombre et une lumière tranchées** (un plan plus sombre
-posé à côté du plan clair, sans dégradé ni flou). Aucune illustration de
-personnages, aucune icône, aucun emoji : la typographie et ces quelques formes
-portent tout.
-
-## La grille
-
-Douze colonnes, 1360 px au plus, marges `clamp(20px, 5vw, 72px)`, gouttière
-`clamp(16px, 2vw, 28px)`. Employée de façon **asymétrique** : le grand titre
-prend 7 colonnes à gauche et la masse de la porte les 5 autres jusqu'au bord ;
-les sections posent leur titre sur 4 à 6 colonnes et leur contenu sur la moitié
-opposée, avec une colonne vide entre les deux. Sur téléphone, une seule colonne.
-
-## L'échelle typographique
-
-| Rôle | Police | Taille (fluide) | Interligne |
-|---|---|---|---|
-| Titre de page | Source Serif 4, 600, optique « display » | 2,6 → 6 rem | 0,98 |
-| Titre de section | Source Serif 4, 600 | 2 → 3,5 rem | 1,04 |
-| Sous-titre | Source Serif 4, 600 | 1,5 → 2,05 rem | 1,15 |
-| Chapeau | IBM Plex Sans 400 | 1,1 → 1,28 rem | 1,6 |
-| Texte | IBM Plex Sans 400 | 1,0625 rem | 1,65 |
-| Surtitre | IBM Plex Sans 500, capitales espacées | 0,81 rem | — |
-| Arabe | Noto Naskh Arabic 700 (titres), IBM Plex Sans Arabic (texte) | mêmes rôles | 1,4 – 1,85 |
-
-Les grands chiffres (« 01 », « 88 ») sont des éléments graphiques à part
-entière, en sérif, ton sur ton ou en terre cuite. En arabe, ni capitales ni
-espacement des lettres (il casserait les liaisons).
+On n'achète pas EduPlateforme, on **y est admis**. Tout le vocabulaire le dit :
+« Réservé à quelques-uns », « Accès sur demande », « Rejoindre le cercle, en trois
+temps », « Ces produits ne sont pas en libre accès ». Le seul appel à l'action est
+**Demander un accès** ; il est partout, toujours le même bouton or. La preuve
+vient des faits, jamais des adjectifs : près de 3 000 élèves gérés aujourd'hui,
+0 écart sur 88 contrôles, trois langues, 100 % conçu et développé en Mauritanie.
 
 ## Les couleurs
 
-La palette du propriétaire, telle quelle : encre `#16241F`, vert profond
-`#2F6F62`, terre cuite `#C2683A`, sable `#F2EDE4`, gris `#6E7873`. Quatre
-nuances d'ombre seulement (sable plus foncé, vert et terre cuite à l'ombre),
-toujours en aplat. La terre cuite est un **accent** : un trait, un chiffre, la
-lumière dans la porte.
+| Rôle | Nom | Valeur |
+|---|---|---|
+| Le fond, la nuit d'un vert presque noir | nuit | `#0C1512` |
+| Les sections de prestige (la vitrine, l'application) | émeraude | `#0F3D2F` |
+| Le cèdre, les filets, les chiffres, le bouton | or champagne | `#C9A25B` |
+| La deuxième ligne des grands titres, les chiffres | or clair | `#E8D4A6` |
+| Les feuilles qui tombent — et rien d'autre | cuivre | `#D88A57` |
+| Les sections claires, où l'on respire | ivoire | `#F5EFE4` |
+| Le texte sur l'ivoire | encre | `#16211C` |
 
-⚠ Deux couples de la palette sont sous le seuil d'accessibilité pour le petit
-texte : gris sur sable (3,9:1) et terre cuite sur sable (3,4:1). Ils ne servent
-qu'aux grands textes et au décor ; le petit texte est en encre (13,8:1) ou en
-vert profond (5,0:1). Résultat : 100 en accessibilité sur chaque page mesurée.
+Contrastes vérifiés (WCAG AA au moins, AAA pour le texte courant) : or sur nuit
+7,8:1 · ivoire sur nuit 16,2:1 · or sur émeraude 5,1:1 · or foncé (`#7A5C24`) sur
+ivoire 5,4:1 · encre sur ivoire 14,5:1. Les grandes sections alternent nuit,
+ivoire et émeraude, séparées au besoin par un filet d'or ; jamais de carte
+blanche à ombre portée.
 
-## Le traitement des images
+## La typographie
 
-Pas de photographie d'illustration ni de banque d'images. Les « images » sont
-des formes tracées en SVG dans la page (zéro requête) : la porte, les plateaux,
-la fenêtre. Le produit se montre par sa **typographie réelle** — l'en-tête
-bilingue du bulletin, composé comme la plateforme le compose. Des captures
-d'écran de l'application pourront s'ajouter plus tard, recadrées à plat, sans
-cadre d'appareil.
+| Rôle | Police | Remarque |
+|---|---|---|
+| Titres, chiffres, citations | **Bodoni Moda** 500, taille optique 96 | une Didone : la voix du luxe éditorial |
+| Deuxième ligne des grands titres | Bodoni Moda *italique*, or clair | « *Réservé à quelques-uns.* » |
+| Texte, navigation | **Jost** 300 à 600 | une géométrique sobre, à la Futura |
+| Surtitres, boutons | Jost 500, capitales espacées (0,22 à 0,28 em) | jamais en arabe |
+| Titres arabes | **Amiri** 700 | un naskh classique, à la hauteur de la Didone |
+| Texte arabe | **Tajawal** 400 à 700 | la géométrique arabe qui répond à Jost |
 
-## Trois idées pour l'accueil
+Grand titre de l'accueil : `clamp(2.8rem, 5.3vw, 5.8rem)`, interligne 1. À la
+taille optique 96, Bodoni Moda dessine le trait d'union comme un filet
+invisible : `polices.py` emprunte ces trois signes (`-`, `–`, `—`) à la taille
+optique 6.
 
-1. **La porte** *(construite)* — une masse vert profond, de face et de biais,
-   percée du même arc outrepassé que le logo ; dans l'ouverture, un mur en terre
-   cuite, l'escalier de trois plateaux en sable et une ombre franche en
-   diagonale. Au chargement, l'ombre glisse et l'escalier monte, une seule fois.
-2. **Les plateaux** *(construite, deuxième section)* — « le produit en trois
-   temps » en trois bandes d'aplat empilées (sable, vert, encre), chacune moins
-   retirée que la précédente : la silhouette d'un escalier qui monte. Un grand
-   chiffre ton sur ton en guise d'image.
-3. **Le mur** *(construite, dernière section)* — un aplat d'encre percé d'une
-   fenêtre étroite en terre cuite, à côté de l'appel à la démonstration.
+## La grille et l'air
+
+Douze colonnes, 1400 px au plus, marges `clamp(20px, 5vw, 80px)`. Le titre de
+section sur la moitié gauche, le contenu sur l'autre ; des sections hautes
+(`clamp(96px, 12vw, 176px)` de marge verticale) ; des listes séparées par des
+filets fins plutôt que des puces. Sur téléphone, une seule colonne, le menu se
+replie derrière un bouton « Menu ».
 
 ## Le mouvement
 
-Sobre : des apparitions décalées au défilement (opacité et 16 px de montée,
-courbe sans rebond), la lumière qui entre dans la porte au chargement. Seulement
-`transform` et `opacity`. Rien si `prefers-reduced-motion` est demandé ; rien
-de caché si le script ne se charge pas.
+- **Les feuilles du cèdre tombent** dans l'ouverture de l'accueil : huit feuilles
+  cuivre, de 11 à 19 secondes chacune, en CSS seul. Elles s'arrêtent quand
+  l'ouverture sort de l'écran.
+- **Le compteur** « près de 3 000 » monte une fois, en 1,8 s, quand il paraît, et
+  s'arrête sur le texte exact.
+- **Les apparitions** : un léger glissement vers le haut, une seule fois. Ce qui
+  est déjà à l'écran au chargement ne disparaît jamais.
+- Avec `prefers-reduced-motion`, **rien ne bouge** : feuilles immobiles,
+  chiffres et textes déjà en place.
+
+## Ce que le site ne fait jamais
+
+Pas de photo d'illustration ni d'image de banque, pas d'icône ni d'emoji, pas de
+témoignage, de logo de client ou de chiffre qui n'aurait pas été donné ou
+vérifié, pas de compte à rebours ni de fausse rareté. L'exclusivité tient au ton,
+à l'air et à la retenue — pas à des artifices.

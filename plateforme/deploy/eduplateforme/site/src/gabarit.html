@@ -5,11 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ p.titre_meta }}</title>
 <meta name="description" content="{{ p.description }}">
-{% if not introuvable %}<link rel="canonical" href="{{ canon }}">
-<link rel="alternate" hreflang="fr" href="{{ alt_fr }}">
-<link rel="alternate" hreflang="ar" href="{{ alt_ar }}">
-<link rel="alternate" hreflang="x-default" href="{{ alt_fr }}">
-{% endif %}<meta name="theme-color" content="#F2EDE4">
+{% if adresses %}<link rel="canonical" href="{{ canon }}">
+{% for l in langues %}<link rel="alternate" hreflang="{{ l.code }}" href="{{ l.absolu }}">
+{% endfor %}<link rel="alternate" hreflang="x-default" href="{{ alt_fr }}">
+{% endif %}<meta name="theme-color" content="#0C1512">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="EduPlateforme">
 <meta property="og:title" content="{{ p.titre_meta }}">
@@ -18,27 +17,35 @@
 <link rel="icon" href="{{ a }}assets/logo/marque.svg" type="image/svg+xml">
 {% for x in polices %}<link rel="preload" href="{{ a }}assets/fonts/{{ x.f }}" as="font" type="font/woff2" crossorigin>
 {% endfor %}<link rel="stylesheet" href="{{ a }}assets/css/site.css?v={{ v }}">
+<noscript><link rel="stylesheet" href="{{ a }}assets/css/sans-js.css?v={{ v }}"></noscript>
 <script src="{{ a }}assets/js/site.js?v={{ v }}" defer></script>
 </head>
 <body>
 <a class="saut" href="#contenu">{{ t.nav.saut }}</a>
+<svg class="sprite" aria-hidden="true" focusable="false"><symbol id="feuille" viewBox="-10 -10 20 20"><path d="M-9.5 0C-5 7.5 4 6.5 9.5 0C4-6.5-5-7.5-9.5 0Z"/></symbol></svg>
 
 <header class="entete">
   <div class="cadre entete-in">
-    <a class="marque" href="{{ u.accueil }}">
-      <svg class="marque-arc" viewBox="0 0 100 125" aria-hidden="true" focusable="false"><path class="cadre" fill-rule="evenodd" d="M0 125V68.56A72 72 0 0 1 50 0A72 72 0 0 1 100 68.56V125ZM16.5 125V88.58A59 59 0 0 1 13 68.56A59 59 0 0 1 50 13.81A59 59 0 0 1 87 68.56A59 59 0 0 1 83.5 88.58V125Z"/><path class="marches" d="M20.5 125V106.19H40.17V87.37H59.83V68.56H79.5V125Z"/></svg>
+    <a class="marque" href="{{ u.accueil }}" aria-label="EduPlateforme — {{ t.nav.accueil }}">
+      <svg class="cedre" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><path class="arbre" d="{{ marque.bois }}"/><path class="arbre" d="{{ marque.plateaux }}"/><path class="feuilles" d="{{ marque.feuilles }}"/></svg>
       <span class="marque-nom">EduPlateforme</span>
     </a>
-    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="navigation">{{ t.nav.menu }}</button>
-    <nav class="nav" id="navigation" aria-label="{{ t.nav.principale }}">
-      <ul class="nav-liens">
-        <li><a href="{{ u.plateforme }}"{% if courant.plateforme %} aria-current="page"{% endif %}>{{ t.nav.plateforme }}</a></li>
-        <li><a href="{{ u.initiative }}"{% if courant.initiative %} aria-current="page"{% endif %}>{{ t.nav.initiative }}</a></li>
-        <li><a href="{{ u.contact }}"{% if courant.contact %} aria-current="page"{% endif %}>{{ t.nav.contact }}</a></li>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="navigation"><span class="menu-trait" aria-hidden="true"></span><span class="menu-mot">{{ t.nav.menu }}</span></button>
+    <div class="nav" id="navigation">
+      <nav aria-label="{{ t.nav.principale }}">
+        <ul class="nav-liens">
+          <li><a href="{{ u.accueil }}#metiers">{{ t.nav.services }}</a></li>
+          <li><a href="{{ u.produits }}"{% if courant.produits %} aria-current="page"{% endif %}>{{ t.nav.produits }}</a></li>
+          <li><a href="{{ u.accueil }}#atelier">{{ t.nav.atelier }}</a></li>
+          <li><a href="{{ u.contact }}"{% if courant.contact %} aria-current="page"{% endif %}>{{ t.nav.contact }}</a></li>
+        </ul>
+      </nav>
+      <ul class="langues" aria-label="{{ t.nav.langue }}">
+        {% for l in langues %}<li><a href="{{ l.url }}" lang="{{ l.code }}" hreflang="{{ l.code }}"{% if l.actif %} aria-current="true"{% endif %}><span aria-hidden="true">{{ l.court }}</span><span class="sr">{{ l.nom }}</span></a></li>
+        {% endfor %}
       </ul>
-      <a class="langue" href="{{ u.autre_langue }}" lang="{{ autre }}" hreflang="{{ autre }}">{{ t.nav.autre_langue }}</a>
-      <a class="btn btn-encre btn-petit" href="{{ u.demo }}">{{ t.nav.cta }}</a>
-    </nav>
+      <a class="btn btn-or btn-petit" href="{{ u.acces }}">{{ t.nav.cta }}</a>
+    </div>
   </div>
 </header>
 
@@ -49,8 +56,8 @@
 <footer class="pied">
   <div class="cadre pied-grille">
     <div class="pied-marque">
-      <a class="marque marque-claire" href="{{ u.accueil }}">
-        <svg class="marque-arc" viewBox="0 0 100 125" aria-hidden="true" focusable="false"><path class="cadre" fill-rule="evenodd" d="M0 125V68.56A72 72 0 0 1 50 0A72 72 0 0 1 100 68.56V125ZM16.5 125V88.58A59 59 0 0 1 13 68.56A59 59 0 0 1 50 13.81A59 59 0 0 1 87 68.56A59 59 0 0 1 83.5 88.58V125Z"/><path class="marches" d="M20.5 125V106.19H40.17V87.37H59.83V68.56H79.5V125Z"/></svg>
+      <a class="marque" href="{{ u.accueil }}">
+        <svg class="cedre" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><path class="arbre" d="{{ marque.bois }}"/><path class="arbre" d="{{ marque.plateaux }}"/><path class="feuilles" d="{{ marque.feuilles }}"/></svg>
         <span class="marque-nom">EduPlateforme</span>
       </a>
       <p>{{ t.pied.resume }}</p>
@@ -59,15 +66,14 @@
       <h2>{{ t.pied.pages }}</h2>
       <ul>
         <li><a href="{{ u.accueil }}">{{ t.nav.accueil }}</a></li>
-        <li><a href="{{ u.plateforme }}">{{ t.nav.plateforme }}</a></li>
-        <li><a href="{{ u.initiative }}">{{ t.nav.initiative }}</a></li>
+        <li><a href="{{ u.produits }}">{{ t.nav.produits }}</a></li>
         <li><a href="{{ u.contact }}">{{ t.nav.contact }}</a></li>
       </ul>
     </nav>
     <div class="pied-col">
       <h2>{{ t.pied.joindre }}</h2>
       <ul>
-        <li><a href="mailto:{{ cfg.courriel }}">{{ cfg.courriel }}</a></li>
+        <li><a href="mailto:{{ cfg.courriel }}" dir="ltr">{{ cfg.courriel }}</a></li>
         <li><a href="tel:{{ cfg.telephone_lien }}" dir="ltr">{{ cfg.telephone }}</a></li>
         <li><a href="{{ cfg.whatsapp }}" rel="noopener">WhatsApp</a></li>
       </ul>
@@ -77,14 +83,12 @@
       <ul>
         <li><a href="{{ u.mentions }}">{{ t.nav.mentions }}</a></li>
         <li><a href="{{ u.confidentialite }}">{{ t.nav.confidentialite }}</a></li>
-        <li><a href="{{ u.autre_langue }}" lang="{{ autre }}" hreflang="{{ autre }}">{{ t.nav.autre_langue }}</a></li>
-        {% if console %}<li><a href="{{ console }}" rel="nofollow">{{ t.pied.console }}</a></li>{% endif %}
+        {% for l in langues %}{% if not l.actif %}<li><a href="{{ l.url }}" lang="{{ l.code }}" hreflang="{{ l.code }}">{{ l.nom }}</a></li>{% endif %}
+        {% endfor %}{% if console %}<li><a href="{{ console }}" rel="nofollow">{{ t.pied.console }}</a></li>{% endif %}
       </ul>
     </div>
   </div>
-  <div class="cadre pied-bas">
-    <p>{{ t.pied.droits }}</p>
-  </div>
+  <div class="cadre pied-bas"><p>{{ t.pied.droits }}</p></div>
 </footer>
 </body>
 </html>

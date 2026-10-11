@@ -2,12 +2,12 @@
   <div class="cadre contact-grille">
     <div class="contact-tete">
       <p class="surtitre">{{ p.surtitre }}</p>
-      <h1 class="titre-xl">{{{ p.titre }}}</h1>
+      <h1 class="titre-hero titre-page"><span class="l1">{{ p.titre_1 }}</span> <span class="l2">{{ p.titre_2 }}</span></h1>
       <p class="chapo">{{ p.chapo }}</p>
       <dl class="canaux">
-        <div><dt>{{ p.canaux.courriel }}</dt><dd><a href="mailto:{{ cfg.courriel }}">{{ cfg.courriel }}</a></dd></div>
-        <div><dt>{{ p.canaux.telephone }}</dt><dd><a href="tel:{{ cfg.telephone_lien }}" dir="ltr">{{ cfg.telephone }}</a></dd></div>
-        <div><dt>WhatsApp</dt><dd><a href="{{ cfg.whatsapp }}" rel="noopener" dir="ltr">{{ cfg.telephone }}</a></dd></div>
+        <div><dt>{{ p.canaux.courriel }}</dt><dd><a href="mailto:{{ cfg.courriel }}" dir="ltr">{{ cfg.courriel }}</a></dd></div>
+        <div><dt>{{ p.canaux.telephone }}</dt><dd><a href="{{ cfg.whatsapp }}" rel="noopener" dir="ltr">{{ cfg.telephone }}</a></dd></div>
+        <div><dt>{{ p.canaux.interlocuteur }}</dt><dd>{{ p.canaux.interlocuteur_nom }}</dd></div>
       </dl>
     </div>
 
@@ -37,10 +37,10 @@
       </div>
       <div class="champ">
         <label for="f-msg">{{ p.form.message }}</label>
-        <textarea id="f-msg" name="message" rows="6" required maxlength="3000"></textarea>
+        <textarea id="f-msg" name="message" rows="5" required maxlength="3000"></textarea>
       </div>
       <div class="envois">
-        <button class="btn btn-encre" type="submit" name="canal" value="whatsapp">{{ p.form.envoyer_whatsapp }}</button>
+        <button class="btn btn-or" type="submit" name="canal" value="whatsapp">{{ p.form.envoyer_whatsapp }}</button>
         <button class="btn btn-contour" type="submit" name="canal" value="courriel">{{ p.form.envoyer_courriel }}</button>
       </div>
       <p class="form-note">{{ p.form.note }}</p>

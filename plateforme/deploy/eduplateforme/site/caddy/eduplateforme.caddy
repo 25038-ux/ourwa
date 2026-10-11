@@ -41,9 +41,12 @@ eduplateforme.example {
 
 	file_server
 
+	# La page « introuvable » dans la langue de l'adresse demandée.
 	handle_errors {
 		@ar expression `{http.request.uri.path}.startsWith("/ar/")`
+		@en expression `{http.request.uri.path}.startsWith("/en/")`
 		rewrite @ar /ar/404.html
+		rewrite @en /en/404.html
 		rewrite * /404.html
 		file_server
 	}

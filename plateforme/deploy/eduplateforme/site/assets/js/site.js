@@ -1,14 +1,18 @@
 /*
  * EduPlateforme — le comportement du site. Aucune bibliothèque, aucun traceur.
  *
+ *  0. Le compteur (« près de 3 000 ») monte une fois quand il paraît ; les
+ *     feuilles du cèdre s'arrêtent de tomber quand on ne les voit plus.
+ *
  *  1. Apparitions au défilement : ce qui est déjà à l'écran au chargement est
  *     marqué « vu » AVANT que la classe `js` ne cache le reste — rien ne
  *     disparaît puis ne réapparaît. Rien ne bouge si la personne a demandé de
  *     réduire les animations.
- *  2. Le menu du téléphone.
- *  3. Le sommaire de « La plateforme » suit la lecture.
- *  4. Le formulaire de contact n'envoie rien à ce site : il compose le message
- *     et l'ouvre dans WhatsApp ou dans la messagerie de la personne.
+ *  2. Le menu du téléphone (replié par la feuille de style dès le premier
+ *     affichage ; sans JavaScript, assets/css/sans-js.css le remet à plat).
+ *  3. Le formulaire de contact n'envoie rien à ce site : il compose le message
+ *     et l'ouvre dans WhatsApp ou dans la messagerie de la personne. Un lien
+ *     « ?sujet=acces » ou « ?sujet=site » choisit l'objet d'avance.
  *
  * Sans JavaScript, tout reste visible et le formulaire part par courriel.
  */
@@ -37,6 +41,35 @@
   }
   racine.classList.add('js');
 
+  /* 1 bis. Le compteur, et le sommeil des feuilles */
+  const langue = racine.lang;
+  const formater = (n) => (langue === 'ar' ? String(n) : n.toLocaleString(langue === 'en' ? 'en-US' : 'fr-FR'));
+  const compteurs = Array.from(document.querySelectorAll('[data-compte]'));
+  if (!calme && io && compteurs.length) {
+    const vu = new IntersectionObserver((entrees) => {
+      entrees.forEach((e) => {
+        if (!e.isIntersecting) return;
+        vu.unobserve(e.target);
+        const el = e.target;
+        const fin = Number(el.dataset.compte);
+        const texteFinal = el.textContent;
+        const debut = performance.now();
+        const duree = 1800;
+        const pas = (t) => {
+          const k = Math.min(1, (t - debut) / duree);
+          el.textContent = k < 1 ? formater(Math.round(fin * (1 - Math.pow(1 - k, 3)))) : texteFinal;
+          if (k < 1) requestAnimationFrame(pas);
+        };
+        requestAnimationFrame(pas);
+      });
+    }, { threshold: 0.6 });
+    compteurs.forEach((c) => vu.observe(c));
+  }
+  const cedre = document.querySelector('.hero-cedre');
+  if (cedre && io) {
+    new IntersectionObserver((e) => cedre.classList.toggle('endormi', !e[0].isIntersecting)).observe(cedre);
+  }
+
   /* 2. Le menu du téléphone */
   const entete = document.querySelector('.entete');
   const bouton = document.querySelector('.menu-btn');
@@ -52,22 +85,7 @@
     document.querySelectorAll('.nav a').forEach((a) => a.addEventListener('click', () => basculer(false)));
   }
 
-  /* 3. Le sommaire suit la lecture */
-  const liens = Array.from(document.querySelectorAll('.sommaire a'));
-  if (liens.length && io) {
-    const parId = new Map(liens.map((a) => [a.getAttribute('href').slice(1), a]));
-    const lecture = new IntersectionObserver((entrees) => {
-      entrees.forEach((e) => {
-        if (!e.isIntersecting) return;
-        liens.forEach((a) => a.removeAttribute('aria-current'));
-        const a = parId.get(e.target.id);
-        if (a) a.setAttribute('aria-current', 'true');
-      });
-    }, { rootMargin: '-35% 0px -60% 0px' });
-    parId.forEach((_, id) => { const s = document.getElementById(id); if (s) lecture.observe(s); });
-  }
-
-  /* 4. Le formulaire de contact */
+  /* 3. Le formulaire de contact */
   const form = document.getElementById('formulaire');
   if (form) {
     const d = form.dataset;

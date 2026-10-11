@@ -6,328 +6,202 @@
     "saut": "Aller au contenu",
     "menu": "Menu",
     "principale": "Navigation principale",
+    "langue": "Langue",
     "accueil": "Accueil",
-    "plateforme": "La plateforme",
-    "initiative": "L’initiative",
+    "services": "Nos métiers",
+    "produits": "Nos produits",
+    "atelier": "L’atelier",
     "contact": "Contact",
     "mentions": "Mentions légales",
     "confidentialite": "Confidentialité",
-    "autre_langue": "العربية",
-    "cta": "Demander une démonstration"
+    "cta": "Demander un accès"
   },
   "pied": {
-    "resume": "Des solutions technologiques pour améliorer la qualité de l’éducation en Mauritanie.",
-    "pages": "Pages",
+    "resume": "Atelier numérique à Nouakchott. Sites web sur mesure et produits exclusifs pour les établissements scolaires.",
+    "pages": "Le site",
     "joindre": "Nous joindre",
     "informations": "Informations",
     "console": "Console des établissements",
-    "droits": "© 2026 EduPlateforme — Nouakchott, Mauritanie."
+    "droits": "© 2026 EduPlateforme. Conçu et développé à Nouakchott, Mauritanie."
   },
   "pages": {
     "accueil": {
-      "titre_meta": "EduPlateforme — la gestion scolaire, exacte et bilingue",
-      "description": "EduPlateforme développe des solutions technologiques pour améliorer la qualité de l’éducation en Mauritanie : une plateforme de gestion scolaire multi-établissements et une application pour les parents.",
-      "surtitre": "Initiative mauritanienne · Nouakchott",
-      "titre": "Une école bien tenue laisse plus de temps pour enseigner.",
-      "chapo": "EduPlateforme développe des solutions technologiques pour améliorer la qualité de l’éducation en Mauritanie. Son premier outil est une plateforme de gestion scolaire pour un ou plusieurs établissements : inscriptions, notes, bulletins bilingues, caisse, impayés, paie, comptabilité — et une application mobile pour les parents.",
-      "cta_demo": "Demander une démonstration",
-      "cta_plateforme": "Voir ce que fait la plateforme",
-      "temps": {
-        "titre": "Un seul outil, en trois temps.",
-        "intro": "L’établissement qui la tient, les familles qui la consultent, le réseau qui la rassemble.",
-        "paliers": [
+      "titre_meta": "EduPlateforme — atelier numérique, Nouakchott",
+      "description": "EduPlateforme, atelier d’ingénieurs à Nouakchott : sites web sur mesure et produits exclusifs pour les écoles. Près de 3 000 élèves gérés aujourd’hui par nos produits.",
+      "surtitre": "Atelier numérique · Nouakchott",
+      "titre_1": "Conçu à Nouakchott.",
+      "titre_2": "Réservé à quelques-uns.",
+      "chapo": "EduPlateforme est un atelier de quelques ingénieurs mauritaniens. Nous concevons des sites web d’exception et ouvrons, sur demande, l’accès à nos produits exclusifs — ceux qui gèrent aujourd’hui près de 3 000 élèves.",
+      "cta_acces": "Demander un accès",
+      "cta_produits": "Découvrir nos produits",
+      "chiffres": {
+        "titre": "Quelques chiffres",
+        "items": [
+          { "prefixe": "Près de", "valeur": "3 000", "compte": "3000", "libelle": "élèves gérés aujourd’hui par nos produits" },
+          { "prefixe": "", "valeur": "0", "compte": "", "libelle": "écart sur 88 contrôles menés contre les chiffres réels avant la mise en service" },
+          { "prefixe": "", "valeur": "3", "compte": "", "libelle": "langues sur nos sites : français, anglais, arabe" },
+          { "prefixe": "", "valeur": "100 %", "compte": "", "libelle": "conçu et développé en Mauritanie" }
+        ]
+      },
+      "services": {
+        "kicker": "Nos métiers",
+        "titre": "Deux métiers. Une seule exigence.",
+        "items": [
           {
-            "num": "01",
-            "ton": "clair",
-            "titre": "L’établissement",
-            "texte": "La direction, le secrétariat, la comptabilité et les enseignants travaillent sur les mêmes données, chacun selon les droits de son rôle.",
+            "n": "I",
+            "titre": "Sites web sur mesure",
+            "texte": "Des sites pensés comme des vitrines de prestige : une identité, des textes justes, des animations discrètes — et une vitesse irréprochable sur tous les téléphones.",
             "points": [
-              "Inscriptions, réinscriptions, classes et effectifs",
-              "Notes, moyennes et bulletins en français et en arabe",
-              "Caisse, reçus numérotés et suivi des impayés",
-              "Paie, prêts au personnel et rapports financiers"
-            ]
+              "Direction artistique et identité",
+              "Textes en français, anglais et arabe",
+              "Animations légères, sans rien céder sur la vitesse",
+              "Mise en ligne, nom de domaine et HTTPS"
+            ],
+            "lien": "Parler de votre site",
+            "cible": "site"
           },
           {
-            "num": "02",
-            "ton": "vert",
-            "titre": "Les parents",
-            "texte": "Une application mobile, en français et en arabe, avec laquelle chaque famille suit la scolarité de ses enfants.",
+            "n": "II",
+            "titre": "Produits exclusifs",
+            "texte": "Notre plateforme de gestion scolaire et l’application des familles. Nous les ouvrons à un nombre choisi d’établissements, que nous accompagnons de bout en bout.",
             "points": [
-              "Notes, résultats et bulletin officiel",
-              "Absences, remarques et exercices",
-              "Paiements et messages de l’école",
-              "Notifications sur le téléphone"
-            ]
-          },
-          {
-            "num": "03",
-            "ton": "encre",
-            "titre": "Le réseau",
-            "texte": "Plusieurs établissements sur la même plateforme, chacun avec ses données strictement séparées des autres.",
-            "points": [
-              "Création d’un établissement et de son administrateur",
-              "Une identité par établissement : nom, nom arabe, couleur, devise",
-              "Un tableau de bord qui cumule tous les établissements",
-              "Une seule application pour les familles de tout le réseau"
-            ]
+              "Inscriptions, notes et bulletins bilingues",
+              "Caisse, impayés, paie et comptabilité",
+              "Application des parents sur Android et iPhone",
+              "Reprise de vos données et mise en service"
+            ],
+            "lien": "Demander un accès",
+            "cible": "acces"
           }
         ]
       },
-      "regles": {
-        "titre": "Ce qui ne se négocie pas.",
-        "intro": "Une école confie à son logiciel l’argent des familles et les notes des élèves. La plateforme est construite autour de quelques règles qui ne connaissent pas d’exception.",
-        "items": [
-          {
-            "n": "1",
-            "titre": "Un montant n’est jamais arrondi en chemin.",
-            "texte": "Les sommes sont calculées en décimal exact et arrondies une seule fois, au moment de l’affichage."
-          },
-          {
-            "n": "2",
-            "titre": "Une écriture de caisse n’est jamais effacée.",
-            "texte": "Une erreur se corrige par une écriture inverse : l’historique reste complet et se relit ligne par ligne."
-          },
-          {
-            "n": "3",
-            "titre": "Un reçu n’a jamais de jumeau.",
-            "texte": "Chaque établissement a sa propre numérotation, sans doublon, même lorsque deux caisses encaissent au même instant."
-          },
-          {
-            "n": "4",
-            "titre": "Une absence n’est pas un zéro.",
-            "texte": "Un élève absent à une épreuve est marqué comme tel ; cette marque n’entre jamais dans une moyenne."
-          },
-          {
-            "n": "5",
-            "titre": "Une école ne voit jamais les données d’une autre.",
-            "texte": "La séparation est imposée par la base de données elle-même, et vérifiée par un test à chaque nouvelle version."
-          }
+      "produit": {
+        "kicker": "La plateforme",
+        "titre": "Le cœur numérique d’écoles entières.",
+        "texte": "De l’inscription au bulletin, de la caisse à la paie : une seule plateforme, en français et en arabe, pour un établissement ou tout un réseau. Les familles suivent tout depuis leur téléphone.",
+        "points": [
+          "Bulletins officiels bilingues, imprimés ou envoyés aux familles",
+          "Reçus numérotés, montants exacts au centime",
+          "Suivi des impayés, famille par famille",
+          "Paie, prêts au personnel et rapports financiers",
+          "Plusieurs établissements, données strictement séparées",
+          "Notifications instantanées aux parents"
         ],
-        "preuve_n": "88",
-        "preuve_l": "mesures, aucune divergence.",
-        "preuve_texte": "Avant sa mise en service, la plateforme a été rapprochée des chiffres réels du logiciel qu’elle remplace, sur les données d’un établissement : moyennes et notes, inscriptions, encaissements, impayés, salaires et prêts."
+        "badge": "Accès sur demande",
+        "lien": "Voir nos produits"
       },
-      "bilingue": {
-        "titre": "Le bulletin, tel que l’établissement l’imprime.",
-        "texte": "Les bulletins reprennent l’en-tête officiel, en français et en arabe, avec les moyennes, le rang, l’appréciation et la décision d’admission. Les parents reçoivent le même document dans l’application.",
-        "legende": "L’en-tête bilingue des bulletins, tel qu’il est composé par la plateforme."
+      "atelier": {
+        "kicker": "L’atelier",
+        "titre": "Une poignée d’ingénieurs. Aucun intermédiaire.",
+        "paragraphes": [
+          "Chez EduPlateforme, ceux qui vous reçoivent sont les ingénieurs qui conçoivent et écrivent le code. Une petite équipe, à Nouakchott, qui connaît chaque ligne de ce qu’elle livre.",
+          "Notre méthode tient en peu de mots : comprendre comment votre établissement fonctionne réellement, construire avec rigueur — tout ce qui touche à l’argent ou aux notes est éprouvé avant d’être écrit — et rester présents après la mise en service."
+        ],
+        "citation": "Nous préférons bien faire à faire beaucoup."
+      },
+      "acces": {
+        "kicker": "L’accès",
+        "titre": "Rejoindre le cercle, en trois temps.",
+        "etapes": [
+          { "n": "01", "titre": "La demande", "texte": "Quelques mots sur votre établissement ou votre projet — par WhatsApp, par courriel ou depuis ce site." },
+          { "n": "02", "titre": "L’entretien privé", "texte": "Nous vous présentons nos produits en démonstration et étudions votre besoin avec vous." },
+          { "n": "03", "titre": "L’ouverture", "texte": "Mise en service, reprise de vos données, mise en ligne de votre site. Et nous restons à vos côtés." }
+        ]
       },
       "appel": {
-        "titre": "Voyez-la sur les classes de votre établissement.",
-        "texte": "Nous vous présentons la plateforme et l’application des parents, et répondons à vos questions sur la reprise de vos données.",
+        "titre": "L’accès se fait sur demande.",
+        "texte": "Écrivez-nous : nous répondons personnellement à chaque demande.",
         "whatsapp": "Écrire sur WhatsApp"
       }
     },
-    "plateforme": {
-      "titre_meta": "La plateforme — EduPlateforme",
-      "description": "Les fonctions de la plateforme de gestion scolaire EduPlateforme, domaine par domaine : scolarité, notes et bulletins, caisse et impayés, paie, cours du soir, application des parents, multi-établissements.",
-      "surtitre": "La plateforme",
-      "titre": "Ce qu’elle fait, domaine par domaine.",
-      "chapo": "Les fonctions ci-dessous sont en service aujourd’hui. Elles sont rangées dans l’ordre où une école les rencontre au fil d’une année.",
-      "sommaire": "Domaines",
-      "domaines": [
+    "produits": {
+      "titre_meta": "Nos produits — EduPlateforme",
+      "description": "Les produits exclusifs d’EduPlateforme : plateforme de gestion scolaire, application des familles, site d’établissement. Accès sur demande.",
+      "surtitre": "Nos produits",
+      "titre_1": "Ouverts sur demande.",
+      "titre_2": "Pensés pour durer.",
+      "chapo": "Trois produits conçus et développés à Nouakchott, en service aujourd’hui dans des établissements qui comptent près de 3 000 élèves.",
+      "produits": [
         {
-          "id": "scolarite",
-          "n": "01",
-          "ton": "clair",
-          "titre": "Inscriptions et scolarité",
-          "texte": "De la première inscription à la réinscription de l’année suivante.",
-          "fonctions": [
-            "Fiche de l’élève : identité, lieu de naissance, numéros NNI et RIM facultatifs",
-            "Rattachement à une famille existante, ou création du compte du parent",
-            "Inscription dans l’année ouverte, avec l’échéancier mensuel calculé d’après la date d’entrée",
-            "Réinscription individuelle ou par lot, présentée famille par famille avec ce que chacune doit",
-            "Décision de la direction enregistrée lorsqu’une réinscription est autorisée malgré une dette",
-            "Niveaux rangés par cycle — maternelle, fondamental, collège, lycée — et classes avec capacité et effectif",
-            "Changement de classe, et retrait d’un élève sans effacer ses paiements",
-            "Registre des élèves exclus",
-            "Documents signés déposés par élève et par année",
-            "Statistiques des effectifs, d’une année sur l’autre et par sexe",
-            "Recherche d’un élève ou d’un enseignant depuis n’importe quelle page"
-          ]
+          "id": "plateforme",
+          "n": "I",
+          "nom": "La plateforme de gestion scolaire",
+          "accroche": "Toute la vie administrative d’un établissement, exacte et bilingue.",
+          "domaines": [
+            { "titre": "Scolarité", "fonctions": ["Inscriptions et réinscriptions, famille par famille", "Niveaux par cycle, classes et effectifs", "Documents signés, par élève et par année", "Statistiques des effectifs"] },
+            { "titre": "Notes et bulletins", "fonctions": ["Saisie par classe, matière et trimestre", "Moyennes, rang, appréciation et décision", "Bulletin officiel bilingue, à l’unité ou par classe", "Appel, absences et emploi du temps"] },
+            { "titre": "Caisse et impayés", "fonctions": ["Encaissement sur plusieurs moyens de paiement", "Reçus numérotés, sans doublon", "Remises, exemptions et services : transport, cantine…", "La dette de chaque famille, ligne par ligne"] },
+            { "titre": "Personnel et paie", "fonctions": ["Comptes et droits selon le rôle", "Salaires à l’heure ou au mois", "Prêts remboursés sur salaire", "Absences du personnel"] },
+            { "titre": "Cours du soir", "fonctions": ["Groupes, tarifs et mois d’activité", "Élèves de l’établissement ou de l’extérieur", "Paie des enseignants du soir"] },
+            { "titre": "Réseau d’établissements", "fonctions": ["Création d’un établissement depuis une console dédiée", "Tableau de bord cumulé", "Données séparées au niveau de la base"] }
+          ],
+          "fonctions": []
         },
         {
-          "id": "notes",
-          "n": "02",
-          "ton": "clair",
-          "titre": "Notes, bulletins et vie de classe",
-          "texte": "Ce que l’enseignant saisit, ce que la famille reçoit.",
+          "id": "application",
+          "n": "II",
+          "nom": "L’application des familles",
+          "accroche": "Les parents suivent tout, en temps réel, depuis leur téléphone.",
+          "domaines": [],
           "fonctions": [
-            "Saisie des notes par niveau, classe et matière, pour chaque trimestre : devoirs et composition",
-            "Formule de calcul réglable par niveau et par trimestre ; matières notées sur un autre barème ramenées sur 20",
-            "Moyennes, rang, appréciation, moyenne annuelle et décision d’admission",
-            "« Non évalué » pour un élève sans note — jamais « Ajourné »",
-            "Bulletin officiel bilingue, imprimable pour un élève ou pour toute une classe",
-            "Appel en classe : présent, absent, en retard ; absences justifiées",
-            "Emploi du temps de la semaine, publié aux familles",
-            "Exercices avec pièces jointes — images, PDF, documents bureautiques",
-            "Remarques des enseignants sur un élève"
-          ]
-        },
-        {
-          "id": "finances",
-          "n": "03",
-          "ton": "clair",
-          "titre": "Caisse, frais et impayés",
-          "texte": "Chaque somme reçue a son reçu ; chaque somme due se justifie ligne par ligne.",
-          "fonctions": [
-            "Grille des mois par enfant : payé, dû, gratuit, exempté",
-            "Encaissement d’un mois réparti sur plusieurs moyens de paiement",
-            "Reçus numérotés par établissement, sans doublon",
-            "Frais annuels par famille, et services au choix : transport, restauration, fournitures…",
-            "Exemptions et remises, avec leur auteur, leur date et leur motif ; retirables",
-            "Calcul de la dette de chaque famille, détaillée ligne par ligne",
-            "Rappel des familles pour un mois impayé",
-            "Dépenses, point de caisse du jour, rapport financier du mois",
-            "Recettes en direct, par jour et par moyen de paiement",
-            "Demandes internes du comptable, approuvées ou refusées par la direction",
-            "Retraits des détenteurs de fonds, dans la limite d’un plafond mensuel"
-          ]
-        },
-        {
-          "id": "personnel",
-          "n": "04",
-          "ton": "clair",
-          "titre": "Personnel et paie",
-          "texte": "Les comptes, les droits, les salaires.",
-          "fonctions": [
-            "Comptes du personnel : direction, secrétariat, comptabilité, enseignants",
-            "Rôles et droits réglables, vérifiés par le serveur à chaque action",
-            "Salaire mensuel : taux horaire × heures, ou montant fixe",
-            "Prêts au personnel, remboursés par retenue sur salaire",
-            "Absences des enseignants et des agents, d’après leur emploi du temps",
-            "Espace enseignant : ses classes, son emploi du temps, le détail de son salaire du mois",
-            "Historique des connexions du personnel et des parents"
-          ]
-        },
-        {
-          "id": "soir",
-          "n": "05",
-          "ton": "clair",
-          "titre": "Cours du soir",
-          "texte": "Une école du soir tenue à part, sans jamais se mêler aux comptes de la journée.",
-          "fonctions": [
-            "Groupes du soir avec leur tarif mensuel et leurs mois d’activité",
-            "Inscription d’élèves de l’établissement ou de personnes extérieures",
-            "Enseignants extérieurs, payés à l’heure ou au mois",
-            "Emploi du temps du soir",
-            "Encaissement avec reçu, et réductions propres aux cours du soir",
-            "Paiement d’un enseignant annulé par une écriture inverse, jamais effacé"
-          ]
-        },
-        {
-          "id": "parents",
-          "n": "06",
-          "ton": "vert",
-          "titre": "L’application des parents",
-          "texte": "Sur Android et iPhone, en français et en arabe.",
-          "fonctions": [
-            "Une seule application pour tous les établissements de la plateforme",
-            "Connexion avec un numéro de téléphone mauritanien ; plusieurs numéros possibles par famille",
-            "Tableau de bord de tous les enfants de la famille",
-            "Notes et résultats par trimestre ; bulletin officiel enregistré en PDF",
-            "Absences, remarques, exercices et pièces jointes, emploi du temps",
+            "Android et iPhone, en français et en arabe",
+            "Une seule application pour tous les établissements",
+            "Notes, résultats et bulletin officiel en PDF",
+            "Absences, remarques, exercices et pièces jointes",
             "Messages de l’école et état des paiements",
-            "Notifications sur le téléphone ; la note n’apparaît jamais sur l’écran verrouillé"
+            "Notifications instantanées — la note ne s’affiche jamais sur l’écran verrouillé"
           ]
         },
         {
-          "id": "reseau",
-          "n": "07",
-          "ton": "encre",
-          "titre": "Plusieurs établissements",
-          "texte": "Une console réservée aux administrateurs de la plateforme.",
+          "id": "sites",
+          "n": "III",
+          "nom": "Le site de votre établissement",
+          "accroche": "Une vitrine à la hauteur de votre réputation.",
+          "domaines": [],
           "fonctions": [
-            "Créer un établissement et nommer son administrateur",
-            "Suspendre un établissement, puis le rouvrir",
-            "Une identité par établissement : nom, nom arabe, couleur, devise, préfixe des reçus",
-            "Tableau de bord cumulé : recettes du jour, du mois et de l’année, rapport sur douze mois",
-            "Entrer dans un établissement sans se reconnecter, chaque entrée étant journalisée",
-            "Données de chaque établissement séparées au niveau de la base de données"
-          ]
-        },
-        {
-          "id": "securite",
-          "n": "08",
-          "ton": "clair",
-          "titre": "Sécurité et exactitude",
-          "texte": "Ce qui protège les données des familles, et l’exactitude des comptes.",
-          "fonctions": [
-            "Mots de passe conservés sous forme d’empreinte Argon2id",
-            "Verrouillage après des tentatives répétées, par compte et par adresse",
-            "Sessions liées à l’appareil ; un changement de mot de passe ferme toutes les sessions",
-            "Journal des actions : qui a fait quoi, et quand",
-            "Montants en décimal exact ; écritures financières jamais effacées",
-            "Échanges chiffrés (HTTPS) et en-têtes de sécurité sur chaque réponse"
+            "Conçu sur mesure, sans modèle",
+            "Français, anglais et arabe — de droite à gauche",
+            "Animations soignées, rapides sur tous les téléphones",
+            "Hébergement, nom de domaine et HTTPS",
+            "Aucun traceur publicitaire"
           ]
         }
       ],
-      "note": "Liste établie d’après le registre des fonctions de la plateforme, octobre 2026.",
-      "appel": "Une démonstration sur vos propres classes ?"
-    },
-    "initiative": {
-      "titre_meta": "L’initiative — EduPlateforme",
-      "description": "EduPlateforme, une initiative mauritanienne qui développe des solutions technologiques pour améliorer la qualité de l’éducation.",
-      "surtitre": "L’initiative",
-      "titre": "Améliorer la qualité de l’éducation, en commençant par ce qui la soutient.",
-      "chapitres": [
-        {
-          "titre": "Le propos",
-          "paragraphes": [
-            "EduPlateforme développe des solutions technologiques pour améliorer la qualité de l’éducation en Mauritanie.",
-            "Le point de départ est concret. Dans une école, beaucoup de temps et d’attention passent dans l’administration : inscrire, encaisser, calculer les moyennes, préparer les bulletins, tenir les familles informées. Lorsque ces tâches sont faites avec exactitude, et sans effort inutile, l’établissement peut consacrer davantage à l’enseignement."
-          ]
-        },
-        {
-          "titre": "La méthode",
-          "paragraphes": [
-            "Partir de ce que les écoles font réellement. La plateforme a été construite en reprenant, une à une, les fonctions d’un logiciel déjà en usage dans un établissement, puis vérifiée contre ses chiffres réels avant d’aller plus loin.",
-            "Tout ce qui touche à l’argent ou aux notes est éprouvé par des tests écrits avant le code. Une erreur dans un bulletin ou dans un reçu n’est pas un détail : c’est une famille mal informée."
-          ]
-        },
-        {
-          "titre": "Pour qui",
-          "paragraphes": [
-            "Les établissements scolaires, de la maternelle au lycée, seuls ou en réseau. Les enseignants et le personnel qui y travaillent. Et les familles, qui suivent la scolarité de leurs enfants depuis leur téléphone, en français ou en arabe."
-          ]
-        }
-      ],
-      "citation_label": "Citation",
-      "citation": "Une école bien tenue laisse plus de temps pour enseigner.",
-      "porteur": {
-        "titre": "Le porteur",
-        "nom": "Sidibrahim Mohammed",
-        "role": "Développeur, Nouakchott",
-        "texte": "L’initiative est portée par Sidibrahim Mohammed, qui conçoit et développe la plateforme. Pour toute question, une démonstration ou un premier échange :"
+      "garanties": {
+        "titre": "Ce qui ne se négocie pas.",
+        "items": [
+          { "titre": "Des montants exacts", "texte": "Calculés en décimal, arrondis une seule fois, à l’affichage." },
+          { "titre": "Une caisse qui ne s’efface pas", "texte": "Une erreur se corrige par une écriture inverse : l’historique reste entier." },
+          { "titre": "Des reçus uniques", "texte": "Une numérotation propre à chaque établissement, sans doublon possible." },
+          { "titre": "Des données cloisonnées", "texte": "Chaque établissement est isolé des autres par la base de données elle-même." }
+        ]
+      },
+      "appel": {
+        "titre": "Ces produits ne sont pas en libre accès.",
+        "texte": "Présentez-nous votre établissement : nous vous recevons pour une démonstration privée.",
+        "whatsapp": "Écrire sur WhatsApp"
       }
     },
     "contact": {
-      "titre_meta": "Contact — EduPlateforme",
-      "description": "Contacter EduPlateforme : courriel, téléphone, WhatsApp, ou un message préparé depuis le formulaire.",
+      "titre_meta": "Demander un accès — EduPlateforme",
+      "description": "Demander un accès aux produits d’EduPlateforme ou un site web sur mesure : courriel, téléphone, WhatsApp.",
       "surtitre": "Contact",
-      "titre": "Parlons de votre établissement.",
-      "chapo": "Pour une démonstration, une question ou un premier échange, écrivez-nous ou appelez directement.",
+      "titre_1": "Demander",
+      "titre_2": "un accès.",
+      "chapo": "Présentez-nous votre établissement ou votre projet. Nous répondons personnellement à chaque demande.",
       "canaux": {
         "courriel": "Courriel",
-        "telephone": "Téléphone"
+        "telephone": "Téléphone et WhatsApp",
+        "interlocuteur": "Votre interlocuteur",
+        "interlocuteur_nom": "Sidibrahim Mohammed"
       },
       "form": {
-        "titre": "Préparer un message",
+        "titre": "Votre demande",
         "objet": "Objet",
         "objets": [
-          {
-            "v": "demo",
-            "l": "Demande de démonstration"
-          },
-          {
-            "v": "question",
-            "l": "Question sur la plateforme"
-          },
-          {
-            "v": "autre",
-            "l": "Autre"
-          }
+          { "v": "acces", "l": "Accès à nos produits" },
+          { "v": "site", "l": "Un site web sur mesure" },
+          { "v": "autre", "l": "Autre demande" }
         ],
         "nom": "Votre nom",
         "etablissement": "Établissement",
@@ -338,7 +212,7 @@
         "message_nom": "Nom",
         "envoyer_whatsapp": "Envoyer par WhatsApp",
         "envoyer_courriel": "Envoyer par courriel",
-        "note": "Ce formulaire n’enregistre rien sur ce site. Il prépare votre message dans WhatsApp ou dans votre messagerie : vous le relisez, puis vous l’envoyez."
+        "note": "Ce formulaire n’enregistre rien sur ce site : il prépare votre message dans WhatsApp ou dans votre messagerie. Vous le relisez, puis vous l’envoyez."
       }
     },
     "mentions": {
@@ -350,57 +224,49 @@
         {
           "titre": "Éditeur du site",
           "paragraphes": [
-            "Ce site est édité par EduPlateforme, initiative portée par Sidibrahim Mohammed, Nouakchott, Mauritanie.",
+            "Ce site est édité par EduPlateforme, atelier numérique établi à Nouakchott, Mauritanie.",
             "Forme juridique et immatriculation : ⟦à compléter : forme juridique, numéro d’immatriculation (RCCM ou NIF) le cas échéant, adresse postale⟧.",
             "Contact : <a href=\"mailto:25038@supnum.mr\">25038@supnum.mr</a> · <span dir=\"ltr\">+222 47 33 19 44</span>."
           ]
         },
         {
           "titre": "Directeur de la publication",
-          "paragraphes": [
-            "Sidibrahim Mohammed."
-          ]
+          "paragraphes": ["Sidibrahim Mohammed."]
         },
         {
           "titre": "Hébergement",
-          "paragraphes": [
-            "⟦à compléter : nom de l’hébergeur, adresse, téléphone ou site⟧."
-          ]
+          "paragraphes": ["⟦à compléter : nom de l’hébergeur, adresse, téléphone ou site⟧."]
         },
         {
           "titre": "Propriété intellectuelle",
           "paragraphes": [
-            "Les textes, le logo, la marque EduPlateforme et la mise en page de ce site appartiennent à leur auteur. Toute reproduction, même partielle, demande une autorisation écrite préalable.",
-            "Les polices de caractères (Source Serif 4, IBM Plex Sans, IBM Plex Sans Arabic, Noto Naskh Arabic) sont distribuées sous licence SIL Open Font License 1.1 et hébergées sur ce site."
+            "Les textes, le logo, la marque EduPlateforme et la mise en page de ce site appartiennent à EduPlateforme. Toute reproduction, même partielle, demande une autorisation écrite préalable.",
+            "Les polices de caractères (Bodoni Moda, Jost, Amiri, Tajawal) sont distribuées sous licence SIL Open Font License 1.1 et hébergées sur ce site."
           ]
         },
         {
           "titre": "Données personnelles",
-          "paragraphes": [
-            "Ce site ne dépose aucun cookie et n’utilise aucun outil de mesure d’audience. Le détail figure dans la politique de confidentialité, accessible depuis le pied de chaque page."
-          ]
+          "paragraphes": ["Ce site ne dépose aucun cookie et n’utilise aucun outil de mesure d’audience. Le détail figure dans la politique de confidentialité, accessible depuis le pied de chaque page."]
         },
         {
           "titre": "Droit applicable",
-          "paragraphes": [
-            "Ce site et les présentes mentions sont régis par le droit mauritanien."
-          ]
+          "paragraphes": ["Ce site et les présentes mentions sont régis par le droit mauritanien."]
         }
       ]
     },
     "confidentialite": {
       "titre_meta": "Politique de confidentialité — EduPlateforme",
-      "description": "Comment EduPlateforme traite les données personnelles : sur ce site, et dans la plateforme de gestion scolaire et l’application des parents.",
+      "description": "Comment EduPlateforme traite les données personnelles : sur ce site, et dans ses produits pour les établissements scolaires.",
       "titre": "Politique de confidentialité",
       "date": "Dernière mise à jour : 11 octobre 2026",
       "sommaire": "Sommaire",
-      "resume": "En bref : ce site ne collecte rien et ne dépose aucun cookie. La plateforme de gestion scolaire et l’application des parents traitent des données d’élèves, qui sont mineurs ; l’établissement scolaire en est responsable, et EduPlateforme les traite pour son compte, sans jamais les vendre ni les utiliser à d’autres fins.",
+      "resume": "En bref : ce site ne collecte rien et ne dépose aucun cookie. Nos produits traitent des données d’élèves, qui sont mineurs ; l’établissement scolaire en est responsable, et EduPlateforme les traite pour son compte, sans jamais les vendre ni les utiliser à d’autres fins.",
       "sections": [
         {
           "titre": "Qui est responsable",
           "paragraphes": [
-            "Pour ce site : EduPlateforme, initiative portée par Sidibrahim Mohammed, Nouakchott — <a href=\"mailto:25038@supnum.mr\">25038@supnum.mr</a>.",
-            "Pour les données d’un établissement scolaire (élèves, familles, personnel) : l’établissement lui-même est responsable du traitement. EduPlateforme fournit la plateforme et traite ces données pour son compte, selon ses instructions.",
+            "Pour ce site : EduPlateforme, atelier numérique à Nouakchott — <a href=\"mailto:25038@supnum.mr\">25038@supnum.mr</a>.",
+            "Pour les données d’un établissement scolaire (élèves, familles, personnel) : l’établissement lui-même est responsable du traitement. EduPlateforme fournit les produits et traite ces données pour son compte, selon ses instructions.",
             "Ces traitements s’inscrivent dans le cadre de la loi mauritanienne n° 2017-020 du 22 juillet 2017 relative à la protection des données à caractère personnel."
           ]
         },
@@ -413,10 +279,8 @@
           ]
         },
         {
-          "titre": "Les données traitées par la plateforme",
-          "paragraphes": [
-            "Tout ce qui suit est saisi par l’établissement dans le cadre de l’inscription et de la vie scolaire, ou produit par l’usage normal de la plateforme. Rien d’autre n’est collecté."
-          ],
+          "titre": "Les données traitées par nos produits",
+          "paragraphes": ["Tout ce qui suit est saisi par l’établissement dans le cadre de l’inscription et de la vie scolaire, ou produit par l’usage normal des produits. Rien d’autre n’est collecté."],
           "liste": [
             "<strong>L’élève :</strong> nom, prénom, sexe, date et lieu de naissance, numéros NNI et RIM s’ils sont renseignés, classe et année scolaire.",
             "<strong>Sa scolarité :</strong> notes, moyennes, bulletins, rang, absences et retards, remarques des enseignants, exercices et pièces jointes, emploi du temps, documents signés.",
@@ -435,20 +299,16 @@
         },
         {
           "titre": "Ce que nous ne faisons pas",
-          "paragraphes": [
-            "Aucune donnée n’est vendue, ni transmise à un annonceur, à un courtier ou à un réseau social. Aucune publicité, aucun profilage. Les données d’un établissement ne servent qu’à cet établissement."
-          ]
+          "paragraphes": ["Aucune donnée n’est vendue, ni transmise à un annonceur, à un courtier ou à un réseau social. Aucune publicité, aucun profilage. Les données d’un établissement ne servent qu’à cet établissement."]
         },
         {
           "titre": "Qui y a accès",
           "liste": [
             "<strong>Le personnel de l’établissement</strong>, chacun selon son rôle ; chaque accès est contrôlé par le serveur.",
-            "<strong>L’hébergeur</strong> de la plateforme, qui stocke les données sans y accéder : ⟦à compléter : nom de l’hébergeur de la plateforme⟧.",
+            "<strong>L’hébergeur</strong> de nos produits, qui stocke les données sans y accéder : ⟦à compléter : nom de l’hébergeur des produits⟧.",
             "<strong>Google (Firebase Cloud Messaging)</strong>, uniquement pour acheminer les notifications : il reçoit le jeton de l’appareil et le texte de la notification."
           ],
-          "suite": [
-            "Chaque établissement est isolé des autres au niveau de la base de données : aucune requête ne peut, même par erreur, lire les données d’un autre établissement."
-          ]
+          "suite": ["Chaque établissement est isolé des autres au niveau de la base de données : aucune requête ne peut, même par erreur, lire les données d’un autre établissement."]
         },
         {
           "titre": "Sécurité",
@@ -459,9 +319,7 @@
             "Une session est liée à l’appareil qui l’a ouverte ; un changement de mot de passe ferme toutes les sessions.",
             "Les actions sont journalisées : qui a fait quoi, et quand."
           ],
-          "suite": [
-            "Aucun système n’est infaillible. En cas de violation de données susceptible de porter préjudice aux personnes concernées, l’établissement et EduPlateforme les en informent dans les meilleurs délais."
-          ]
+          "suite": ["Aucun système n’est infaillible. En cas de violation de données susceptible de porter préjudice aux personnes concernées, l’établissement et EduPlateforme les en informent dans les meilleurs délais."]
         },
         {
           "titre": "Durées de conservation",
@@ -470,9 +328,7 @@
             "<strong>Les données scolaires et financières :</strong> pendant la scolarité, puis pendant la durée de conservation que la loi impose à l’établissement pour ses registres et ses pièces comptables.",
             "<strong>Les sessions :</strong> 90 jours au plus. <strong>Les tentatives de connexion :</strong> 30 jours, puis effacées automatiquement."
           ],
-          "suite": [
-            "Le détail propre à chaque établissement figure dans la politique de confidentialité de son espace, accessible sans compte."
-          ]
+          "suite": ["Le détail propre à chaque établissement figure dans la politique de confidentialité de son espace, accessible sans compte."]
         },
         {
           "titre": "Vos droits",
@@ -483,9 +339,7 @@
         },
         {
           "titre": "Modifications",
-          "paragraphes": [
-            "Cette politique peut évoluer ; la date en tête de page change alors."
-          ]
+          "paragraphes": ["Cette politique peut évoluer ; la date en tête de page change alors."]
         }
       ]
     },

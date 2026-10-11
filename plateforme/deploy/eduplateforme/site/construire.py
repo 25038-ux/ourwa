@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Construit le site d'EduPlateforme — français à la racine, arabe sous /ar/.
+"""Construit le site d'EduPlateforme — français à la racine, anglais sous /en/, arabe sous /ar/.
 
     python3 construire.py                    # les pages, prêtes à servir (adresses propres)
     python3 construire.py --apercu DOSSIER   # une copie qui s'ouvre en double-cliquant
@@ -8,7 +8,9 @@
 Sources :
     src/config.json          adresse du site, de la console, coordonnées
     src/textes/fr.json       TOUS les textes français
-    src/textes/ar.json       les mêmes clés, en arabe (le script refuse un écart)
+    src/textes/en.json       les mêmes clés, en anglais
+    src/textes/ar.json       les mêmes clés, en arabe (le script refuse tout écart)
+    src/marque.json          le tracé du cèdre (écrit par src/logo.py)
     src/gabarit.html         l'en-tête et le pied, communs à toutes les pages
     src/pages/*.html         le corps de chaque page
     src/style.css            la feuille de style (les polices y sont ajoutées)
@@ -31,12 +33,15 @@ from pathlib import Path
 
 ICI = Path(__file__).resolve().parent
 SRC = ICI / 'src'
-LANGUES = {'fr': {'dir': 'ltr', 'prefixe': ''}, 'ar': {'dir': 'rtl', 'prefixe': 'ar/'}}
+LANGUES = {
+    'fr': {'dir': 'ltr', 'prefixe': '', 'court': 'FR', 'nom': 'Français'},
+    'en': {'dir': 'ltr', 'prefixe': 'en/', 'court': 'EN', 'nom': 'English'},
+    'ar': {'dir': 'rtl', 'prefixe': 'ar/', 'court': 'عربي', 'nom': 'العربية'},
+}
 # (clé, chemin) — l'ordre est celui du plan du site.
 PAGES = [
     ('accueil', ''),
-    ('plateforme', 'plateforme/'),
-    ('initiative', 'initiative/'),
+    ('produits', 'produits/'),
     ('contact', 'contact/'),
     ('mentions', 'mentions-legales/'),
     ('confidentialite', 'confidentialite/'),
@@ -45,14 +50,17 @@ PAGES = [
 # graisse), retrouvées dans assets/fonts/polices.css — jamais par un début de
 # nom : « latin- » attraperait aussi « latin-ext- », 56 Ko inutiles.
 POLICES_PRECHARGEES = {
-    'fr': [('source-serif-4', 'latin', 600), ('ibm-plex-sans', 'latin', 400)],
-    'ar': [('noto-naskh-arabic', 'arabic', 700), ('ibm-plex-sans-arabic', 'arabic', 400)],
+    'fr': [('bodoni-moda', 'latin', 500), ('jost', 'latin', 400)],
+    'en': [('bodoni-moda', 'latin', 500), ('jost', 'latin', 400)],
+    'ar': [('amiri', 'arabic', 700), ('tajawal', 'arabic', 400)],
 }
 
 
-def fichier_police(css, famille, sous_ensemble, graisse):
+def fichier_police(css, famille, sous_ensemble, graisse, style='normal'):
     for m in re.finditer(r'/\* ([\w-]+) — ([\w-]+) \*/\s*@font-face \{(.*?)\}', css, re.S):
         if (m.group(1), m.group(2)) != (famille, sous_ensemble):
+            continue
+        if f'font-style: {style};' not in m.group(3):
             continue
         g = [int(x) for x in re.search(r'font-weight: ([\d ]+);', m.group(3)).group(1).split()]
         if g[0] <= graisse <= g[-1]:
@@ -213,33 +221,45 @@ def construire(sortie, apercu):
     css = re.sub(r'\s*\n\s*', '\n', css).strip() + '\n'
     sortie.joinpath('assets/css').mkdir(parents=True, exist_ok=True)
     (sortie / 'assets/css/site.css').write_text(css, encoding='utf-8')
+    # Sans JavaScript, le menu du téléphone ne s'ouvrirait pas : cette petite feuille,
+    # chargée dans <noscript>, remet la navigation à plat. Le menu replié est donc la
+    # règle dès le premier affichage, sans attendre le script (aucun décalage de page).
+    sans_js = re.sub(r'/\*.*?\*/', '', (SRC / 'sans-js.css').read_text(encoding='utf-8'), flags=re.S)
+    sans_js = re.sub(r'\s*\n\s*', '\n', sans_js).strip() + '\n'
+    (sortie / 'assets/css/sans-js.css').write_text(sans_js, encoding='utf-8')
     js = (ICI / 'assets/js/site.js').read_text(encoding='utf-8')
-    version = hashlib.sha1((css + js).encode()).hexdigest()[:8]
+    version = hashlib.sha1((css + sans_js + js).encode()).hexdigest()[:8]
 
     precharge = {l: [fichier_police(polices_src, *x) for x in pref] for l, pref in POLICES_PRECHARGEES.items()}
 
     manques = []
     pages_ecrites = []
     site = config.get('site_url', '').rstrip('/')
+    marque_trace = json.loads((SRC / 'marque.json').read_text(encoding='utf-8'))
     for lang, prop in LANGUES.items():
         t = textes[lang]
-        autre = 'ar' if lang == 'fr' else 'fr'
         for cle, chemin in PAGES + [('introuvable', None)]:
-            ici = chemin_page(lang, chemin) if chemin is not None else ('404.html' if lang == 'fr' else 'ar/404.html')
+            ici = chemin_page(lang, chemin) if chemin is not None else prop['prefixe'] + '404.html'
             depuis = ici if chemin is not None else ici.replace('404.html', '')
             u = {k: lien(depuis, chemin_page(lang, c), apercu) for k, c in PAGES}
-            u['demo'] = u['contact'] + '?sujet=demo'
-            u['autre_langue'] = lien(depuis, chemin_page(autre, chemin if chemin is not None else ''), apercu)
+            u['acces'] = u['contact'] + '?sujet=acces'
+            u['site_web'] = u['contact'] + '?sujet=site'
             a = '../' * depuis.count('/') if apercu else '/'
             absolu = lambda l, c: (site + '/' + chemin_page(l, c)) if site else '/' + chemin_page(l, c)
+            langues = [{'code': x, 'court': q['court'], 'nom': q['nom'], 'actif': x == lang,
+                        'url': lien(depuis, chemin_page(x, chemin if chemin is not None else ''), apercu),
+                        'absolu': absolu(x, chemin or '')} for x, q in LANGUES.items()]
             portees = [{
-                'lang': lang, 'dir': prop['dir'], 'autre': autre,
+                'lang': lang, 'dir': prop['dir'], 'langues': langues,
                 't': t, 'p': t['pages'][cle], 'cfg': config, 'u': u, 'a': a, 'v': version,
                 'courant': {k: (k == cle) for k, _ in PAGES},
-                'canon': absolu(lang, chemin or ''), 'alt_fr': absolu('fr', chemin or ''), 'alt_ar': absolu('ar', chemin or ''),
+                'canon': absolu(lang, chemin or ''), 'alt_fr': absolu('fr', chemin or ''),
+                'marque': marque_trace,
                 'polices': [{'f': f} for f in precharge[lang]],
                 'console': config.get('console_url', ''),
                 'introuvable': chemin is None,
+                # Canonique et hreflang exigent des adresses absolues : rien tant que site_url est vide.
+                'adresses': bool(site) and chemin is not None and not apercu,
             }]
             page = rendre(gabarit, portees, f'{lang}/{cle}')
             page = page.replace('<!--CORPS-->', rendre(corps[cle], portees, f'{lang}/{cle}'))
@@ -270,7 +290,7 @@ def construire(sortie, apercu):
 
     print(f'{len(pages_ecrites)} pages ({", ".join(LANGUES)}) — style {len(css.encode()) // 1024} Ko, script {len(js.encode()) // 1024} Ko')
     if not site:
-        print('⚠ site_url vide dans src/config.json : adresses canoniques relatives, pas de sitemap.xml')
+        print('⚠ site_url vide dans src/config.json : ni adresses canoniques, ni hreflang, ni sitemap.xml')
     if not config.get('console_url'):
         print('⚠ console_url vide dans src/config.json : le lien vers la console n’est pas affiché')
     if manques:

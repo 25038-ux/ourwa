@@ -1,0 +1,354 @@
+{
+  "site": {
+    "locale": "en_US"
+  },
+  "nav": {
+    "saut": "Skip to content",
+    "menu": "Menu",
+    "principale": "Main navigation",
+    "langue": "Language",
+    "accueil": "Home",
+    "services": "What we do",
+    "produits": "Our products",
+    "atelier": "The studio",
+    "contact": "Contact",
+    "mentions": "Legal notice",
+    "confidentialite": "Privacy",
+    "cta": "Request access"
+  },
+  "pied": {
+    "resume": "A digital studio in Nouakchott. Bespoke websites and exclusive products for schools.",
+    "pages": "Site",
+    "joindre": "Get in touch",
+    "informations": "Information",
+    "console": "School console",
+    "droits": "© 2026 EduPlateforme. Designed and built in Nouakchott, Mauritania."
+  },
+  "pages": {
+    "accueil": {
+      "titre_meta": "EduPlateforme — digital studio, Nouakchott",
+      "description": "EduPlateforme, a studio of engineers in Nouakchott: bespoke websites and exclusive products for schools. Nearly 3,000 students run on our products today.",
+      "surtitre": "Digital studio · Nouakchott",
+      "titre_1": "Crafted in Nouakchott.",
+      "titre_2": "Reserved for a few.",
+      "chapo": "EduPlateforme is a studio of a few Mauritanian engineers. We design exceptional websites and open, on request, access to our exclusive products — the ones that run nearly 3,000 students today.",
+      "cta_acces": "Request access",
+      "cta_produits": "Discover our products",
+      "chiffres": {
+        "titre": "In figures",
+        "items": [
+          { "prefixe": "Nearly", "valeur": "3,000", "compte": "3000", "libelle": "students run on our products today" },
+          { "prefixe": "", "valeur": "0", "compte": "", "libelle": "discrepancies across 88 checks against real figures before going live" },
+          { "prefixe": "", "valeur": "3", "compte": "", "libelle": "languages on our sites: French, English, Arabic" },
+          { "prefixe": "", "valeur": "100%", "compte": "", "libelle": "designed and built in Mauritania" }
+        ]
+      },
+      "services": {
+        "kicker": "What we do",
+        "titre": "Two crafts. One standard.",
+        "items": [
+          {
+            "n": "I",
+            "titre": "Bespoke websites",
+            "texte": "Sites conceived as prestige showcases: an identity, precise words, understated motion — and flawless speed on every phone.",
+            "points": [
+              "Art direction and identity",
+              "Copy in French, English and Arabic",
+              "Light animation, with no compromise on speed",
+              "Launch, domain name and HTTPS"
+            ],
+            "lien": "Talk about your website",
+            "cible": "site"
+          },
+          {
+            "n": "II",
+            "titre": "Exclusive products",
+            "texte": "Our school management platform and the family app. We open them to a selected number of institutions, which we support from start to finish.",
+            "points": [
+              "Enrolment, grades and bilingual report cards",
+              "Cash desk, unpaid fees, payroll and accounting",
+              "Parent app on Android and iPhone",
+              "Migration of your data and go-live"
+            ],
+            "lien": "Request access",
+            "cible": "acces"
+          }
+        ]
+      },
+      "produit": {
+        "kicker": "The platform",
+        "titre": "The digital heart of entire schools.",
+        "texte": "From enrolment to report card, from cash desk to payroll: a single platform, in French and Arabic, for one school or a whole network. Families follow everything from their phone.",
+        "points": [
+          "Official bilingual report cards, printed or sent to families",
+          "Numbered receipts, amounts exact to the cent",
+          "Unpaid fees tracked family by family",
+          "Payroll, staff loans and financial reports",
+          "Several schools, data strictly separated",
+          "Instant notifications to parents"
+        ],
+        "badge": "Access on request",
+        "lien": "See our products"
+      },
+      "atelier": {
+        "kicker": "The studio",
+        "titre": "A handful of engineers. No middlemen.",
+        "paragraphes": [
+          "At EduPlateforme, the people who meet you are the engineers who design and write the code. A small team in Nouakchott that knows every line of what it delivers.",
+          "Our method fits in a few words: understand how your school really works, build with rigour — everything that touches money or grades is tested before it is written — and stay by your side after go-live."
+        ],
+        "citation": "We would rather do things well than do many things."
+      },
+      "acces": {
+        "kicker": "Access",
+        "titre": "Joining the circle, in three steps.",
+        "etapes": [
+          { "n": "01", "titre": "Your request", "texte": "A few words about your school or your project — by WhatsApp, by email or from this site." },
+          { "n": "02", "titre": "A private meeting", "texte": "We demonstrate our products and study your needs with you." },
+          { "n": "03", "titre": "The opening", "texte": "Go-live, migration of your data, launch of your website. And we stay by your side." }
+        ]
+      },
+      "appel": {
+        "titre": "Access is by request.",
+        "texte": "Write to us: we answer every request personally.",
+        "whatsapp": "Message us on WhatsApp"
+      }
+    },
+    "produits": {
+      "titre_meta": "Our products — EduPlateforme",
+      "description": "EduPlateforme’s exclusive products: school management platform, family app, school website. Access on request.",
+      "surtitre": "Our products",
+      "titre_1": "Open on request.",
+      "titre_2": "Built to last.",
+      "chapo": "Three products designed and built in Nouakchott, in service today at schools with nearly 3,000 students.",
+      "produits": [
+        {
+          "id": "plateforme",
+          "n": "I",
+          "nom": "The school management platform",
+          "accroche": "The whole administrative life of a school, exact and bilingual.",
+          "domaines": [
+            { "titre": "Enrolment", "fonctions": ["Enrolment and re-enrolment, family by family", "Levels by cycle, classes and headcounts", "Signed documents, per student and per year", "Headcount statistics"] },
+            { "titre": "Grades and report cards", "fonctions": ["Entry by class, subject and term", "Averages, rank, comments and decision", "Official bilingual report card, single or by class", "Roll call, absences and timetable"] },
+            { "titre": "Cash desk and unpaid fees", "fonctions": ["Payments split across several methods", "Numbered receipts, never duplicated", "Discounts, exemptions and services: transport, canteen…", "Each family’s balance, line by line"] },
+            { "titre": "Staff and payroll", "fonctions": ["Accounts and permissions by role", "Hourly or monthly salaries", "Loans repaid from salary", "Staff absences"] },
+            { "titre": "Evening classes", "fonctions": ["Groups, fees and active months", "Students from the school or from outside", "Evening teachers’ pay"] },
+            { "titre": "School networks", "fonctions": ["New schools created from a dedicated console", "Combined dashboard", "Data separated at database level"] }
+          ],
+          "fonctions": []
+        },
+        {
+          "id": "application",
+          "n": "II",
+          "nom": "The family app",
+          "accroche": "Parents follow everything, in real time, from their phone.",
+          "domaines": [],
+          "fonctions": [
+            "Android and iPhone, in French and Arabic",
+            "One app for every school",
+            "Grades, results and the official report card as a PDF",
+            "Absences, remarks, homework and attachments",
+            "Messages from the school and payment status",
+            "Instant notifications — a grade never shows on the lock screen"
+          ]
+        },
+        {
+          "id": "sites",
+          "n": "III",
+          "nom": "Your school’s website",
+          "accroche": "A showcase worthy of your reputation.",
+          "domaines": [],
+          "fonctions": [
+            "Designed from scratch, no templates",
+            "French, English and Arabic — right to left",
+            "Refined animation, fast on every phone",
+            "Hosting, domain name and HTTPS",
+            "No advertising trackers"
+          ]
+        }
+      ],
+      "garanties": {
+        "titre": "What we never compromise on.",
+        "items": [
+          { "titre": "Exact amounts", "texte": "Computed in decimal, rounded once, only for display." },
+          { "titre": "A ledger that is never erased", "texte": "Mistakes are corrected by a reversing entry: the history stays whole." },
+          { "titre": "Unique receipts", "texte": "Numbering specific to each school, with no possible duplicate." },
+          { "titre": "Walled-off data", "texte": "Each school is isolated from the others by the database itself." }
+        ]
+      },
+      "appel": {
+        "titre": "These products are not on open sale.",
+        "texte": "Tell us about your school: we will welcome you for a private demonstration.",
+        "whatsapp": "Message us on WhatsApp"
+      }
+    },
+    "contact": {
+      "titre_meta": "Request access — EduPlateforme",
+      "description": "Request access to EduPlateforme’s products or a bespoke website: email, phone, WhatsApp.",
+      "surtitre": "Contact",
+      "titre_1": "Request",
+      "titre_2": "access.",
+      "chapo": "Tell us about your school or your project. We answer every request personally.",
+      "canaux": {
+        "courriel": "Email",
+        "telephone": "Phone and WhatsApp",
+        "interlocuteur": "Your contact",
+        "interlocuteur_nom": "Sidibrahim Mohammed"
+      },
+      "form": {
+        "titre": "Your request",
+        "objet": "Subject",
+        "objets": [
+          { "v": "acces", "l": "Access to our products" },
+          { "v": "site", "l": "A bespoke website" },
+          { "v": "autre", "l": "Something else" }
+        ],
+        "nom": "Your name",
+        "etablissement": "School or organisation",
+        "telephone": "Phone",
+        "facultatif": "(optional)",
+        "message": "Message",
+        "message_bonjour": "Hello,",
+        "message_nom": "Name",
+        "envoyer_whatsapp": "Send via WhatsApp",
+        "envoyer_courriel": "Send by email",
+        "note": "This form stores nothing on this site: it prepares your message in WhatsApp or your email app. You review it, then you send it."
+      }
+    },
+    "mentions": {
+      "titre_meta": "Legal notice — EduPlateforme",
+      "description": "Legal notice for the EduPlateforme website.",
+      "titre": "Legal notice",
+      "date": "Last updated: 11 October 2026",
+      "sections": [
+        {
+          "titre": "Publisher",
+          "paragraphes": [
+            "This website is published by EduPlateforme, a digital studio based in Nouakchott, Mauritania.",
+            "Legal form and registration: ⟦to be completed: legal form, registration number (RCCM or NIF) where applicable, postal address⟧.",
+            "Contact: <a href=\"mailto:25038@supnum.mr\">25038@supnum.mr</a> · <span dir=\"ltr\">+222 47 33 19 44</span>."
+          ]
+        },
+        {
+          "titre": "Publication director",
+          "paragraphes": ["Sidibrahim Mohammed."]
+        },
+        {
+          "titre": "Hosting",
+          "paragraphes": ["⟦to be completed: host’s name, address, phone or website⟧."]
+        },
+        {
+          "titre": "Intellectual property",
+          "paragraphes": [
+            "The texts, logo, EduPlateforme brand and layout of this website belong to EduPlateforme. Any reproduction, even partial, requires prior written permission.",
+            "The typefaces (Bodoni Moda, Jost, Amiri, Tajawal) are distributed under the SIL Open Font License 1.1 and hosted on this website."
+          ]
+        },
+        {
+          "titre": "Personal data",
+          "paragraphes": ["This website sets no cookies and uses no audience-measurement tool. Details are in the privacy policy, linked from the footer of every page."]
+        },
+        {
+          "titre": "Governing law",
+          "paragraphes": ["This website and this notice are governed by Mauritanian law."]
+        }
+      ]
+    },
+    "confidentialite": {
+      "titre_meta": "Privacy policy — EduPlateforme",
+      "description": "How EduPlateforme handles personal data: on this website, and in its products for schools.",
+      "titre": "Privacy policy",
+      "date": "Last updated: 11 October 2026",
+      "sommaire": "Contents",
+      "resume": "In short: this website collects nothing and sets no cookies. Our products process data about students, who are minors; the school is responsible for it, and EduPlateforme processes it on the school’s behalf — never selling it or using it for any other purpose.",
+      "sections": [
+        {
+          "titre": "Who is responsible",
+          "paragraphes": [
+            "For this website: EduPlateforme, digital studio in Nouakchott — <a href=\"mailto:25038@supnum.mr\">25038@supnum.mr</a>.",
+            "For a school’s data (students, families, staff): the school itself is the data controller. EduPlateforme provides the products and processes that data on the school’s behalf, following its instructions.",
+            "This processing falls under Mauritanian Law No. 2017-020 of 22 July 2017 on the protection of personal data."
+          ]
+        },
+        {
+          "titre": "This website",
+          "paragraphes": [
+            "This website sets no cookies, uses no audience-measurement tool and loads no third-party content: the typefaces are hosted on the site itself.",
+            "The contact form sends nothing to this website. It prepares your message and opens it in WhatsApp or your email app; you send it yourself. Messages we receive are used only to reply to you.",
+            "Like any web server, the one hosting this website may keep technical logs (IP address, requested page, date), used for its security and kept for ⟦to be completed: log retention period⟧."
+          ]
+        },
+        {
+          "titre": "Data processed by our products",
+          "paragraphes": ["Everything below is entered by the school for enrolment and school life, or produced by normal use of the products. Nothing else is collected."],
+          "liste": [
+            "<strong>The student:</strong> surname, first name, sex, date and place of birth, NNI and RIM numbers if provided, class and school year.",
+            "<strong>Their schooling:</strong> grades, averages, report cards, rank, absences and late arrivals, teachers’ remarks, homework and attachments, timetable, signed documents.",
+            "<strong>Payments:</strong> fees due, recorded payments, receipt numbers, discounts and exemptions.",
+            "<strong>The parent or guardian:</strong> name, phone numbers, chosen language; the password is stored only as an Argon2id hash, which no one can read.",
+            "<strong>Staff:</strong> identity, role, salary and payroll items.",
+            "<strong>Technical data:</strong> the device’s notification token, IP address and device type at sign-in, the activity log."
+          ]
+        },
+        {
+          "titre": "Children’s data",
+          "paragraphes": [
+            "Students are minors. They have no account and never sign in. Their data is processed by the school as part of its teaching mission, and is visible only to authorised staff, according to their role, and to the parent or guardian the school has registered as the student’s contact.",
+            "When a grade is entered, the notification says a grade is available; the figure never shows on the phone’s lock screen."
+          ]
+        },
+        {
+          "titre": "What we never do",
+          "paragraphes": ["No data is sold or passed to advertisers, brokers or social networks. No advertising, no profiling. A school’s data serves that school only."]
+        },
+        {
+          "titre": "Who can access it",
+          "liste": [
+            "<strong>The school’s staff</strong>, each according to their role; every access is checked by the server.",
+            "<strong>The host</strong> of our products, which stores the data without accessing it: ⟦to be completed: name of the products’ host⟧.",
+            "<strong>Google (Firebase Cloud Messaging)</strong>, only to deliver notifications: it receives the device token and the notification text."
+          ],
+          "suite": ["Each school is isolated from the others at database level: no query can, even by mistake, read another school’s data."]
+        },
+        {
+          "titre": "Security",
+          "liste": [
+            "All communications are encrypted (HTTPS).",
+            "Passwords are stored as Argon2id hashes.",
+            "Repeated sign-in attempts are blocked, per account and per address.",
+            "A session is bound to the device that opened it; changing the password closes every session.",
+            "Actions are logged: who did what, and when."
+          ],
+          "suite": ["No system is infallible. In the event of a data breach likely to harm the people concerned, the school and EduPlateforme will inform them as soon as possible."]
+        },
+        {
+          "titre": "Retention",
+          "liste": [
+            "<strong>A parent’s account:</strong> as long as they are the contact of an enrolled student, and until it is deleted.",
+            "<strong>School and financial data:</strong> during schooling, then for the retention period the law imposes on the school for its registers and accounting records.",
+            "<strong>Sessions:</strong> 90 days at most. <strong>Sign-in attempts:</strong> 30 days, then automatically deleted."
+          ],
+          "suite": ["The details specific to each school are in the privacy policy of its own space, readable without an account."]
+        },
+        {
+          "titre": "Your rights",
+          "paragraphes": [
+            "You can view your data and your children’s, ask for inaccurate information to be corrected, delete your parent account from the app, withdraw your consent to notifications and object to processing.",
+            "For a school’s data, contact its office first. For this website, or if you cannot reach the school, write to <a href=\"mailto:25038@supnum.mr\">25038@supnum.mr</a>. You may also refer the matter to the personal data protection authority established by Law No. 2017-020."
+          ]
+        },
+        {
+          "titre": "Changes",
+          "paragraphes": ["This policy may change; the date at the top of the page will then change too."]
+        }
+      ]
+    },
+    "introuvable": {
+      "titre_meta": "Page not found — EduPlateforme",
+      "description": "This page does not exist.",
+      "titre": "This page does not exist.",
+      "texte": "The link may be out of date, or the address mistyped.",
+      "retour": "Back to the home page"
+    }
+  }
+}
