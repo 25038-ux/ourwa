@@ -64,9 +64,9 @@ cadre d'appareil.
 ## Trois idées pour l'accueil
 
 1. **La porte** *(construite)* — une masse vert profond, de face et de biais,
-   percée d'un arc brisé ; dans l'ouverture, un mur en terre cuite, une ombre en
-   diagonale et les trois plateaux du logo. Au chargement, l'ombre glisse et les
-   plateaux montent, une seule fois.
+   percée du même arc outrepassé que le logo ; dans l'ouverture, un mur en terre
+   cuite, l'escalier de trois plateaux en sable et une ombre franche en
+   diagonale. Au chargement, l'ombre glisse et l'escalier monte, une seule fois.
 2. **Les plateaux** *(construite, deuxième section)* — « le produit en trois
    temps » en trois bandes d'aplat empilées (sable, vert, encre), chacune moins
    retirée que la précédente : la silhouette d'un escalier qui monte. Un grand

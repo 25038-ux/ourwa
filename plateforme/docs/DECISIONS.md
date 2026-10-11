@@ -4101,7 +4101,9 @@ si oui, de ne pas la dupliquer.
    de confidentialité reprend celle de l'application (l'établissement
    responsable, la loi n° 2017-020) ; ce qui manque (forme juridique,
    hébergeurs, durée des journaux) s'affiche surligné et le script le liste.
-   Le logo est provisoire, dessiné d'après sa description.
+   Le logo, absent de la commande, est dessiné par `src/logo.py` : une
+   première version d'après la description a été refusée le jour même ; la
+   seconde (arc brisé outrepassé, escalier de trois plateaux) est retenue.
 6. **CSP stricte possible** : aucun script ni style en ligne dans les pages
    (même pas d'attribut `style`), donc ni nonce ni `unsafe-inline`.
 

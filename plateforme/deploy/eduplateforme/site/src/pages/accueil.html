@@ -11,15 +11,13 @@
     </div>
     <div class="porte" aria-hidden="true">
       <svg viewBox="0 0 480 600" preserveAspectRatio="xMidYMax meet" focusable="false">
-        <defs><clipPath id="arche"><path d="M162 600V270A176 176 0 0 1 272 106.8A176 176 0 0 1 382 270V600Z"/></clipPath></defs>
+        <defs><clipPath id="arche"><path d="M172 600V328.48A176 176 0 0 1 162 270A176 176 0 0 1 272 106.84A176 176 0 0 1 382 270A176 176 0 0 1 372 328.48V600Z"/></clipPath></defs>
         <rect class="po-fond" x="150" y="90" width="250" height="510"/>
         <g clip-path="url(#arche)">
+          <path class="po-marche" d="M184 600V490H242.67V380H301.33V270H360V600Z"/>
           <path class="po-ombre" d="M120 60H338L196 600H120Z"/>
-          <rect class="po-plateau po-p1" x="180" y="546" width="62" height="14"/>
-          <rect class="po-plateau po-p2" x="242" y="508" width="62" height="14"/>
-          <rect class="po-plateau po-p3" x="304" y="470" width="62" height="14"/>
         </g>
-        <path class="po-face" fill-rule="evenodd" d="M64 0H480V600H64Z M162 600V270A176 176 0 0 1 272 106.8A176 176 0 0 1 382 270V600Z"/>
+        <path class="po-face" fill-rule="evenodd" d="M64 0H480V600H64Z M172 600V328.48A176 176 0 0 1 162 270A176 176 0 0 1 272 106.84A176 176 0 0 1 382 270A176 176 0 0 1 372 328.48V600Z"/>
         <path class="po-cote" d="M0 48L64 0V600H0Z"/>
       </svg>
     </div>
@@ -96,7 +94,7 @@
 
 <section class="appel" aria-labelledby="appel-titre">
   <div class="cadre appel-grille">
-    <svg class="appel-fenetre" viewBox="0 0 100 230" aria-hidden="true" focusable="false"><path d="M0 230V74A80 80 0 0 1 50 0A80 80 0 0 1 100 74V230Z"/></svg>
+    <svg class="appel-fenetre" viewBox="0 0 100 230" aria-hidden="true" focusable="false"><path d="M4.7 230V101.22A80 80 0 0 1 0 74.2A80 80 0 0 1 50 0.04A80 80 0 0 1 100 74.2A80 80 0 0 1 95.3 101.22V230Z"/></svg>
     <div class="appel-texte">
       <h2 id="appel-titre" class="titre-l reveal">{{ p.appel.titre }}</h2>
       <p class="reveal">{{ p.appel.texte }}</p>

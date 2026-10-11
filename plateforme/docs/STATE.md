@@ -31,8 +31,12 @@ en français et en arabe, cinq pages, et une console d'administration protégée
   90 jours renouvelable pour un administrateur de plateforme ; IP absente du
   journal pour la création, la nomination, la suspension ; logo = emoji ;
   fuseau non réglable ; périmètre plus large (cumul, entrée dans une école).
-- **Logo provisoire** : les quatre SVG n'étaient pas joints ; dessinés d'après la
-  description (arc brisé, trois plateaux), à remplacer un pour un.
+- **Logo** : les quatre SVG n'étaient pas joints ; la première version (d'après
+  la description) a été refusée (« the logo is bad, redesign it »). Nouveau
+  dessin : arc brisé outrepassé (fer à cheval) et escalier de trois plateaux
+  qui monte jusqu'à la naissance de l'arc ; géométrie calculée par
+  `src/logo.py` (quatre fichiers, tracé des pages) ; la porte de l'accueil
+  reprend le même arc et le même escalier.
 - **Vérifié** : Lighthouse 12 mobile, cinq pages : performance 98–99,
   accessibilité 100, bonnes pratiques 100, SEO 100 avec `site_url` (83 sans).
   Accueil : 11 Ko hors polices. 1440 × 900, 1280 × 720, 390 × 844, fr et ar ;
@@ -40,7 +44,7 @@ en français et en arabe, cinq pages, et une console d'administration protégée
   composé) ; copie hors serveur ; bloc Caddy dans un vrai Caddy (CSP stricte
   sans violation, 404 dans la bonne langue, `src/` et `.py` refusés).
 - **En attente du propriétaire** : le domaine (`site_url`), l'adresse de la
-  console (`console_url`), les fichiers du logo, le catalogue des 167
+  console (`console_url`), la validation du logo, le catalogue des 167
   capacités, forme juridique et immatriculation, hébergeurs, durée des
   journaux ; relecture juridique et relecture de l'arabe. **Rien n'est publié.**
 

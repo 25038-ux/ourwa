@@ -16,14 +16,15 @@ site/
 │   ├── css/site.css      ← GÉNÉRÉE (polices + src/style.css)
 │   ├── js/site.js        ← apparitions, menu du téléphone, formulaire
 │   ├── fonts/            ← Source Serif 4, IBM Plex Sans, IBM Plex Sans Arabic, Noto Naskh Arabic
-│   └── logo/             ← les quatre fichiers du logo (PROVISOIRES, voir plus bas)
+│   └── logo/             ← les quatre fichiers du logo (générés par src/logo.py)
 ├── src/
 │   ├── config.json       ← adresse du site, de la console, coordonnées
 │   ├── textes/fr.json    ← TOUS les textes français
 │   ├── textes/ar.json    ← les mêmes clés, en arabe
 │   ├── gabarit.html      ← en-tête et pied communs
 │   ├── pages/*.html      ← le corps de chaque page
-│   └── style.css         ← la feuille de style source
+│   ├── style.css         ← la feuille de style source
+│   └── logo.py           ← dessine le logo (géométrie exacte, quatre fichiers)
 ├── construire.py         ← reconstruit tout (Python 3, rien à installer)
 ├── polices.py            ← re-télécharge les polices depuis Google Fonts
 ├── caddy/eduplateforme.caddy  ← la configuration de mise en ligne
@@ -67,23 +68,34 @@ Et dans `src/config.json` :
 et toute la version arabe par un arabophone. La graphie arabe du nom du porteur
 n'a pas été inventée : le nom reste en lettres latines sur les pages arabes.
 
-## Le logo — provisoire
+## Le logo
 
-Les quatre fichiers SVG du logo n'étaient pas joints à la commande. Ceux de
-`assets/logo/` sont **dessinés d'après sa description** (un arc brisé, trois
-plateaux qui montent) pour que la mise en page soit juste. Remplacer chaque
-fichier par l'officiel du même rôle :
+Redessiné le 11/10/2026 à la demande du propriétaire (la première version,
+dessinée d'après la description du prompt, a été refusée). La porte de l'école :
+un **arc brisé outrepassé** (en fer à cheval, d'inspiration maghrébine) ; dans
+l'ouverture, un **escalier de trois plateaux** qui monte de gauche à droite — les
+niveaux, la progression, la plateforme. La plus haute marche s'arrête à la ligne
+de naissance de l'arc. Vert profond pour la porte, terre cuite pour l'escalier.
+
+La géométrie est calculée, pas dessinée à main levée : largeur 100, rayon 72
+(centres sur la ligne de naissance), épaisseur 13, retour du fer à cheval 3,5,
+jeu de 4 entre l'escalier et les piédroits — ce jeu garde la silhouette lisible
+en une seule couleur. `python3 src/logo.py` réécrit les quatre fichiers et
+affiche le tracé utilisé dans les pages (`src/gabarit.html`) ; le logo
+horizontal vectorise « EduPlateforme » en Source Serif 4 (il faut
+`pip install fonttools brotli`).
 
 | Fichier | Rôle |
 |---|---|
-| `marque.svg` | la marque seule (aussi l'icône de l'onglet) |
-| `logo-horizontal.svg` | le lockup horizontal |
-| `icone-app.svg` | l'icône d'application |
-| `silhouette.svg` | la silhouette monochrome |
+| `marque.svg` | la marque seule, en couleur (aussi l'icône de l'onglet) |
+| `logo-horizontal.svg` | la marque et le mot, vectorisés |
+| `icone-app.svg` | l'icône d'application, 1024 × 1024, fond vert profond |
+| `silhouette.svg` | une seule couleur (`currentColor`) |
 
-La marque est aussi **dessinée dans les pages** (en-tête et pied, deux lignes
-dans `src/gabarit.html`) pour s'afficher sans requête : y recopier le tracé
-officiel le moment venu.
+Sur fond sombre : porte en sable, escalier en terre cuite (c'est ce que fait le
+pied de page). Taille minimale : 16 px pour la marque. Zone de protection : une
+épaisseur de cadre tout autour. La porte de la page d'accueil reprend exactement
+le même arc et le même escalier, à grande échelle.
 
 ## Voir le site sur un ordinateur
 

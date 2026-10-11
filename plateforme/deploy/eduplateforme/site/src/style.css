@@ -168,9 +168,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .entete-in { display: flex; align-items: center; gap: 24px; min-height: 72px; }
 .marque { display: inline-flex; align-items: center; gap: 11px; color: var(--encre); text-decoration: none; }
-.marque-arc { width: 26px; height: 32px; fill: var(--vert); flex: none; }
-.marque-arc .p1, .marque-arc .p2 { fill: var(--sable); }
-.marque-arc .p3 { fill: var(--terre); }
+.marque-arc { width: 27px; height: 34px; flex: none; }
+.marque-arc .cadre { fill: var(--vert); }
+.marque-arc .marches { fill: var(--terre); }
 .marque-nom { font: 600 1.38rem/1 'Source Serif 4', Georgia, serif; letter-spacing: -.01em; }
 
 .nav { display: flex; align-items: center; gap: 26px; margin-inline-start: auto; }
@@ -203,8 +203,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .po-face { fill: var(--vert); }
 .po-cote { fill: var(--vert-f); }
 .po-fond { fill: var(--terre); }
-.po-ombre { fill: var(--terre-f); }
-.po-plateau { fill: var(--sable); }
+.po-ombre { fill: var(--encre); opacity: .26; }
+.po-marche { fill: var(--sable); }
 
 /* ── Accueil : trois temps, trois plateaux qui montent ───────────────── */
 
@@ -463,8 +463,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .pied { padding-block: clamp(56px, 7vw, 88px) 28px; background: var(--encre-2); color: var(--sable); }
 .pied-grille { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 36px; }
 .marque-claire { color: var(--sable); }
-.marque-claire .marque-arc { fill: var(--sable); }
-.marque-claire .marque-arc .p1, .marque-claire .marque-arc .p2 { fill: var(--encre-2); }
+.marque-claire .marque-arc .cadre { fill: var(--sable); }
 .pied-marque p { margin-top: 16px; max-width: 30ch; }
 .pied h2 { margin-bottom: 12px; font: 500 .8125rem/1.3 var(--texte); letter-spacing: .14em; text-transform: uppercase; color: var(--sable); opacity: .78; }
 :root[lang='ar'] .pied h2 { letter-spacing: 0; text-transform: none; font-size: 1rem; }
@@ -489,10 +488,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
   /* La porte : la lumière entre, les plateaux montent — une fois, au chargement. */
   .po-ombre { animation: ombre 1.6s var(--sortie) .15s both; }
-  .po-plateau { animation: monte .7s var(--sortie) both; }
-  .po-p1 { animation-delay: .45s; }
-  .po-p2 { animation-delay: .57s; }
-  .po-p3 { animation-delay: .69s; }
+  .po-marche { animation: monte .9s var(--sortie) .45s both; }
   .hero-texte .chapo, .hero-texte .actions { animation: apparait .8s var(--sortie) both; }
   .hero-texte .actions { animation-delay: .08s; }
 }
