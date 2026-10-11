@@ -900,7 +900,16 @@ export class EnrollmentController {
     if (precedente) {
       const anneePrec = (await this.years.list()).find((y) => y.start_year === precedente.start_year);
       const groupes = [...new Set(rows.map((r) => r.from_group_id).filter((g): g is string => !!g))];
-      for (const groupId of groupes) {
+      // ⚠ SIX GROUPES DE FRONT, PLUS UN À LA FOIS. Une page de quarante familles
+      // touche une trentaine de classes, et chacune recalcule jusqu'à trois
+      // bulletins de classe : 5 secondes mesurées sur les données d'El Ourwa,
+      // à attendre chaque classe à son tour. Le calcul de chaque groupe est
+      // celui d'avant, mot pour mot ; les verdicts sont versés dans l'ordre des
+      // groupes, comme avant — un élève présent dans deux groupes garde donc le
+      // même verdict qu'avant. Six, comme les Impayés : le guichet garde ses
+      // connexions.
+      const verdictsDuGroupe = async (groupId: string) => {
+        const trouves = new Map<string, { status: string; label: string; labelAr: string }>();
         const attendus = new Set(rows.filter((r) => r.from_group_id === groupId).map((r) => r.student_id));
         for (const term of [3, 2, 1]) {
           if (attendus.size === 0) break;
@@ -910,10 +919,15 @@ export class EnrollmentController {
           for (const c of cartes.students) {
             // Sans moyenne à ce trimestre, on regarde le précédent.
             if (!attendus.has(c.studentId) || c.verdict.status === 'non_evalue') continue;
-            verdicts.set(c.studentId, c.verdict);
+            trouves.set(c.studentId, c.verdict);
             attendus.delete(c.studentId);
           }
         }
+        return trouves;
+      };
+      for (let i = 0; i < groupes.length; i += 6) {
+        const lot = await Promise.all(groupes.slice(i, i + 6).map(verdictsDuGroupe));
+        for (const trouves of lot) for (const [eleve, verdict] of trouves) verdicts.set(eleve, verdict);
       }
     }
 
@@ -925,12 +939,16 @@ export class EnrollmentController {
       byGuardian.set(r.guardian_key, list);
     }
 
+    // Toutes les familles de la page en un seul calcul (`detailsAcrossYears` :
+    // le même que pour une famille, groupé).
+    const dettes = await this.debts.detailsAcrossYears(
+      [...byGuardian.values()].map((enfants) => enfants[0]!.guardian_id).filter((g): g is string => !!g),
+    );
+
     const families = [];
     for (const [key, children] of byGuardian) {
       const guardianId = children[0]!.guardian_id;
-      const detail = guardianId
-        ? await this.debts.detailAcrossYears(guardianId)
-        : null;
+      const detail = guardianId ? (dettes.get(guardianId) ?? null) : null;
       const debt = detail ? detail.total.toFixed(2) : '0.00';
       const owes = detail ? detail.total.greaterThan(0.009) : false;
       const authorised = children.some((c) => c.authorised);

@@ -454,11 +454,23 @@ export class GradesService {
                        ORDER BY t0.subject_id, (t0.legacy_id IS NULL) DESC, t0.legacy_id DESC, t0.id DESC) t
              ON TRUE
            LEFT JOIN subjects sub ON sub.id = t.subject_id
-           LEFT JOIN grades gr
-             ON gr.student_id = st.id
-            AND gr.teaching_id IN (SELECT t2.id FROM teachings t2
-                                    WHERE t2.academic_year_id = $3 AND t2.group_id = $1 AND t2.subject_id = t.subject_id)
-            AND gr.academic_year_id = $3 AND gr.term <= $2
+           -- ⚠ LES NOTES PAR LES AFFECTATIONS DU GROUPE, PAS PAR TOUTE L'ANNÉE.
+           -- La même condition qu'avant — la note d'une affectation de ce
+           -- groupe, de cette année, pour la matière de la ligne — écrite en
+           -- jointure. En sous-requête (« teaching_id IN (SELECT … WHERE
+           -- subject_id = t.subject_id) »), Postgres lisait les 72 000 notes de
+           -- l'année et rejouait la sous-requête 29 000 fois pour une classe
+           -- de 63 élèves : 290 ms le bulletin de classe, 5 s la page des
+           -- réinscriptions. Ainsi il part des sept affectations du groupe
+           -- (teachings_school_group_idx, puis grades_school_teaching_idx).
+           -- Une note n'a qu'une affectation : aucune ligne en plus ni en moins.
+           LEFT JOIN (
+             SELECT g2.student_id, g2.term, g2.kind, g2.score, g2.sequence_no, t2.subject_id
+               FROM teachings t2
+               JOIN grades g2 ON g2.teaching_id = t2.id
+              WHERE t2.academic_year_id = $3 AND t2.group_id = $1
+                AND g2.academic_year_id = $3 AND g2.term <= $2
+           ) gr ON gr.student_id = st.id AND gr.subject_id = t.subject_id
           WHERE e.group_id = $1 AND e.academic_year_id = $3
             AND e.status <> 'cancelled'
           ORDER BY st.last_name, st.first_name, sub.coefficient DESC, sub.name, gr.kind, gr.sequence_no`,

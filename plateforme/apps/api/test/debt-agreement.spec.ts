@@ -219,4 +219,41 @@ describe('les trois calculs de dette s’accordent', () => {
       expect((divers.get(id) ?? []).map((d) => d.remaining)).toEqual(seulDivers);
     }
   });
+
+  it('⚠ le chemin groupé toutes années (detailsAcrossYears) rend, famille par famille, exactement un appel seul', async () => {
+    // « Dérogations » et « Réinscriptions » calculaient chaque famille à son
+    // tour (7 s sur 1 372 familles). Le lot doit rendre, pour chacune, le MÊME
+    // objet que la famille prise seule : rien ne déborde d'une famille sur sa
+    // voisine, et l'ordre des lignes ne bouge pas.
+    const { rows } = await owner.query<{ id: string }>(
+      `SELECT DISTINCT u.id FROM users u JOIN students s ON s.guardian_id = u.id WHERE s.school_id = $1`,
+      [schoolId],
+    );
+    const ids = rows.map((r) => r.id);
+    expect(ids.length).toBeGreaterThanOrEqual(4);
+    const groupe = await inTenant(() => debts.detailsAcrossYears(ids));
+    expect([...groupe.keys()].sort()).toEqual([...ids].sort());
+    let avecDette = 0;
+    for (const id of ids) {
+      const seul = await inTenant(() => debts.detailsAcrossYears([id]));
+      expect(groupe.get(id)).toEqual(seul.get(id));
+      expect(groupe.get(id)).toEqual(await inTenant(() => debts.detailAcrossYears(id)));
+      if (groupe.get(id)!.total.greaterThan(0)) avecDette++;
+    }
+    // Chaque terme de la dette est représenté dans le lot, sinon ce test ne
+    // prouve rien : des mois, une créance, des frais annuels.
+    const tous = [...groupe.values()];
+    expect(tous.some((d) => d.tuition.length > 0)).toBe(true);
+    expect(tous.some((d) => d.misc.length > 0)).toBe(true);
+    expect(tous.some((d) => d.annualFees.length > 0)).toBe(true);
+    // Les Impayés « toutes années » lisent ce chemin : mêmes familles, mêmes totaux.
+    const toutes = await inTenant(() => debts.outstanding(null, null));
+    expect(toutes.length).toBe(avecDette);
+    for (const f of toutes) expect(f.total).toBe(groupe.get(f.guardianId)!.total.toFixed(2));
+    // Une famille demandée deux fois n'est calculée — ni comptée — qu'une fois.
+    const double = await inTenant(() => debts.detailsAcrossYears([ids[0]!, ids[0]!]));
+    expect(double.size).toBe(1);
+    expect(double.get(ids[0]!)).toEqual(groupe.get(ids[0]!));
+    expect((await inTenant(() => debts.detailsAcrossYears([]))).size).toBe(0);
+  });
 });

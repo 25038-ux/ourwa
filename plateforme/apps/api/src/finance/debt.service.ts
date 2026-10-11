@@ -581,31 +581,39 @@ export class DebtService {
    * `obtenir_dette_parent_detaillee()['total_dette']` — one calculation, read
    * two ways.
    */
-  async detailAcrossYears(guardianId: string): Promise<{
-    tuition: {
-      studentId: string;
-      studentName: string;
-      label: string;
-      calendarMonth: number;
-      calendarYear: number;
-      due: string;
-      paid: string;
-      outstanding: string;
-    }[];
-    misc: { id: string; label: string; who: string; outstanding: string }[];
-    annualFees: { label: string; outstanding: string }[];
-    /** École « services » (§6) ; [] dans une école « famille ». Compris dans `total`. */
-    services: LigneServiceDette[];
-    beforeWriteOffs: string;
-    writtenOff: string;
-    total: Decimal;
-  }> {
+  async detailAcrossYears(guardianId: string): Promise<DetailToutesAnnees> {
+    return (await this.detailsAcrossYears([guardianId])).get(guardianId)!;
+  }
+
+  /**
+   * LE MÊME DÉTAIL, POUR PLUSIEURS FAMILLES — cinq requêtes pour le lot, au
+   * lieu de huit PAR FAMILLE.
+   *
+   * Mesuré sur les données d'El Ourwa (1 372 familles) : « Dérogations »
+   * mettait 7 secondes à s'ouvrir et « Réinscriptions » 5 — chaque famille
+   * était calculée à son tour, dans sa propre transaction. La même maladie que
+   * les Impayés d'une année (voir `forGuardians()`), le même remède.
+   *
+   * ⚠ RIEN DU CALCUL NE CHANGE — c'est la condition. Les requêtes sont celles
+   * d'avant mot pour mot, avec `guardian_id = ANY(…)` à la place de `= $1` et
+   * la colonne `guardian_id` pour regrouper ; l'ordre dans chaque famille est
+   * le même ; l'arithmétique est la même, famille par famille. Et il n'y a
+   * qu'UN chemin : `detailAcrossYears()` est ce lot, pour une famille — « le
+   * détail affiché vient de la même source que le total » tient par
+   * construction. Un test compare un lot à ses familles prises une à une, et
+   * un relevé complet des données réelles a été comparé avant/après.
+   */
+  async detailsAcrossYears(guardianIds: string[]): Promise<Map<string, DetailToutesAnnees>> {
+    const out = new Map<string, DetailToutesAnnees>();
+    const ids = [...new Set(guardianIds)];
+    if (ids.length === 0) return out;
     const now = new Date();
     const nowIndex = now.getFullYear() * 12 + (now.getMonth() + 1);
 
-    const parts = await this.db.query(async (tx) => {
+    const lu = await this.db.query(async (tx) => {
       const { anneeScolarisee, depuis } = await this.perimetreScolarite(tx);
-      const { rows } = await tx.query<{
+      const { rows: mois } = await tx.query<{
+        guardian_id: string;
         student_id: string;
         student_name: string;
         month_label: string | null;
@@ -616,7 +624,7 @@ export class DebtService {
         paid: string;
         exempt: boolean;
       }>(
-        `SELECT s.id AS student_id, (s.first_name || ' ' || s.last_name) AS student_name, m.month_label,
+        `SELECT s.guardian_id, s.id AS student_id, (s.first_name || ' ' || s.last_name) AS student_name, m.month_label,
                 m.calendar_month, m.calendar_year, m.amount_due::text,
                 COALESCE(d.amount, 0)::text AS discount,
                 COALESCE(p.total, 0)::text AS paid,
@@ -637,7 +645,7 @@ export class DebtService {
            LEFT JOIN exemptions mx
              ON mx.student_id = s.id AND mx.kind = 'monthly'
             AND mx.calendar_month = m.calendar_month AND mx.calendar_year = m.calendar_year
-          WHERE s.guardian_id = $1
+          WHERE s.guardian_id = ANY($1::uuid[])
             AND e.status <> 'cancelled'
             AND e.is_free = false
             AND m.status = 'billable'
@@ -646,23 +654,156 @@ export class DebtService {
             AND y.start_year >= $3
           -- Dans l'ordre du calendrier : un releve d'arrieres qui saute de
           -- fevrier a juin puis revient a janvier ne se lit pas.
-          ORDER BY s.last_name, s.first_name, m.calendar_year, m.calendar_month`,
-        [guardianId, anneeScolarisee, depuis],
+          ORDER BY s.guardian_id, s.last_name, s.first_name, m.calendar_year, m.calendar_month`,
+        [ids, anneeScolarisee, depuis],
       );
 
-      let total = new Decimal(0);
-      const tuition: {
-        studentId: string;
-        studentName: string;
-        label: string;
-        calendarMonth: number;
-        calendarYear: number;
-        due: string;
-        paid: string;
-        outstanding: string;
-      }[] = [];
+      /**
+       * ── B. LES CRÉANCES — `dettes_familles` ───────────────────────────
+       *
+       * ⚠ THIS TERM WAS MISSING AND THE GATE WAS OPEN. The comment above quotes
+       * El Ourwa's own rule — "mois échus non réglés, reliquats de factures de
+       * TOUTES les années" — and only the first half was summed. A family whose
+       * whole arrears sit in a créance (an arriéré carried over, a remainder on
+       * an invoice) passed the re-enrolment gate owing nothing, and the exam
+       * ratchet handed them the term.
+       *
+       * A CORRECTION OVERRIDES THE ARITHMETIC, here as everywhere else:
+       * `corrected_balance` when set IS the remainder, so a créance corrected
+       * down or cancelled stops blocking immediately — which is the point of
+       * `dette_modifier` and `dette_annuler` on the re-enrolment screen.
+       */
+      const { rows: misc } = await tx.query<{
+        guardian_id: string;
+        id: string;
+        debtor_name: string;
+        kind: string | null;
+        start_year: number | null;
+        invoice_source: number | null;
+        total: string;
+        student_name: string | null;
+        remaining: string;
+      }>(
+        `SELECT d.guardian_id, d.id, d.debtor_name, d.kind, d.start_year, d.invoice_source, d.total::text,
+                (st.first_name || ' ' || st.last_name) AS student_name,
+                COALESCE(d.corrected_balance, d.total - d.repaid)::text AS remaining
+           FROM misc_debts d
+           LEFT JOIN students st ON st.id = d.student_id
+          WHERE d.guardian_id = ANY($1::uuid[])
+            AND COALESCE(d.corrected_balance, d.total - d.repaid) > 0
+          -- Son « ORDER BY d.annee, d.facture_source ».
+          ORDER BY d.guardian_id, d.start_year NULLS FIRST, d.invoice_source NULLS FIRST, d.created_at`,
+        [ids],
+      );
 
-      for (const r of rows) {
+      /**
+       * ── C. LA REMISE DE LA DIRECTION ───────────────────────────────
+       *
+       * ⚠ « ANNULER TOUTE LA DETTE » CLEARS IT, and this read ignored the flag.
+       * A total write-off stores `amount = 0` with `clears_all`, so summing the
+       * amounts subtracted nothing and the family stayed blocked — while the
+       * screen that granted it says "Dette annulée : la famille peut réinscrire."
+       * `forGuardian()` has always read `bool_or(clears_all)`; this one did not.
+       */
+      const { rows: waived } = await tx.query<{ guardian_id: string; total: string; clears: boolean }>(
+        `SELECT guardian_id, COALESCE(SUM(amount), 0)::text AS total,
+                COALESCE(bool_or(clears_all), false) AS clears
+           FROM debt_write_offs
+          WHERE guardian_id = ANY($1::uuid[]) AND revoked_at IS NULL
+          GROUP BY guardian_id`,
+        [ids],
+      );
+
+      /**
+       * ── B bis. LES FRAIS ANNUELS DE L'ANNÉE OUVERTE ──────────────────
+       *
+       * ⚠ Its own note: "Ils n'entraient nulle part dans la dette, si bien
+       * qu'une famille pouvait etre reinscrite sans les payer et n'en garder
+       * aucune trace." Called without a year the debt covers the whole
+       * schooling, but the enrolment and photocopy fees are owed for the OPEN
+       * year — that is when one enrols — so El Ourwa falls back to
+       * `annee_active()` here rather than skipping the block.
+       *
+       * And only when the family actually has a child enrolled that year: fees
+       * fall due on enrolling, not on existing.
+       */
+      const { rows: openYears } = await tx.query<{ guardian_id: string; id: string; start_year: number; label: string }>(
+        `SELECT DISTINCT ON (st.guardian_id) st.guardian_id, y.id, y.start_year, y.label
+           FROM academic_years y
+           JOIN enrollments e ON e.academic_year_id = y.id
+           JOIN students st ON st.id = e.student_id
+          WHERE y.status = 'active'
+            AND e.status <> 'cancelled'
+            AND st.guardian_id = ANY($1::uuid[])
+          ORDER BY st.guardian_id, y.start_year DESC`,
+        [ids],
+      );
+
+      /**
+       * ── D. LES SERVICES (école « services », §6) ──────────────────────
+       *
+       * Les mêmes termes que `forGuardian()` : les mois de service de l'année
+       * SCOLARISÉE (le périmètre de la scolarité, section A), et les services
+       * annuels de l'année OUVERTE (la règle des frais annuels, B bis). Une
+       * école « famille » : [] sans autre requête.
+       */
+      // L'année ouverte se lit par famille : une requête par année ouverte
+      // rencontrée (une seule, d'ordinaire), plus une pour les familles sans.
+      const anneeDe = new Map(openYears.map((o) => [o.guardian_id, o.id]));
+      const lots = new Map<string | null, string[]>();
+      for (const id of ids) {
+        const cle = anneeDe.get(id) ?? null;
+        lots.set(cle, [...(lots.get(cle) ?? []), id]);
+      }
+      const services: EcheanceServiceDue[] = [];
+      for (const [annuels, lot] of lots) {
+        services.push(
+          ...(await this.echeancesServicesDues(tx, lot, {
+            mensuels: { startYear: anneeScolarisee, depuis },
+            annuels,
+          })),
+        );
+      }
+
+      return { mois, misc, waived, openYears, services };
+    });
+
+    // The annual-fee scale is read by `FeesService`, which opens its own
+    // transaction — so it is asked once the debt transaction has closed. One
+    // call per open year, for the families that have a child enrolled in it.
+    const anneeOuverte = new Map(lu.openYears.map((o) => [o.guardian_id, o]));
+    const fraisPar = new Map<string, Awaited<ReturnType<FeesService['annualFeesDue']>>>();
+    const parAnnee = new Map<string, { annee: (typeof lu.openYears)[number]; ids: string[] }>();
+    for (const o of lu.openYears) {
+      const lot = parAnnee.get(o.id) ?? { annee: o, ids: [] };
+      lot.ids.push(o.guardian_id);
+      parAnnee.set(o.id, lot);
+    }
+    for (const { annee, ids: lot } of parAnnee.values()) {
+      for (const [id, frais] of await this.fees.annualFeesDueFor(lot, annee.id, annee.start_year)) {
+        fraisPar.set(id, frais);
+      }
+    }
+
+    const regrouper = <T extends { guardian_id: string }>(lignes: T[]): Map<string, T[]> => {
+      const par = new Map<string, T[]>();
+      for (const l of lignes) {
+        const liste = par.get(l.guardian_id);
+        if (liste) liste.push(l);
+        else par.set(l.guardian_id, [l]);
+      }
+      return par;
+    };
+    const moisPar = regrouper(lu.mois);
+    const miscPar = regrouper(lu.misc);
+    const servicesPar = regrouper(lu.services);
+    const remisePar = new Map(lu.waived.map((w) => [w.guardian_id, w]));
+
+    for (const guardianId of ids) {
+      let total = new Decimal(0);
+      const tuition: DetailToutesAnnees['tuition'] = [];
+
+      for (const r of moisPar.get(guardianId) ?? []) {
         if (r.exempt) continue;
         // ⚠ A month that has not happened yet is not a debt (standing rule, and
         // the same predicate `forGuardian` uses). Re-enrolling in October must
@@ -687,43 +828,7 @@ export class DebtService {
         }
       }
 
-      /**
-       * ── B. LES CRÉANCES — `dettes_familles` ───────────────────────────
-       *
-       * ⚠ THIS TERM WAS MISSING AND THE GATE WAS OPEN. The comment above quotes
-       * El Ourwa's own rule — "mois échus non réglés, reliquats de factures de
-       * TOUTES les années" — and only the first half was summed. A family whose
-       * whole arrears sit in a créance (an arriéré carried over, a remainder on
-       * an invoice) passed the re-enrolment gate owing nothing, and the exam
-       * ratchet handed them the term.
-       *
-       * A CORRECTION OVERRIDES THE ARITHMETIC, here as everywhere else:
-       * `corrected_balance` when set IS the remainder, so a créance corrected
-       * down or cancelled stops blocking immediately — which is the point of
-       * `dette_modifier` and `dette_annuler` on the re-enrolment screen.
-       */
-      const { rows: misc } = await tx.query<{
-        id: string;
-        debtor_name: string;
-        kind: string | null;
-        start_year: number | null;
-        invoice_source: number | null;
-        total: string;
-        student_name: string | null;
-        remaining: string;
-      }>(
-        `SELECT d.id, d.debtor_name, d.kind, d.start_year, d.invoice_source, d.total::text,
-                (st.first_name || ' ' || st.last_name) AS student_name,
-                COALESCE(d.corrected_balance, d.total - d.repaid)::text AS remaining
-           FROM misc_debts d
-           LEFT JOIN students st ON st.id = d.student_id
-          WHERE d.guardian_id = $1
-            AND COALESCE(d.corrected_balance, d.total - d.repaid) > 0
-          -- Son « ORDER BY d.annee, d.facture_source ».
-          ORDER BY d.start_year NULLS FIRST, d.invoice_source NULLS FIRST, d.created_at`,
-        [guardianId],
-      );
-      const miscLines = misc.map((m) => {
+      const miscLines = (miscPar.get(guardianId) ?? []).map((m) => {
         total = total.plus(money(m.remaining));
         const reste = money(m.remaining);
         // Ses libelles : « Arriéré 2024-2025 (1 000 MRU) » — « un arriere ne
@@ -743,119 +848,48 @@ export class DebtService {
         };
       });
 
-      /**
-       * ── C. LA REMISE DE LA DIRECTION ───────────────────────────────
-       *
-       * ⚠ « ANNULER TOUTE LA DETTE » CLEARS IT, and this read ignored the flag.
-       * A total write-off stores `amount = 0` with `clears_all`, so summing the
-       * amounts subtracted nothing and the family stayed blocked — while the
-       * screen that granted it says "Dette annulée : la famille peut réinscrire."
-       * `forGuardian()` has always read `bool_or(clears_all)`; this one did not.
-       */
-      const { rows: waived } = await tx.query<{ total: string; clears: boolean }>(
-        `SELECT COALESCE(SUM(amount), 0)::text AS total,
-                COALESCE(bool_or(clears_all), false) AS clears
-           FROM debt_write_offs
-          WHERE guardian_id = $1 AND revoked_at IS NULL`,
-        [guardianId],
-      );
+      const remise = remisePar.get(guardianId);
+      const waivedAmount = money(remise?.total ?? '0');
+      const clearsAll = remise?.clears ?? false;
+      const openYear = anneeOuverte.get(guardianId) ?? null;
 
-      /**
-       * ── B bis. LES FRAIS ANNUELS DE L'ANNÉE OUVERTE ──────────────────
-       *
-       * ⚠ Its own note: "Ils n'entraient nulle part dans la dette, si bien
-       * qu'une famille pouvait etre reinscrite sans les payer et n'en garder
-       * aucune trace." Called without a year the debt covers the whole
-       * schooling, but the enrolment and photocopy fees are owed for the OPEN
-       * year — that is when one enrols — so El Ourwa falls back to
-       * `annee_active()` here rather than skipping the block.
-       *
-       * And only when the family actually has a child enrolled that year: fees
-       * fall due on enrolling, not on existing.
-       */
-      const { rows: openYear } = await tx.query<{ id: string; start_year: number; label: string }>(
-        `SELECT y.id, y.start_year, y.label
-           FROM academic_years y
-          WHERE y.status = 'active'
-            AND EXISTS (
-              SELECT 1 FROM enrollments e
-                JOIN students st ON st.id = e.student_id
-               WHERE st.guardian_id = $1
-                 AND e.academic_year_id = y.id
-                 AND e.status <> 'cancelled'
-            )
-          ORDER BY y.start_year DESC
-          LIMIT 1`,
-        [guardianId],
-      );
-
-      /**
-       * ── D. LES SERVICES (école « services », §6) ──────────────────────
-       *
-       * Les mêmes termes que `forGuardian()` : les mois de service de l'année
-       * SCOLARISÉE (le périmètre de la scolarité, section A), et les services
-       * annuels de l'année OUVERTE (la règle des frais annuels, B bis). Une
-       * école « famille » : [] sans autre requête.
-       */
-      const services = await this.echeancesServicesDues(tx, [guardianId], {
-        mensuels: { startYear: anneeScolarisee, depuis },
-        annuels: openYear[0]?.id ?? null,
-      });
-
-      return {
-        total,
-        tuition,
-        misc: miscLines,
-        openYear: openYear[0] ?? null,
-        waived: money(waived[0]!.total),
-        clearsAll: waived[0]!.clears,
-        services,
-      };
-    });
-
-    // The annual-fee scale is read by `FeesService`, which opens its own
-    // transaction — so it is asked once the debt transaction has closed.
-    let beforeWriteOffs = parts.total;
-    const annualFees: { label: string; outstanding: string }[] = [];
-    if (parts.openYear) {
-      for (const fee of await this.fees.annualFeesDue(
-        guardianId,
-        parts.openYear.id,
-        parts.openYear.start_year,
-      )) {
-        if (fee.remaining.greaterThan(0)) {
-          beforeWriteOffs = beforeWriteOffs.plus(fee.remaining);
-          // Son libelle : « Frais d'inscription 2025-2026 (versé X sur Y) » ou « (non réglé) ».
-          annualFees.push({
-            label:
-              `${fee.label} ${parts.openYear.label}` +
-              (fee.paid.greaterThan(0)
-                ? ` (versé ${fr(fee.paid)} sur ${fr(fee.scale)})`
-                : ' (non réglé)'),
-            outstanding: toStorage(fee.remaining),
-          });
+      let beforeWriteOffs = total;
+      const annualFees: { label: string; outstanding: string }[] = [];
+      if (openYear) {
+        for (const fee of fraisPar.get(guardianId) ?? []) {
+          if (fee.remaining.greaterThan(0)) {
+            beforeWriteOffs = beforeWriteOffs.plus(fee.remaining);
+            // Son libelle : « Frais d'inscription 2025-2026 (versé X sur Y) » ou « (non réglé) ».
+            annualFees.push({
+              label:
+                `${fee.label} ${openYear.label}` +
+                (fee.paid.greaterThan(0)
+                  ? ` (versé ${fr(fee.paid)} sur ${fr(fee.scale)})`
+                  : ' (non réglé)'),
+              outstanding: toStorage(fee.remaining),
+            });
+          }
         }
       }
+
+      // Les services, par la même fonction que `calculerDette()` — avant la remise.
+      const services = dettesDeServices(servicesPar.get(guardianId) ?? [], nowIndex);
+      beforeWriteOffs = beforeWriteOffs.plus(services.total);
+
+      // ⚠ A total write-off outranks the whole sum, creances and fees included.
+      const final = clearsAll ? new Decimal(0) : Decimal.max(0, beforeWriteOffs.minus(waivedAmount));
+
+      out.set(guardianId, {
+        tuition,
+        misc: miscLines,
+        annualFees,
+        services: services.lignes,
+        beforeWriteOffs: toStorage(beforeWriteOffs),
+        writtenOff: toStorage(clearsAll ? beforeWriteOffs : waivedAmount),
+        total: final,
+      });
     }
-
-    // Les services, par la même fonction que `calculerDette()` — avant la remise.
-    const services = dettesDeServices(parts.services, nowIndex);
-    beforeWriteOffs = beforeWriteOffs.plus(services.total);
-
-    // ⚠ A total write-off outranks the whole sum, creances and fees included.
-    const total = parts.clearsAll
-      ? new Decimal(0)
-      : Decimal.max(0, beforeWriteOffs.minus(parts.waived));
-
-    return {
-      tuition: parts.tuition,
-      misc: parts.misc,
-      annualFees,
-      services: services.lignes,
-      beforeWriteOffs: toStorage(beforeWriteOffs),
-      writtenOff: toStorage(parts.clearsAll ? beforeWriteOffs : parts.waived),
-      total,
-    };
+    return out;
   }
 
   /**
@@ -2216,10 +2250,11 @@ export class DebtService {
      * rapport ouvert par la comptable ne fasse pas attendre les paiements
      * encaissés au guichet pendant ce temps.
      */
-    const CONCURRENCE = 6;
-    // Pour UNE année : `forGuardians()` — les mêmes requêtes que `forGuardian()`,
-    // pour toutes les familles à la fois (voir là-bas) — par lots de 200.
-    const LOT = academicYearId === null || startYear === null ? CONCURRENCE : 200;
+    // `forGuardians()` (une année) et `detailsAcrossYears()` (toutes) : les
+    // mêmes requêtes que pour une famille, pour toutes à la fois (voir là-bas)
+    // — par lots de 200. « Toutes » attendait encore chaque famille à son tour,
+    // six de front : 7 secondes sur les 1 372 familles d'El Ourwa.
+    const LOT = 200;
     for (let i = 0; i < guardians.length; i += LOT) {
       const lot = guardians.slice(i, i + LOT);
       let calculs: {
@@ -2230,16 +2265,15 @@ export class DebtService {
       if (academicYearId === null || startYear === null) {
         // « Toutes » : une famille peut devoir depuis plusieurs années, et c'est
         // le même calcul avec le filtre d'année retiré.
-        calculs = await Promise.all(
-          lot.map(async (guardian) => {
-            const d = await this.detailAcrossYears(guardian.id);
-            return {
-              guardian,
-              debt: { total: toStorage(d.total), tuition: d.tuition },
-              misc: d.misc.map((m) => ({ remaining: m.outstanding })),
-            };
-          }),
-        );
+        const details = await this.detailsAcrossYears(lot.map((g) => g.id));
+        calculs = lot.map((guardian) => {
+          const d = details.get(guardian.id)!;
+          return {
+            guardian,
+            debt: { total: toStorage(d.total), tuition: d.tuition },
+            misc: d.misc.map((m) => ({ remaining: m.outstanding })),
+          };
+        });
       } else {
         const ids = lot.map((g) => g.id);
         const [dettes, divers] = await Promise.all([
@@ -2302,6 +2336,27 @@ export class DebtService {
     }
     return out.sort((a, b) => money(b.total).comparedTo(money(a.total)));
   }
+}
+
+/** Ce que `detailAcrossYears()` rend pour une famille : le total, et d'où il vient. */
+export interface DetailToutesAnnees {
+  tuition: {
+    studentId: string;
+    studentName: string;
+    label: string;
+    calendarMonth: number;
+    calendarYear: number;
+    due: string;
+    paid: string;
+    outstanding: string;
+  }[];
+  misc: { id: string; label: string; who: string; outstanding: string }[];
+  annualFees: { label: string; outstanding: string }[];
+  /** École « services » (§6) ; [] dans une école « famille ». Compris dans `total`. */
+  services: LigneServiceDette[];
+  beforeWriteOffs: string;
+  writtenOff: string;
+  total: Decimal;
 }
 
 /** Une ligne de mois facturable, telle que `forGuardian()` la lit. */
