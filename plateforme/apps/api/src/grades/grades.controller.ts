@@ -4,10 +4,34 @@ import { GradesService } from './grades.service.js';
 import { ReferenceService } from '../academic/reference.service.js';
 import { AcademicYearService } from '../academic/academic-year.service.js';
 import { TimetableService } from '../timetable/timetable.service.js';
-import { RequirePermission, type AuthenticatedRequest } from '../auth/permissions.guard.js';
+import { RequirePermission, RequireRole, type AuthenticatedRequest } from '../auth/permissions.guard.js';
 
 const uuid = z.string().uuid();
 const term = z.coerce.number().int().min(1).max(3);
+
+/**
+ * QUI LIT LES NOTES PAR `/grades` — la règle d'El Ourwa, portée le 2026-10-10.
+ *
+ * ⚠ `notes.consulter` NE SUFFIT PAS, ET IL A SUFFI : le rôle professeur le
+ * détient, et tout professeur lisait donc les bulletins, le classement et la
+ * feuille de n'importe quelle classe en changeant l'identifiant dans l'adresse
+ * (revue de sécurité du 10/10). El Ourwa ne pose pas la question « avez-vous
+ * ce droit ? » sur ces pages, mais « quel est votre rôle ? » :
+ *
+ *   - `notes_etudiants.php` et `bulletins_classe.php` (bulletin d'un élève,
+ *     bulletins d'une classe, classement, formule, années) commencent par
+ *     `require_staff_admin()` — super_admin OU admin. Ni la secrétaire, ni la
+ *     comptable, ni le professeur. Les rôles se cumulent (`mes_roles()`) : un
+ *     agent admin + secrétaire entre.
+ *   - `saisir_notes.php` (la feuille, lue et saisie) commence par
+ *     `require_role(['super_admin', 'admin', 'secretaire'])`.
+ *
+ * Le professeur, lui, passe par `/teacher/sheet/:id` — `assertOwnTeaching`,
+ * SES enseignements et rien d'autre. Le rôle s'ajoute à la permission, il ne
+ * la remplace pas (`RequireRole`, permissions.guard.ts).
+ */
+const DIRECTION = ['super_admin', 'admin'] as const;
+const DIRECTION_ET_SECRETARIAT = ['super_admin', 'admin', 'secretaire'] as const;
 
 @Controller('grades')
 export class GradesController {
@@ -26,6 +50,7 @@ export class GradesController {
    */
   @Get('formulas/:levelId')
   @RequirePermission('notes.consulter', 'notes.saisir')
+  @RequireRole(...DIRECTION)
   formulas(@Param('levelId') levelId: string) {
     return this.grades.formulasFor(uuid.parse(levelId));
   }
@@ -59,9 +84,10 @@ export class GradesController {
     ).then(() => ({ saved: body.terms.length }));
   }
 
-  /** The mark sheet for one teaching. */
+  /** The mark sheet for one teaching — `saisir_notes.php` : la direction et le secrétariat. */
   @Get('sheet/:teachingId')
   @RequirePermission('notes.saisir', 'notes.consulter')
+  @RequireRole(...DIRECTION_ET_SECRETARIAT)
   sheet(@Param('teachingId') teachingId: string, @Query('term') rawTerm = '1') {
     return this.grades.sheet(uuid.parse(teachingId), term.parse(rawTerm));
   }
@@ -98,6 +124,7 @@ export class GradesController {
    */
   @Get('report-card/:studentId')
   @RequirePermission('notes.consulter')
+  @RequireRole(...DIRECTION)
   reportCard(
     @Param('studentId') studentId: string,
     @Query('term') rawTerm = '1',
@@ -111,6 +138,7 @@ export class GradesController {
   /** Son classement d'un groupe — `?classement=1`. */
   @Get('classement/:groupId')
   @RequirePermission('notes.consulter')
+  @RequireRole(...DIRECTION)
   classement(
     @Param('groupId') groupId: string,
     @Query('base') base = '1',
@@ -124,6 +152,7 @@ export class GradesController {
   /** Les années qui portent des notes — pour le défaut de « Année ». */
   @Get('annees-avec-notes')
   @RequirePermission('notes.consulter')
+  @RequireRole(...DIRECTION)
   anneesAvecNotes() {
     return this.grades.anneesAvecNotes();
   }
@@ -131,6 +160,7 @@ export class GradesController {
   /** Every report card for a class, computed in one pass. */
   @Get('class/:groupId')
   @RequirePermission('notes.consulter')
+  @RequireRole(...DIRECTION)
   classCards(
     @Param('groupId') groupId: string,
     @Query('term') rawTerm = '1',

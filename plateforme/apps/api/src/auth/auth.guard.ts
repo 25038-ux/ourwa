@@ -1,6 +1,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Inject,
   Injectable,
   UnauthorizedException,
@@ -55,6 +56,67 @@ const PUBLIC_PREFIXES = [
   '/legal',
 ];
 
+/**
+ * ⚠ « VOUS DEVEZ CHANGER VOTRE MOT DE PASSE AVANT DE CONTINUER » — DIT ICI,
+ * PLUS SEULEMENT PAR LES ÉCRANS (revue de sécurité du 2026-10-10).
+ *
+ * Le site (`(app)/layout.tsx`) et l'application (`main.dart`) renvoient un
+ * compte encore sur son mot de passe remis vers leur écran de changement ; cette
+ * garde, elle, ne lisait jamais `must_change_password`. Un appel direct avec un
+ * jeton valide ouvrait donc toutes les routes — et 1 372 comptes de familles
+ * étaient dans cet état, sur le même mot de passe de départ.
+ *
+ * Tant que le drapeau est levé, TOUT est refusé (403, `code` ci-dessous) sauf
+ * ce dont les deux écrans de changement ont besoin. La liste a été établie en
+ * lisant chaque appel des deux clients, et pas autrement :
+ *
+ *   LE SITE, sur `/profile?motdepasse=obligatoire`
+ *     GET  /auth/me ................ `readSession()` — la coquille, la page, chaque `apiFetch`
+ *     GET  /auth/profil ............ « Identité actuelle » de la page
+ *     GET  /academic-years ......... le sélecteur d'année de l'en-tête (`page-header.tsx`)
+ *     POST /auth/change-password ... `changePasswordAction`
+ *
+ *   L'APPLICATION, de la connexion à la fin de `ChangePasswordScreen`
+ *     GET    /auth/me .............. `restore()` / `reessayer()` : le drapeau redemandé à chaque ouverture
+ *     POST   /auth/locale .......... `_onSignedIn` : la langue choisie sur l'écran de connexion
+ *     POST   /parent/devices ....... `Push.attacher`, dès la connexion et à chaque ouverture
+ *     DELETE /parent/devices ....... `Push.detacher`, avant « Se déconnecter » — offert sur l'écran obligé
+ *     POST   /auth/change-password . `changePassword()`
+ *
+ * Les routes publiques (`/auth/login`, `/auth/refresh`, `/auth/logout`,
+ * `/school`, `/legal`) ne passent jamais par ici : se connecter, renouveler sa
+ * session et PARTIR restent possibles — un parent qui ne retrouve pas le mot de
+ * passe remis ne doit pas être enfermé sur l'écran.
+ *
+ * ⚠ Méthode ET chemin exacts. Un préfixe ouvrirait `/parent/devices/test` avec
+ * `/parent/devices`, et `/academic-years/default` avec `/academic-years`.
+ *
+ * ⚠ CE QUI N'Y EST PAS, EXPRÈS : `change-name` et `change-identifier`, pourtant
+ * sur la même page du site — le mot de passe d'abord ; et les sondages de fond
+ * de l'application (`/parent/notifications`, `/parent/messages/unread`), qui
+ * lisent déjà la vie de la famille : la tâche de fond avale le refus
+ * (`tacheArrierePlan`) et reprend d'elle-même après le changement.
+ *
+ * Ajouter une ligne ici, c'est rouvrir une route aux 1 372 comptes au mot de
+ * passe de départ : `mot-de-passe-oblige-serveur.spec.ts` dit ce que chaque
+ * ligne doit à l'un des deux écrans.
+ */
+const PERMIS_AVANT_LE_CHANGEMENT: ReadonlySet<string> = new Set([
+  'GET /auth/me',
+  'GET /auth/profil',
+  'GET /academic-years',
+  'POST /auth/change-password',
+  'POST /auth/locale',
+  'POST /parent/devices',
+  'DELETE /parent/devices',
+]);
+
+/** Le code du refus — ce que les clients reconnaissent, la phrase pouvant être traduite. */
+export const CODE_MOT_DE_PASSE_A_CHANGER = 'MOT_DE_PASSE_A_CHANGER';
+
+/** Son `tout_correspondant_doit_changer` (`includes/i18n.php`), au mot près. */
+const PHRASE_MOT_DE_PASSE_A_CHANGER = 'Vous devez changer votre mot de passe avant de continuer.';
+
 /** Son `sceau_compte()` : `substr(hash('sha256', $hash_mdp), 0, 32)`. */
 export function seal(passwordHash: string): string {
   return createHash('sha256').update(passwordHash).digest('hex').slice(0, 32);
@@ -90,7 +152,13 @@ export class AuthGuard implements CanActivate {
         active: boolean;
         password_hash: string;
         is_platform_admin: boolean;
-      }>('SELECT active, password_hash, is_platform_admin FROM users WHERE id = $1', [claims.sub]);
+        must_change_password: boolean;
+      }>(
+        // Le drapeau vient de la MÊME lecture que le compte et le sceau : pas un
+        // aller-retour de plus par requête.
+        'SELECT active, password_hash, is_platform_admin, must_change_password FROM users WHERE id = $1',
+        [claims.sub],
+      );
       return rows[0];
     });
     if (!compte || !compte.active) {
@@ -104,6 +172,21 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException(
         'Session fermée : identifiants modifiés. Reconnectez-vous.',
       );
+    }
+
+    // ── Le mot de passe remis, pas encore remplacé ────────────────────────
+    // Après le sceau : une session fermée reste un 401 (« reconnectez-vous »),
+    // jamais ce 403. Avant les droits : rien d'autre n'est lu pour un refus.
+    if (
+      compte.must_change_password &&
+      !PERMIS_AVANT_LE_CHANGEMENT.has(`${(request.method ?? '').toUpperCase()} ${path}`)
+    ) {
+      throw new ForbiddenException({
+        statusCode: 403,
+        error: 'Forbidden',
+        code: CODE_MOT_DE_PASSE_A_CHANGER,
+        message: PHRASE_MOT_DE_PASSE_A_CHANGER,
+      });
     }
 
     // ── The rights, now ───────────────────────────────────────────────────
