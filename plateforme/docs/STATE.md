@@ -96,6 +96,15 @@ en français et en arabe, cinq pages, et une console d'administration protégée
 
 ## LE SITE VITRINE DE HEAVENLY (جنان) — 2026-10-09
 
+> **Ajout du 2026-10-11** : la photo de la façade (fournie par le propriétaire)
+> est dans « Nous contacter » — tirage scotché, légende manuscrite, note « Notre
+> porte vous est ouverte ! », carte épinglée dessous ; WhatsApp `48 66 64 46` (lu
+> sur l'enseigne) ajouté aux coordonnées ; décor : guirlandes de fanions
+> (accueil, vie scolaire, fin), fleurs, cœurs, étoiles, crayon, confettis. Trois
+> langues, 13/13 vérifications (360 → 1440 px, mouvement réduit), Lighthouse
+> inchangé. **À trancher par l'école** : l'enseigne dit « مؤسسة الجنان للتعليم
+> الخاص », le site garde « مؤسسة جنان للتعليم » qu'elle avait donné.
+
 **Demande du propriétaire** : un site de présentation « marketing », animé,
 en français, anglais et arabe (choix en haut), aux valeurs « américano-
 islamiques », avec les photos de l'école, l'adresse (entre Appetizer et

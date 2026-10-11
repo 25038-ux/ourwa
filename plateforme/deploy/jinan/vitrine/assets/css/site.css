@@ -893,6 +893,97 @@ main, .nav, .marque-txt small, .pied { transition: opacity .18s ease; }
   .pied-haut { grid-template-columns: 1fr 1fr; }
 }
 
+/* ── Le bâtiment, la guirlande, les confettis ─────────────────────────── */
+
+/* La photo de l'école, scotchée, et la carte épinglée dessous. */
+.contact-visuel { position: relative; padding-top: 76px; }
+.ph-batiment { padding: 12px 12px 6px; border-radius: 14px; z-index: 1; }
+.ph-batiment img { aspect-ratio: 1400 / 1279; border-radius: 6px; }
+.ph-legende {
+  padding: 10px 12px 4px; text-align: end;
+  font-family: var(--main); font-weight: 700; font-size: clamp(1.4rem, 2vw, 1.75rem); line-height: 1.1; color: var(--vert-f);
+}
+:root[lang='ar'] .ph-legende { font-size: clamp(1.2rem, 1.7vw, 1.45rem); line-height: 1.5; }
+.note-porte {
+  top: 6px; inset-inline-start: 4%;
+  display: flex; align-items: flex-end; gap: 4px;
+  font-size: clamp(1.5rem, 2.3vw, 2rem); rotate: -4deg; color: var(--corail-f);
+}
+:root[lang='ar'] .note-porte { font-size: clamp(1.25rem, 1.9vw, 1.6rem); rotate: 4deg; }
+.note-porte .note-fleche { width: 60px; height: 50px; margin-bottom: -30px; }
+.contact-visuel .carte-geo { position: relative; z-index: 2; width: 60%; height: clamp(210px, 20vw, 280px); margin: 18px auto 0 0; padding: 10px; border-radius: 18px; }
+[dir='rtl'] .contact-visuel .carte-geo { margin: 18px 0 0 auto; }
+.contact-visuel .carte-geo iframe { border-radius: 10px; }
+.contact-visuel .croquis { z-index: 3; }
+.d-ct-soleil { top: 0; inset-inline-end: -30px; width: 78px; color: var(--jaune-f); stroke-width: 4; }
+.d-ct-soleil use:last-child { fill: var(--jaune-c); }
+.d-ct-coeur { bottom: 20%; inset-inline-end: 8%; width: 42px; color: var(--corail); fill: var(--corail-c); }
+.d-ct-fleur { bottom: 2%; inset-inline-end: 2%; width: 46px; color: var(--ciel-f); fill: var(--ciel-c); }
+.d-ct-fleur circle { fill: var(--jaune); stroke: var(--jaune-f); }
+.d-ct-etoile { top: 46%; inset-inline-end: -20px; width: 34px; color: var(--jaune-f); fill: var(--jaune-c); }
+
+/* La guirlande de fanions, comme pour une fête d'école. */
+.guirlande { position: absolute; z-index: 2; top: 0; left: 0; width: 100%; height: clamp(58px, 7vw, 104px); pointer-events: none; }
+.guirlande .fil { fill: none; stroke: rgba(30, 42, 36, .45); stroke-width: 2; }
+.guirlande .piqure { fill: none; stroke: #fff; stroke-opacity: .7; stroke-width: 1.6; stroke-dasharray: 3 3; }
+.hero { padding-top: clamp(70px, 8vw, 112px); }
+.vie { position: relative; padding-top: clamp(110px, 12vw, 160px); }
+.fin-carte { overflow: hidden; padding-top: clamp(92px, 10vw, 128px); }
+.g-fin .fil { stroke: rgba(255, 255, 255, .55); }
+
+/* Les confettis du mot de la fin. */
+.confettis {
+  position: absolute; inset: 0; pointer-events: none; opacity: .55;
+  background-image:
+    radial-gradient(circle, var(--jaune) 0 3px, transparent 3.6px),
+    radial-gradient(circle, var(--corail) 0 2.6px, transparent 3.2px),
+    radial-gradient(circle, #8CC8EA 0 2.4px, transparent 3px),
+    radial-gradient(circle, #fff 0 1.8px, transparent 2.4px);
+  background-size: 190px 150px, 230px 170px, 160px 210px, 120px 130px;
+  background-position: 20px 40px, 110px 90px, 60px 130px, 90px 20px;
+}
+
+.fin-carte .d-fin-soleil { top: clamp(84px, 9vw, 112px); }
+.fin-carte .d-fin-etoile2 { top: 34%; }
+
+/* Les croquis ajoutés : services, inscription, questions. */
+.services .tete, .questions .tete { position: relative; }
+.inscription .carte-couleur { overflow: hidden; }
+.d-sv-crayon { top: 4px; inset-inline-end: -14%; width: 64px; color: var(--corail); fill: var(--corail-c); }
+.d-sv-fleur { bottom: -6px; inset-inline-end: -4%; width: 44px; color: var(--vert); fill: var(--vert-c); }
+.d-sv-fleur circle, .d-in-fleur circle { fill: var(--jaune); stroke: var(--jaune-f); }
+.d-in-coeur { top: 34px; inset-inline-start: 6%; width: 44px; color: var(--corail); fill: var(--corail-c); }
+.d-in-fleur { top: 28px; inset-inline-end: 7%; width: 52px; color: var(--vert); fill: #fff; }
+.d-in-etoile { bottom: 30px; inset-inline-end: 12%; width: 32px; color: var(--jaune-f); fill: var(--jaune-c); }
+.d-fq-livre { bottom: -70px; inset-inline-start: 4%; width: 74px; color: var(--ciel-f); fill: var(--ciel-c); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .fanion { transform-box: fill-box; transform-origin: 50% 0; animation: balance 3.6s ease-in-out infinite alternate; }
+  .fanion:nth-child(3n) { animation-duration: 4.2s; animation-delay: -1.2s; }
+  .fanion:nth-child(3n+1) { animation-duration: 3.1s; animation-delay: -2.1s; }
+  .fanion:nth-child(4n) { animation-delay: -.6s; }
+  .d-ct-coeur { animation: bat 2.8s ease-in-out infinite; }
+  .d-ct-etoile { animation: scintille 3.2s ease-in-out infinite; }
+  .d-ct-fleur { animation: respire 9s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+}
+@keyframes balance { from { rotate: -5deg; } to { rotate: 5deg; } }
+
+@media (max-width: 900px) {
+  .contact-visuel { max-width: 560px; width: 100%; margin-inline: auto; }
+  .fin-carte .d-fin-soleil { top: 64px; }
+  .fin-carte .d-fin-avion { top: 70px; }
+  .fin-carte .d-fin-etoile2 { top: 74px; }
+  .d-ct-soleil { inset-inline-end: -6px; width: 58px; }
+  .d-sv-crayon { inset-inline-end: 0; top: -28px; width: 48px; }
+  .d-sv-fleur { inset-inline-end: 2%; }
+  .d-fq-livre { display: none; }
+  .d-in-coeur { top: 18px; width: 34px; } .d-in-fleur { top: 14px; width: 40px; }
+}
+@media (max-width: 560px) {
+  .contact-visuel .carte-geo { width: 84%; margin-top: 14px; }
+  .note-porte { inset-inline-start: 0; }
+}
+
 /* ── Tablettes et téléphones ──────────────────────────────────────────── */
 
 @media (max-width: 900px) {

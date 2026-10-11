@@ -175,7 +175,11 @@ window.HEAVENLY_I18N = {
   "visit.request": "Demander un rendez-vous",
   "mail.visit.subject": "Demande de visite — Heavenly Educational Institution",
   "mail.visit.body": "Bonjour,\n\nNous aimerions visiter l'école.\n\nNom :\nTéléphone :\nÂge / classe de l'enfant :\nJour qui nous convient :\n\nMerci.",
-  "note.welcome": "Bienvenue !"
+  "note.welcome": "Bienvenue !",
+  "alt.batiment": "La façade de Heavenly à Nouakchott : l'enseigne au nom de l'établissement, la porte blanche et la cour pavée",
+  "visit.photo": "Notre école, à Nouakchott",
+  "visit.door": "Notre porte vous est ouverte !",
+  "visit.whatsapp.label": "WhatsApp"
  },
  "en": {
   "meta.title": "Heavenly Educational Institution — Private school, kindergarten to high school · Nouakchott",
@@ -352,7 +356,11 @@ window.HEAVENLY_I18N = {
   "visit.request": "Request an appointment",
   "mail.visit.subject": "Visit request — Heavenly Educational Institution",
   "mail.visit.body": "Hello,\n\nWe would like to visit the school.\n\nName:\nPhone:\nChild's age / grade:\nDay that suits us:\n\nThank you.",
-  "note.welcome": "Welcome!"
+  "note.welcome": "Welcome!",
+  "alt.batiment": "The front of Heavenly in Nouakchott: the sign with the school's name, the white door and the paved forecourt",
+  "visit.photo": "Our school, in Nouakchott",
+  "visit.door": "Our door is open to you!",
+  "visit.whatsapp.label": "WhatsApp"
  },
  "ar": {
   "meta.title": "مؤسسة جنان للتعليم — مدرسة خاصة من الروضة إلى الثانوية · نواكشوط",
@@ -529,6 +537,10 @@ window.HEAVENLY_I18N = {
   "visit.request": "طلب موعد",
   "mail.visit.subject": "طلب زيارة — مؤسسة جنان للتعليم",
   "mail.visit.body": "السلام عليكم،\n\nنرغب في زيارة المدرسة.\n\nالاسم:\nالهاتف:\nعمر الطفل / قسمه:\nاليوم المناسب لنا:\n\nشكرًا.",
-  "note.welcome": "أهلًا وسهلًا!"
+  "note.welcome": "أهلًا وسهلًا!",
+  "alt.batiment": "واجهة مؤسسة جنان في نواكشوط: اللافتة باسم المؤسسة، والباب الأبيض، والساحة المرصوفة",
+  "visit.photo": "مدرستنا في نواكشوط",
+  "visit.door": "بابنا مفتوحٌ لكم!",
+  "visit.whatsapp.label": "واتساب"
  }
 };

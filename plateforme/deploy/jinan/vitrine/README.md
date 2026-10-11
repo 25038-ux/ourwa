@@ -28,7 +28,8 @@ L'accueil · la présentation (le nom, les chiffres vrais : 3 langues, 4 cycles,
 2 formules horaires, 1 programme officiel) · le projet éducatif (six piliers) ·
 le cursus de la maternelle au baccalauréat · le verset · la vie scolaire · le
 suivi des élèves · les services · l'inscription en trois étapes · les questions
-fréquentes · le contact et la carte · le mot de la fin. Sur téléphone, une barre
+fréquentes · le contact (avec la **photo de la façade de l'école**, la carte
+épinglée dessous et le WhatsApp de l'enseigne) · le mot de la fin. Sur téléphone, une barre
 « Appeler · Rendez-vous » apparaît après l'accueil.
 
 ## Le dessin
@@ -38,7 +39,13 @@ papier et scotchées, croquis à main levée (soleil, avion en papier, étoiles,
 cœur, nuage), étiquettes écrites à la main, mots surlignés au feutre, boutons
 « en relief » comme des jouets. Le projet éducatif est une feuille de cahier,
 les services des notes autocollantes, la vie scolaire un mur de polaroïds
-(cliquer ouvre la photo en grand).
+(cliquer ouvre la photo en grand). Des **guirlandes de fanions** (comme pour une fête
+d'école) ouvrent l'accueil, la vie scolaire et le mot de la fin ; des fleurs,
+cœurs, étoiles et un crayon dessinés décorent les services, l'inscription et les
+questions ; des confettis parsèment la carte verte de la fin. Dans « Nous
+contacter », la photo du bâtiment est scotchée, légendée à la main (« Notre
+école, à Nouakchott ») et une note manuscrite pointe la porte : « Notre porte
+vous est ouverte ! ».
 
 **Aucune bibliothèque JavaScript.** Les animations sont légères et ne touchent
 que `transform` et `opacity` : apparitions au défilement, traits qui se
@@ -117,7 +124,10 @@ cantine, piscine, transport, médecin, fournitures, espace parents) sont ceux
 que l'école a configurés dans la plateforme. **Aucun chiffre, aucun témoignage,
 aucune date de fondation n'a été inventé.** Le verset est Tâ-Hâ 20 : 114.
 
-Le nom arabe officiel : **مؤسسة جنان للتعليم** (donné par l'école). À relire
+Le nom arabe officiel : **مؤسسة جنان للتعليم** (donné par l'école). L'enseigne
+sur la façade porte **مؤسسة الجنان للتعليم الخاص** (« Heavenly Private Educational
+Institution ») : à faire trancher par l'école — le site garde pour l'instant le
+nom qu'elle a donné. Le numéro WhatsApp `48 66 64 46` vient de cette enseigne. À relire
 par l'école avant publication : les intitulés des classes (« 1re → 4e AS »…).
 
 ## Sobriété et accessibilité
