@@ -430,3 +430,18 @@ même écran chez lui, et l'écran dit laquelle est laquelle.
 - **Pourcentages proposés** — les boutons 5 % … 50 % des fenêtres de réduction :
   ils remplissent le montant (`partPourcentage` / `resteApresPourcentage`,
   `@elourwa/shared/pourcentages`), arrondi à l'ouguiya entier. ADR-0082.
+
+## Ajouts du 11/10 — le site public d'EduPlateforme
+
+- **EduPlateforme (l'atelier)** — l'entreprise : quelques ingénieurs, à
+  Nouakchott, qui conçoivent des sites web et ouvrent l'accès à leurs produits.
+  Ce n'est pas le nom d'une application. `deploy/eduplateforme/site/`, ADR-0084.
+- **Nos produits** — ce à quoi l'atelier donne accès : la plateforme de gestion
+  scolaire (cette base de code), l'application des familles, le site
+  d'établissement.
+- **Demander un accès** — l'unique appel à l'action du site : le contact, objet
+  « Accès à nos produits » (`contact/?sujet=acces`). « Parler de votre site » :
+  `?sujet=site`.
+- **Le cèdre** — le logo d'EduPlateforme, généré par `src/logo.py` ; ses tracés
+  (`bois`, `plateaux`, `feuilles`) sont dans `src/marque.json` et repris par
+  toutes les pages. ADR-0084 §4.

@@ -4111,3 +4111,60 @@ si oui, de ne pas la dupliquer.
 après accord du propriétaire. Le catalogue des 167 capacités, quand il arrive,
 remplace les listes de `pages.plateforme.domaines` sans toucher au gabarit.
 
+## ADR-0084 — EduPlateforme se présente comme un atelier : accès sur demande, trois langues, un cèdre
+
+**Date** : 2026-10-11. **Statut** : accepté (livré, non publié). **Remplace** les
+décisions 3 (deux langues) et 5 (le logo à l'arc et à l'escalier) de l'ADR-0083 ;
+les autres tiennent (pas de console sur le site, rien de stocké, rien
+d'inventé, CSP stricte).
+
+**Contexte.** Le propriétaire a rejeté le site livré le matin même (« ai slop »,
+« nothing to do with our identity ») : EduPlateforme **n'est pas une
+application**, c'est un service basé en Mauritanie, tenu par **quelques
+ingénieurs**, qui **conçoit des sites web** et **donne accès à ses produits
+exclusifs**. Il demande de mettre en avant la réussite — **près de 3 000
+élèves** gérés aujourd'hui —, un sélecteur **anglais / français / arabe**, un
+logo fondé sur un **cèdre du Liban**, « d'une couleur séduisante », aux
+**feuilles qui tombent**, et un site très orienté vente, convaincant, à l'aura
+**VIP et exclusive**.
+
+**Décisions.**
+
+1. **Le positionnement : un cercle fermé.** Deux métiers (sites web sur mesure ;
+   produits exclusifs), un seul appel à l'action, « Demander un accès », qui
+   mène au contact avec l'objet déjà choisi (`?sujet=acces` ou `?sujet=site`).
+   Les pages « la plateforme » et « l'initiative » disparaissent au profit
+   d'une page **Nos produits** (la plateforme de gestion scolaire, l'application
+   des familles, le site d'établissement) ; leurs anciennes adresses ne
+   répondent plus (le site n'a jamais été publié, aucun lien n'est cassé).
+2. **Seuls des faits.** « Près de 3 000 élèves » (donné par le propriétaire) ;
+   « 0 écart sur 88 contrôles » (`pnpm reconcile`, 88 mesures, `docs/FEATURES.md`) ;
+   « 3 langues » ; « 100 % conçu et développé en Mauritanie ». Aucun témoignage,
+   aucun logo ni nom de client — rien n'a été fourni.
+3. **Trois langues, mêmes clés.** Français à la racine, anglais sous `/en/`,
+   arabe sous `/ar/` ; le script refuse un écart de clés entre les trois. Le
+   sélecteur FR · EN · عربي mène à la même page dans l'autre langue ; Caddy
+   sert la page 404 de la langue de l'adresse.
+4. **Le cèdre.** Dessiné par `src/logo.py` (géométrie calculée, six fichiers) :
+   tronc évasé, trois paires de branches, cinq plateaux de feuillage, trois
+   feuilles qui tombent. Or champagne `#C9A25B` sur nuit `#0C1512`, feuilles
+   cuivre `#D88A57` ; émeraude `#0F3D2F` sur ivoire. Les pages reprennent les
+   tracés de `src/marque.json` : un seul dessin partout. Le bois et le
+   feuillage sont deux tracés (règle « nonzero » : réunis, ils se percent).
+5. **La direction** (`DIRECTION.md`) : Bodoni Moda (Didone) et Jost ; Amiri et
+   Tajawal en arabe ; nuit, émeraude, ivoire, filets d'or ; feuilles qui tombent
+   en CSS seul, arrêtées hors écran et absentes avec `prefers-reduced-motion`.
+6. **Polices préparées par `polices.py`** : Amiri réduite aux lettres que le
+   site écrit (41 Ko par graisse au lieu de 100 ; l'accueil arabe passe de 94 à
+   98 en performance) ; le trait d'union et les tirets de Bodoni Moda pris à la
+   taille optique 6 (à la taille 96, un filet invisible).
+7. **Canonique et `hreflang` seulement avec un domaine** (`site_url`) : des
+   adresses relatives seraient fausses. Le menu du téléphone est replié par la
+   feuille de style dès le premier affichage (une petite feuille dans
+   `<noscript>` le remet à plat sans JavaScript) : plus de décalage de page
+   (CLS 0,17 → 0,003 sur les pages intérieures).
+
+**Conséquences.** Le site reste non publié jusqu'à l'accord du propriétaire. À
+fournir : le domaine, l'adresse de la console, les informations légales et les
+hébergeurs ; à faire relire : les pages légales, l'anglais, l'arabe. Changer le
+nombre d'élèves = trois fichiers de textes (voir le `README.md` du site).

@@ -8,7 +8,46 @@ every session, even short or unproductive ones.
 
 
 
+## LE SITE D'EDUPLATEFORME, REFONDU — 2026-10-11 (soir)
+
+**Demande du propriétaire** (le site du matin rejeté : « ai slop », « nothing to
+do with our identity ») : EduPlateforme n'est pas une application mais un
+**service** basé en Mauritanie, tenu par **quelques ingénieurs**, qui **conçoit
+des sites web** et **donne accès à ses produits exclusifs** ; mettre en avant
+**près de 3 000 élèves** gérés aujourd'hui ; sélecteur **anglais, français,
+arabe** ; un logo de **cèdre du Liban**, couleur séduisante, **feuilles qui
+tombent** ; un site très orienté vente, convaincant, **VIP et exclusif**.
+Détail : **ADR-0084** (remplace les décisions 3 et 5 de l'ADR-0083).
+
+- **Fait** : `deploy/eduplateforme/site/` refondu. 18 pages : accueil, nos
+  produits, contact, mentions légales, confidentialité, 404 — en français
+  (racine), anglais (`/en/`), arabe (`/ar/`, droite à gauche). « Demander un
+  accès » partout (`contact/?sujet=acces`). Chiffres : près de 3 000 élèves,
+  0 écart sur 88 contrôles, 3 langues, 100 % Mauritanie — rien d'autre, rien
+  d'inventé (ni témoignage, ni client). Les pages « la plateforme » et
+  « l'initiative » n'existent plus.
+- **Logo** : un cèdre du Liban (`src/logo.py`, six SVG, tracés dans
+  `src/marque.json`), or champagne sur nuit, feuilles cuivre ; émeraude sur
+  ivoire. Sur l'accueil, le grand cèdre perd ses feuilles en CSS seul.
+- **Direction** (`DIRECTION.md`) : Bodoni Moda + Jost, Amiri + Tajawal ; nuit
+  `#0C1512`, émeraude `#0F3D2F`, or `#C9A25B`, cuivre `#D88A57`, ivoire `#F5EFE4`.
+- **Vérifié** : Lighthouse 12 mobile, sept pages (fr, en, ar) : performance
+  98–100, accessibilité 100, bonnes pratiques 100, SEO 100 ; CLS ≤ 0,005.
+  Accueil : 14 Ko hors polices. 35 essais d'interaction (chaque page × langue
+  sans erreur ni débordement à 360 px, 27 liens internes, bascule de langue,
+  compteur, `?sujet=`, message WhatsApp composé, menu du téléphone, mouvement
+  réduit, 404 par langue, copie hors serveur) ; sans JavaScript ; 320 à 430 px ;
+  bloc Caddy dans `caddy:2-alpine` (404 dans la langue de l'adresse, aucune
+  violation de CSP, sources refusées).
+- **En attente du propriétaire** : le domaine (`site_url`), l'adresse de la
+  console (`console_url`), forme juridique et immatriculation, hébergeurs,
+  durée des journaux ; relecture juridique, relecture de l'anglais et de
+  l'arabe ; validation du cèdre. **Rien n'est publié.**
+
 ## LE SITE PUBLIC D'EDUPLATEFORME — 2026-10-11
+
+> **Remplacé par la section ci-dessus** (refonte du soir, ADR-0084). Gardé pour
+> l'historique ; la console et ses écarts restent valables.
 
 **Demande du propriétaire** : un prompt « site web » (site public d'EduPlateforme
 en français et en arabe, cinq pages, et une console d'administration protégée),
