@@ -23,6 +23,17 @@ export class AttendanceController {
     return this.pedagogy.creneauxDuJour(uuid.parse(groupId), isoDate.parse(date), uuid.parse(academicYearId));
   }
 
+  /**
+   * Les appels du jour : toutes les classes de l'année, leurs cours du jour
+   * lus dans l'emploi du temps, et pour chacun si l'appel est fait. Les mêmes
+   * permissions que les créneaux — celles du collecteur d'absence.
+   */
+  @Get('jour')
+  @RequirePermission('absences.saisir', 'absences.consulter')
+  jour(@Query('date') date: string, @Query('academicYearId') academicYearId: string) {
+    return this.pedagogy.appelsDuJour(isoDate.parse(date), uuid.parse(academicYearId));
+  }
+
   /** La feuille d'appel : les inscrits du groupe et le statut déjà saisi. */
   @Get('appel')
   @RequirePermission('absences.saisir', 'absences.consulter')

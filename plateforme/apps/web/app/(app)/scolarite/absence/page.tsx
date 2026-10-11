@@ -1,5 +1,5 @@
 import { apiFetch, requireSession, can } from '@/lib/session';
-import { anneeAffichee } from '@/lib/annee';
+import { anneeAffichee, anneeConsultee } from '@/lib/annee';
 import { nomProfesseurAffichable } from '@/lib/professeur';
 import { PageHeader } from '@/components/page-header';
 import { HubNav } from '@/components/hub';
@@ -8,6 +8,7 @@ import { MessagePage } from '@/components/message-page';
 import { SCOLARITE_TABS } from '../tabs';
 import { Appel, type Etudiant } from './appel';
 import { DateAutoSubmit } from './date-auto-submit';
+import { TableauDuJour, type AppelsDuJour, type ClasseDuJour } from './tableau-du-jour';
 
 export const dynamic = 'force-dynamic';
 
@@ -41,6 +42,14 @@ interface Creneau {
  * l'année, sinon « Aucun cours ce jour-là » en rouge et une liste inerte
  * « Pas d'emploi du temps ». Puis la feuille d'appel, ou l'une de ses deux
  * phrases. Les élèves sont ceux INSCRITS dans le groupe l'année consultée.
+ *
+ * ⚠ TANT QU'AUCUN GROUPE N'EST CHOISI : LES APPELS DU JOUR (demande du
+ * propriétaire, 07/10/2026 — « roll call is per lesson; it should fetch the
+ * emploi du temps and call each class »). À la place de sa phrase
+ * « Sélectionnez un niveau puis un groupe… », toutes les classes de l'année,
+ * leurs cours du jour lus dans l'emploi du temps, et pour chacun si l'appel
+ * est fait ; chaque ligne ouvre la feuille ci-dessus, inchangée, sur la
+ * classe, la date et le cours. Le niveau choisi restreint le tableau.
  */
 export default async function AttendancePage({
   searchParams,
@@ -108,9 +117,34 @@ export default async function AttendancePage({
 
   const [y, m, d] = dateAbs.split('-');
 
+  // ── Les appels du jour, tant qu'aucun groupe n'est choisi ─────────────────
+  // `null` : le tableau n'a pas pu être lu — la page le dit, elle ne le tait pas.
+  const tableau = groupeId
+    ? null
+    : await apiFetch<AppelsDuJour>(`/attendance/jour?date=${dateAbs}&academicYearId=${year.id}`).catch(() => null);
+  // L'année du sélecteur d'en-tête vit dans l'adresse (`?annee_id=`) : les
+  // liens du tableau et le formulaire la gardent, sinon changer de date ou
+  // ouvrir une feuille ramenait sans le dire à l'année par défaut.
+  const anneeChoisie = (await anneeConsultee()) === year.id ? year.id : '';
+  const adresse = (champs: Record<string, string>) => {
+    const p = new URLSearchParams();
+    for (const [cle, valeur] of Object.entries(champs)) if (valeur !== '') p.set(cle, valeur);
+    if (anneeChoisie) p.set('annee_id', anneeChoisie);
+    return `/scolarite/absence?${p.toString()}`;
+  };
+  const lienFeuille = (c: ClasseDuJour, ens: string) =>
+    adresse({ niveau_id: c.niveau_id ?? '', groupe_id: c.groupe_id, date: dateAbs, enseignement_id: ens });
+  const lienJour = (date: string) => adresse({ niveau_id: niveauId, date });
+
   return coquille(
     <>
+      {groupeId && (
+        <p style={{ margin: '0 0 1rem' }}>
+          <a href={adresse({ date: dateAbs })}>← Appels du jour (toutes les classes)</a>
+        </p>
+      )}
       <form method="GET" className="form-card" style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+        {anneeChoisie && <input type="hidden" name="annee_id" value={anneeChoisie} />}
         <div className="form-group">
           <label>Niveau</label>
           <AutoSubmitSelect
@@ -176,8 +210,24 @@ export default async function AttendancePage({
         />
       ) : groupeId ? (
         <div className="alert alert-info">Aucun étudiant dans ce groupe.</div>
+      ) : tableau ? (
+        <TableauDuJour
+          tableau={tableau}
+          niveauId={niveauId}
+          niveauNom={niveaux.find((n) => n.id === niveauId)?.name ?? ''}
+          peutSaisir={mayTake && year.status !== 'closed'}
+          cloturee={year.status === 'closed'}
+          aujourdhui={aujourdhui}
+          lienFeuille={lienFeuille}
+          lienJour={lienJour}
+        />
       ) : (
-        <div className="alert alert-info">Sélectionnez un niveau puis un groupe pour faire l&apos;appel.</div>
+        <>
+          <div className="alert alert-error">
+            Le tableau des appels du jour n&apos;a pas pu être chargé. Rechargez la page ; l&apos;appel classe par classe reste possible.
+          </div>
+          <div className="alert alert-info">Sélectionnez un niveau puis un groupe pour faire l&apos;appel.</div>
+        </>
       )}
     </>,
   );
