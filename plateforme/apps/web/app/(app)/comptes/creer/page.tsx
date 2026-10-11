@@ -32,7 +32,7 @@ export default async function CreerUtilisateurPage() {
       <MessagePage>
         <div className="form-card">
           <h3>Nouvel utilisateur</h3>
-          <FormulaireCreerUtilisateur />
+          <FormulaireCreerUtilisateur peutCreerSuper={user.roles.includes('super_admin')} />
         </div>
       </MessagePage>
     </>

@@ -7,6 +7,15 @@ import { estDateIso } from '../common/dates.js';
 const uuid = z.string().uuid();
 const money = z.string().regex(/^\d+(\.\d{1,2})?$/, 'Amount must be a decimal string');
 
+/** Qui agit, pour les règles qui dépendent de la sorte du compte visé (`exigerDroitSur`). */
+const acteur = (request: AuthenticatedRequest) => ({
+  roles: request.auth!.roles ?? [],
+  permissions: request.auth!.permissions ?? [],
+});
+
+/** `?limit=` : un entier positif, ou rien — « abc » ne devient pas NaN. */
+const limite = (brut?: string) => (brut !== undefined && /^\d{1,4}$/.test(brut) ? Number(brut) : undefined);
+
 /**
  * Staff, teacher and parent accounts.
  *
@@ -91,7 +100,9 @@ export class AccountsController {
         firstName: z.string().trim().min(1).max(80),
         lastName: z.string().trim().min(1).max(80),
         sex: z.enum(['M', 'F']).optional(),
-        phone: z.string().trim().min(6).max(40).optional(),
+        // Pas de longueur minimale ici : c'est le service qui refuse, avec la
+        // phrase du numéro mauritanien — zod répondait « String must contain… ».
+        phone: z.string().trim().max(40).optional(),
         email: z.string().trim().email().max(120).optional(),
         username: z.string().trim().max(100).optional(),
         password: z.string().max(200).optional(),
@@ -151,7 +162,7 @@ export class AccountsController {
         email: z.string().max(160).optional(),
       })
       .parse(raw ?? {});
-    await this.accounts.setIdentifier(uuid.parse(id), body, request.auth!.userId);
+    await this.accounts.setIdentifier(uuid.parse(id), body, request.auth!.userId, {}, acteur(request));
     return { updated: true };
   }
 
@@ -171,7 +182,7 @@ export class AccountsController {
   @RequirePermission('scolarite.inscrire', 'scolarite.reinscrire', 'comptes.parents')
   async identifiantCorrespondant(@Param('id') id: string, @Body() raw: unknown, @Req() request: AuthenticatedRequest) {
     const body = z.object({ phone: z.string().max(40).optional(), email: z.string().max(160).optional() }).parse(raw ?? {});
-    await this.accounts.setIdentifier(uuid.parse(id), body, request.auth!.userId, { correspondantSeulement: true });
+    await this.accounts.setIdentifier(uuid.parse(id), body, request.auth!.userId, { correspondantSeulement: true }, acteur(request));
     return { updated: true };
   }
 
@@ -189,7 +200,7 @@ export class AccountsController {
   @Post('guardians/:id/phones')
   @RequirePermission('scolarite.inscrire', 'scolarite.reinscrire', 'comptes.parents')
   async ajouterTelephone(@Param('id') id: string, @Body() raw: unknown, @Req() request: AuthenticatedRequest) {
-    const body = z.object({ phone: z.string().trim().min(6).max(40), label: z.string().max(40).optional() }).parse(raw ?? {});
+    const body = z.object({ phone: z.string().trim().max(40), label: z.string().max(40).optional() }).parse(raw ?? {});
     await this.accounts.ajouterTelephone(uuid.parse(id), body, request.auth!.userId);
     return { added: true };
   }
@@ -225,6 +236,7 @@ export class AccountsController {
       uuid.parse(id),
       { prenom: body.prenom, nom: body.nom, telephone: body.telephone || null, fonction: body.fonction ?? '' },
       request.auth!.userId,
+      acteur(request),
     );
   }
 
@@ -233,14 +245,14 @@ export class AccountsController {
   @RequirePermission('comptes.staff')
   setUsername(@Param('id') id: string, @Body() raw: unknown, @Req() request: AuthenticatedRequest) {
     const body = z.object({ identifiant: z.string().max(200) }).parse(raw ?? {});
-    return this.accounts.setUsername(uuid.parse(id), body.identifiant, request.auth!.userId);
+    return this.accounts.setUsername(uuid.parse(id), body.identifiant, request.auth!.userId, acteur(request));
   }
 
   @Post('users/:id/active')
   @RequirePermission('comptes.staff', 'comptes.professeurs', 'comptes.parents')
   setActive(@Param('id') id: string, @Body() raw: unknown, @Req() request: AuthenticatedRequest) {
     const body = z.object({ active: z.boolean() }).parse(raw ?? {});
-    return this.accounts.setActive(uuid.parse(id), body.active, request.auth!.userId);
+    return this.accounts.setActive(uuid.parse(id), body.active, request.auth!.userId, acteur(request));
   }
 
   @Post('users/:id/roles')
@@ -249,7 +261,7 @@ export class AccountsController {
     const body = z
       .object({ roles: z.array(z.string().trim().min(2).max(40)).min(1).max(6) })
       .parse(raw ?? {});
-    return this.accounts.setRoles(uuid.parse(id), body.roles, request.auth!.userId);
+    return this.accounts.setRoles(uuid.parse(id), body.roles, request.auth!.userId, acteur(request));
   }
 
   /** Le « Supprimer » de `ajouter_staff.php`. */

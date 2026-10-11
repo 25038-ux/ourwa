@@ -2844,6 +2844,9 @@ export async function addStaffAction(_prev: unknown, form: FormData) {
     return { error: 'Le nom, le prénom et la fonction sont obligatoires.' };
   }
   const sexe = String(form.get('sexe') ?? '');
+  // Le salaire est de l'argent (règle 6) : une chaîne décimale, jamais `Number()`.
+  const salaire = montantDecimal(String(form.get('salaire') ?? '').trim() || '0');
+  if (!salaire) return { error: 'Salaire invalide : un montant positif, deux décimales au plus.' };
   try {
     await apiFetch('/accounts/staff', {
       method: 'POST',
@@ -2853,7 +2856,7 @@ export async function addStaffAction(_prev: unknown, form: FormData) {
         jobTitle: fonction,
         sex: sexe === 'M' || sexe === 'F' ? sexe : undefined,
         phone: String(form.get('telephone') ?? '').trim() || undefined,
-        salary: Number(String(form.get('salaire') ?? '0') || '0').toFixed(2),
+        salary: salaire.toFixed(2),
         // Son `$_POST['date_embauche'] ?? date('Y-m-d')`.
         hiredOn: String(form.get('date_embauche') ?? '') || new Date().toISOString().slice(0, 10),
         // Les mois où ce membre est payé (décision du propriétaire, 2026-09-17) ;
@@ -3646,7 +3649,11 @@ export async function parentTelephoneAction(_prev: unknown, form: FormData) {
     revalidatePath('/comptes/parents');
     return { ok: 'Identifiant (téléphone) mis à jour.' };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 409) {
+    // ⚠ UN 409 N'EST PAS TOUJOURS « DÉJÀ UTILISÉ ». L'API répond aussi 409 quand
+    // le compte est agent d'une autre école ou administrateur de la plateforme ;
+    // sa phrase était remplacée par celle du numéro pris, qui envoyait chercher
+    // un doublon qui n'existe pas.
+    if (error instanceof ApiError && error.status === 409 && /déjà utilisé/.test(error.message)) {
       return { error: 'Ce numéro est déjà utilisé par un autre parent.' };
     }
     return { error: error instanceof ApiError ? error.message : 'Numéro de téléphone invalide.' };
@@ -3765,6 +3772,24 @@ export async function creerUtilisateurAction(_prev: unknown, form: FormData) {
     ? form.getAll('roles_sup[]').map(String).filter((r) => ['comptable', 'secretaire', 'collecteur_absence'].includes(r) && r !== role)
     : [];
 
+  // ⚠ LE SALAIRE EST DE L'ARGENT (règle 6) : lu comme une chaîne décimale,
+  // jamais par `Number()`. Vide vaut 0 (son `nettoyer_decimal(…) ?? 0.0`) ; une
+  // saisie illisible ou négative est refusée ici, en français — elle partait
+  // en « NaN » et revenait « salary: Amount must be a decimal string ».
+  let remuneration: { salary: string } | { hourlyRate: string } | null = null;
+  if (role === 'professeur') {
+    const champ = situation === 'permanent' ? 'salaire' : 'prix_par_heure';
+    const lu = montantDecimal(String(form.get(champ) ?? '').trim() || '0');
+    if (!lu) {
+      return {
+        error: situation === 'permanent'
+          ? 'Salaire mensuel invalide : un montant positif, deux décimales au plus.'
+          : 'Tarif horaire invalide : un montant positif, deux décimales au plus.',
+      };
+    }
+    remuneration = situation === 'permanent' ? { salary: lu.toFixed(2) } : { hourlyRate: lu.toFixed(2) };
+  }
+
   try {
     const result = await apiFetch<{ attached?: boolean }>('/accounts', {
       method: 'POST',
@@ -3778,14 +3803,7 @@ export async function creerUtilisateurAction(_prev: unknown, form: FormData) {
         phone: telephone || undefined,
         extraRoles: rolesSup.length > 0 ? rolesSup : undefined,
         jobTitle: fonction,
-        ...(role === 'professeur'
-          ? {
-              employment: situation,
-              ...(situation === 'permanent'
-                ? { salary: Number(String(form.get('salaire') ?? '0') || '0').toFixed(2) }
-                : { hourlyRate: Number(String(form.get('prix_par_heure') ?? '0') || '0').toFixed(2) }),
-            }
-          : {}),
+        ...(remuneration ? { employment: situation, ...remuneration } : {}),
       },
     });
     revalidatePath('/comptes');

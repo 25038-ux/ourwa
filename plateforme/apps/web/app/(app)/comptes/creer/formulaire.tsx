@@ -12,7 +12,7 @@ import { useActionMessage } from '@/components/message-page';
  * Nom / Prénom, Téléphone, Sexe, Fonction (administrateur restreint).
  * `novalidate` : ce sont ses refus qui répondent, en tête de page.
  */
-export function FormulaireCreerUtilisateur() {
+export function FormulaireCreerUtilisateur({ peutCreerSuper }: { peutCreerSuper: boolean }) {
   const [state, action, pending] = useActionMessage(creerUtilisateurAction);
 
   const [role, setRole] = useState('');
@@ -116,7 +116,9 @@ export function FormulaireCreerUtilisateur() {
         <label htmlFor="palier_admin">Niveau d&apos;accès de l&apos;administrateur *</label>
         <select id="palier_admin" name="palier_admin" value={palier} onChange={(e) => setPalier(e.target.value as 'restreint' | 'complet')} disabled={!isAdmin}>
           <option value="restreint">Administrateur — accès complet SAUF la finance</option>
-          <option value="complet">Super Administrateur — accès TOTAL (finance incluse)</option>
+          {/* L'API réserve ce palier à un super administrateur : ne pas offrir
+              à un administrateur un choix qui ne peut que lui être refusé. */}
+          {peutCreerSuper && <option value="complet">Super Administrateur — accès TOTAL (finance incluse)</option>}
         </select>
         <small style={{ color: 'var(--text-muted)', display: 'block', marginTop: '.35rem' }}>
           « Super Administrateur » voit tout, y compris la Gestion de Caisse et les Dépenses.

@@ -44,6 +44,22 @@ export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number];
  */
 const STACKABLE = ['comptable', 'secretaire', 'collecteur_absence'] as const;
 
+/** Qui agit : ses rôles et permissions DANS CETTE ÉCOLE (`request.auth`). */
+export interface Acteur {
+  roles: string[];
+  permissions: string[];
+}
+
+/**
+ * Son `nettoyer_telephone()` : ne reste que ce qui fait un numéro — chiffres,
+ * espaces, `+ - ( )`. Le champ « Téléphone » de « Modifier » est une
+ * coordonnée de la fiche, pas un identifiant : il n'est pas réduit à huit
+ * chiffres, mais « abc » n'en est pas une.
+ */
+export function nettoyerTelephone(brut: string | null | undefined): string | null {
+  return (brut ?? '').replace(/[^\d\s+\-()]/g, '').trim() || null;
+}
+
 export interface NewAccount {
   role: AssignableRole;
   firstName: string;
@@ -306,7 +322,7 @@ export class AccountsService {
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
           [
             schoolId, userId, input.firstName.trim(), input.lastName.trim(),
-            input.sex ?? null, input.phone ?? null, employment,
+            input.sex ?? null, telephone, employment,
             employment === 'permanent' ? (input.salary ?? '0') : '0',
             employment === 'interim' ? (input.hourlyRate ?? '0') : '0',
           ],
@@ -320,7 +336,8 @@ export class AccountsService {
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
           [
             schoolId, userId, input.firstName.trim(), input.lastName.trim(),
-            input.sex ?? null, input.phone ?? null,
+            // Le même numéro que sur le compte (huit chiffres), pas la saisie brute.
+            input.sex ?? null, telephone,
             input.jobTitle?.trim() || this.titleFor(input.role),
             input.salary ?? '0', input.hiredOn ?? null,
           ],
@@ -539,7 +556,10 @@ export class AccountsService {
   }
 
   async listParents(input: { q?: string; cursor?: string; limit?: number } = {}) {
-    const limit = Math.min(input.limit ?? 50, 200);
+    // ⚠ `?limit=abc` arrivait ici en NaN (et `-3` tel quel) : `LIMIT NaN` est
+    // une erreur SQL, donc un 500. Une limite illisible vaut la limite par défaut.
+    const voulu = Number.isInteger(input.limit) && input.limit! >= 1 ? input.limit! : 50;
+    const limit = Math.min(voulu, 200);
     const q = (input.q ?? '').trim();
     const cut = input.cursor ? input.cursor.lastIndexOf('~') : -1;
     const afterName = cut >= 0 ? input.cursor!.slice(0, cut) : null;
@@ -684,6 +704,7 @@ export class AccountsService {
     input: { phone?: string; email?: string },
     actorId: string,
     opts: { correspondantSeulement?: boolean } = {},
+    acteur?: Acteur,
   ): Promise<void> {
     const { schoolId } = currentTenant();
     if (opts.correspondantSeulement) {
@@ -701,6 +722,10 @@ export class AccountsService {
 
     const belongs = await this.appartientIci(userId);
     if (!belongs) throw new NotFoundException('Compte introuvable dans cette école.');
+    // Depuis le dossier de la famille, la permission est celle de l'admission
+    // (le compte est un correspondant) : seule la règle du super administrateur
+    // s'y ajoute. Depuis « Comptes », la permission est celle de la sorte du compte.
+    await this.exigerDroitSur(userId, acteur, opts.correspondantSeulement === true);
     // Un compte aussi agent d'une autre branche ou administrateur de la plateforme
     // n'est pas « d'ici » : changer son identifiant global révoquerait ses sessions là-bas.
     if (!opts.correspondantSeulement) await this.exigerCompteDIci(userId, 'la modification de son identifiant');
@@ -1035,6 +1060,60 @@ export class AccountsService {
     return fiche || (await this.porteeCompte(userId)).ici;
   }
 
+  /**
+   * ⚠ UNE PERMISSION `comptes.*` NE VAUT QUE POUR SES COMPTES.
+   *
+   * Les routes « activer », « identifiant » s'ouvrent à qui détient L'UNE des
+   * trois permissions — elles servent trois écrans. Mais rien ne vérifiait
+   * ensuite que le compte visé était de la bonne sorte : la secrétaire
+   * (`comptes.parents`) désactivait un professeur et changeait l'e-mail du
+   * comptable, et un administrateur désactivait le super administrateur.
+   *
+   * Deux règles, dans cet ordre :
+   *  1. son `staff_gerable()` — « un secrétaire ne doit pas pouvoir se hisser
+   *     au-dessus de sa hiérarchie » : le compte d'un super administrateur ne
+   *     se modifie que par un super administrateur ;
+   *  2. la permission est celle de la SORTE du compte : personnel
+   *     (`comptes.staff`), sinon professeur (`comptes.professeurs`), sinon
+   *     parent (`comptes.parents`). Un compte qui est plusieurs choses demande
+   *     la plus forte.
+   *
+   * `acteur` absent : un appel interne (aucune route n'en fait).
+   */
+  private async exigerDroitSur(userId: string, acteur: Acteur | undefined, superSeulement = false): Promise<void> {
+    if (!acteur) return;
+    const { schoolId } = currentTenant();
+    const sorte = await this.db.query(async (tx) => {
+      const { rows } = await tx.query<{ est_super: boolean; personnel: boolean; professeur: boolean }>(
+        `SELECT EXISTS (SELECT 1 FROM user_school_roles x JOIN roles r ON r.id = x.role_id
+                         WHERE x.user_id = $1 AND x.school_id = $2 AND r.code = 'super_admin') AS est_super,
+                (EXISTS (SELECT 1 FROM staff WHERE user_id = $1)
+                 OR EXISTS (SELECT 1 FROM user_school_roles x JOIN roles r ON r.id = x.role_id
+                             WHERE x.user_id = $1 AND x.school_id = $2
+                               AND r.code NOT IN ('professeur', 'parent'))) AS personnel,
+                (EXISTS (SELECT 1 FROM teachers WHERE user_id = $1)
+                 OR EXISTS (SELECT 1 FROM user_school_roles x JOIN roles r ON r.id = x.role_id
+                             WHERE x.user_id = $1 AND x.school_id = $2 AND r.code = 'professeur')) AS professeur`,
+        [userId, schoolId],
+      );
+      return rows[0]!;
+    });
+    if (sorte.est_super && !acteur.roles.includes('super_admin')) {
+      throw new ForbiddenException(
+        'Ce compte est celui d’un super administrateur : seul un super administrateur peut le modifier.',
+      );
+    }
+    if (superSeulement) return;
+    const [requise, quoi] = sorte.personnel
+      ? ['comptes.staff', 'd’un membre du personnel']
+      : sorte.professeur
+        ? ['comptes.professeurs', 'd’un professeur']
+        : ['comptes.parents', 'd’un parent'];
+    if (!acteur.permissions.includes(requise!)) {
+      throw new ForbiddenException(`Ce compte est celui ${quoi} : sa gestion demande la permission ${requise}.`);
+    }
+  }
+
   private async exigerCompteDIci(userId: string, action: string) {
     const portee = await this.porteeCompte(userId);
     if (portee.plateforme || portee.ailleurs) {
@@ -1078,12 +1157,17 @@ export class AccountsService {
     userId: string,
     input: { prenom: string; nom: string; telephone: string | null; fonction: string },
     actorId: string,
+    acteur?: Acteur,
   ) {
     const { schoolId } = currentTenant();
     const u = await this.compteGerable(userId);
     if (!u) throw new NotFoundException('Compte introuvable ou non modifiable ici.');
+    // La route demande déjà `comptes.staff`, et un professeur est gérable ici
+    // pour son compte : il ne reste que la règle du super administrateur.
+    await this.exigerDroitSur(userId, acteur, true);
     await this.exigerCompteDIci(userId, 'la modification de son identité');
     const fonction = input.fonction.trim() !== '' ? input.fonction.trim() : 'Personnel administratif';
+    input = { ...input, telephone: nettoyerTelephone(input.telephone) };
 
     await this.db.registry((tx) =>
       tx.query('UPDATE users SET full_name = $2 WHERE id = $1', [userId, `${input.prenom} ${input.nom}`.trim()]),
@@ -1125,10 +1209,11 @@ export class AccountsService {
    * caractères, lettres / chiffres / point / tiret / souligné / arobase, libre
    * (comparaison insensible à la casse).
    */
-  async setUsername(userId: string, brut: string, actorId: string) {
+  async setUsername(userId: string, brut: string, actorId: string, acteur?: Acteur) {
     const { schoolId } = currentTenant();
     const u = await this.compteGerable(userId);
     if (!u) throw new NotFoundException('Compte introuvable.');
+    await this.exigerDroitSur(userId, acteur, true);
     await this.exigerCompteDIci(userId, 'la modification de son identifiant');
     const idf = brut.trim();
     if (idf === '' || idf.length < 3) throw new BadRequestException("L'identifiant doit faire au moins 3 caractères.");
@@ -1191,11 +1276,12 @@ export class AccountsService {
   }
 
   /** Suspend or restore an account without deleting anything. */
-  async setActive(userId: string, active: boolean, actorId: string) {
+  async setActive(userId: string, active: boolean, actorId: string, acteur?: Acteur) {
     const { schoolId } = currentTenant();
 
     const belongs = await this.appartientIci(userId);
     if (!belongs) throw new NotFoundException('Compte introuvable dans cette école.');
+    await this.exigerDroitSur(userId, acteur);
     // `users.active` vaut pour toute la plateforme : on ne suspend d'ici qu'un
     // compte qui n'existe qu'ici.
     await this.exigerCompteDIci(userId, active ? 'sa réactivation' : 'sa désactivation');
@@ -1248,7 +1334,7 @@ export class AccountsService {
   }
 
   /** Change which roles somebody holds at this school. */
-  async setRoles(userId: string, codes: string[], actorId: string) {
+  async setRoles(userId: string, codes: string[], actorId: string, acteur?: Acteur) {
     const { schoolId } = currentTenant();
     if (codes.length === 0) {
       throw new BadRequestException(
@@ -1262,6 +1348,7 @@ export class AccountsService {
     if (inconnu) throw new BadRequestException(`Le rôle « ${inconnu} » ne s’attribue pas depuis cet écran.`);
     const portee = await this.exigerCompteDIci(userId, 'la modification de ses rôles');
     if (!portee.ici) throw new NotFoundException('Compte introuvable dans cette école.');
+    await this.exigerDroitSur(userId, acteur, true);
 
     return this.db.query(async (tx) => {
       /**
