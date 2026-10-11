@@ -13,7 +13,7 @@
   "dependencies": {
     "@elourwa/shared": "workspace:*",
     "chart.js": "^4.5.1",
-    "next": "^15.5.25",
+    "next": "^15.5.27",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
