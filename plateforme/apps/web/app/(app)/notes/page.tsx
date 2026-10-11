@@ -1,4 +1,5 @@
 import { apiFetch, requireSession, can } from '@/lib/session';
+import { peutSaisirLesNotesDeLEcole } from '@/lib/acces-notes';
 import { anneeAffichee } from '@/lib/annee';
 import { PageHeader } from '@/components/page-header';
 import { MessagePage } from '@/components/message-page';
@@ -30,6 +31,20 @@ export default async function NotesPage({
 }) {
   const params = await searchParams;
   const { user } = await requireSession();
+  // Son `require_role(['super_admin', 'admin', 'secretaire'])` en tête de
+  // `saisir_notes.php` (10/10/2026) : la page ne demandait que la session, et un
+  // professeur — qui porte `notes.saisir` pour SES feuilles — y choisissait
+  // n'importe quelle classe. Sa page à lui est `/prof/notes`. Refus AVANT tout appel à l'API.
+  if (!peutSaisirLesNotesDeLEcole(user)) {
+    return (
+      <>
+        <PageHeader titre="Saisir les notes" sousTitre="Niveau → Groupe → Matière" />
+        <div className="form-card">
+          <p className="text-muted">Cette page est réservée à l&apos;administration et au secrétariat.</p>
+        </div>
+      </>
+    );
+  }
   const mayEnter = can(user, 'notes.saisir');
   const trimestre = Math.max(1, Math.min(3, Number(params.trimestre ?? 1) || 1));
 

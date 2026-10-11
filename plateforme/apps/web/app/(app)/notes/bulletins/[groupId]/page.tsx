@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { apiFetch, requireSession, nulSiIntrouvable } from '@/lib/session';
+import { peutVoirLesBulletins } from '@/lib/acces-notes';
 import { anneeAffichee, type Annee } from '@/lib/annee';
 import { PageHeader } from '@/components/page-header';
 import { currentSchool } from '@/lib/tenant';
@@ -43,7 +44,20 @@ export default async function ClassBulletinsPage({
 }) {
   const { groupId } = await params;
   const sp = await searchParams;
-  await requireSession();
+  const { user } = await requireSession();
+  // Son `require_staff_admin()` en tête de `bulletins_classe.php` (10/10/2026) :
+  // la page ne demandait que la session, un professeur l'ouvrait par l'adresse.
+  // Refus AVANT tout appel à l'API — rien de la classe n'est lu.
+  if (!peutVoirLesBulletins(user)) {
+    return (
+      <>
+        <PageHeader titre="Bulletins de la classe" />
+        <div className="form-card">
+          <p className="text-muted">Cette page est réservée à l&apos;administration.</p>
+        </div>
+      </>
+    );
+  }
   if (!groupId) redirect('/scolarite/notes');
   const trimestre = Math.max(1, Math.min(3, Number(sp.trimestre ?? 1) || 1));
 

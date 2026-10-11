@@ -33,7 +33,19 @@ export default async function ProfNotesPage({
   searchParams: Promise<{ enseignement_id?: string; trimestre?: string; succes?: string }>;
 }) {
   const params = await searchParams;
-  await requireSession();
+  const { user } = await requireSession();
+  // Son `require_role('professeur')`, comme les quatre autres pages de cet
+  // espace (10/10/2026 : celle-ci seule ne demandait que la session).
+  if (!user.roles.includes('professeur')) {
+    return (
+      <>
+        <PageHeader titre="Saisir les notes" sousTitre="Vos classes, vos matières — devoirs et examen du trimestre" />
+        <div className="form-card">
+          <p className="text-muted">Cette page est réservée aux professeurs.</p>
+        </div>
+      </>
+    );
+  }
   const annee = await anneeAffichee();
   const trimestre = [1, 2, 3].includes(Number(params.trimestre)) ? Number(params.trimestre) : 1;
 

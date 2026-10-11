@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { apiFetch, requireSession, can } from '@/lib/session';
+import { peutVoirLesBulletins } from '@/lib/acces-notes';
 import { anneeAffichee, type Annee } from '@/lib/annee';
 import { PageHeader } from '@/components/page-header';
 import { HubNav } from '@/components/hub';
@@ -60,6 +61,25 @@ export default async function NotesBulletinsPage({
 }) {
   const sp = await searchParams;
   const { user } = await requireSession();
+  // Son `require_staff_admin()` en tête de `notes_etudiants.php` (10/10/2026) :
+  // la page ne demandait que la session ; un professeur lisait par l'adresse les
+  // résultats et le classement de toutes les classes. Refus AVANT tout appel à l'API.
+  if (!peutVoirLesBulletins(user)) {
+    return (
+      <>
+        <PageHeader titre="Gestion de scolarité" sousTitre="Emploi du temps, absences, groupes, niveaux, exclusions et notes" />
+        {/* Les onglets restent : la secrétaire garde le chemin vers ceux qu'elle ouvre. */}
+        <div className="hub-shell">
+          <HubNav tabs={SCOLARITE_TABS} active="notes" label="Sections Scolarité" />
+          <div className="hub-panel">
+            <div className="form-card">
+              <p className="text-muted">Les notes et les bulletins sont réservés à l&apos;administration.</p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
   const mayConfigure = can(user, 'scolarite.niveaux');
 
   const trimestre = Math.max(1, Math.min(3, Number(sp.trimestre ?? 1) || 1));

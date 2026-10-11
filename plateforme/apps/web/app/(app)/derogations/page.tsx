@@ -92,7 +92,14 @@ export default async function DerogationsPage() {
                 retenues</strong> pour une famille en dette ; les devoirs restent toujours
                 visibles, avec ou sans dérogation.
               </p>
-              <GrantForm families={familles} academicYearId={annee.id} />
+              {/* Seulement les quatre champs que la liste déroulante lit (10/10/2026) :
+                  ce formulaire est un composant client, ses propriétés voyagent dans
+                  la page en plus du balisage — l'état d'accès et les trimestres de
+                  200 familles n'ont rien à y faire. */}
+              <GrantForm
+                families={familles.map((f) => ({ guardian_id: f.guardian_id, full_name: f.full_name, phone: f.phone, solde: f.solde }))}
+                academicYearId={annee.id}
+              />
             </div>
 
             <div className="table-container" style={{ marginBottom: '1.5rem' }}>

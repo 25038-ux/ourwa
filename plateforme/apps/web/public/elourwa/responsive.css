@@ -45,6 +45,69 @@ img, video { height: auto; }
   overscroll-behavior-x: contain;
 }
 
+/* ⚠ LE DÉFILEMENT SACCADÉ, MESURÉ LE 10/10/2026 (« improve the smoothness of
+   scrolling down »). Aucune mise en page, aucun script ne tournait pendant le
+   défilement : tout le coût était de la REPEINTE, et il venait de deux règles.
+
+   1. La boîte `.overflow-x` (75 vh, elle défile dans les deux sens) portait à
+      la fois des fonds `local` (les caches) et des fonds `scroll` (les ombres).
+      Ce mélange interdit au navigateur de faire glisser le contenu : il repeint
+      toute la table à CHAQUE image. « Gérer les professeurs » : 632 repeintes
+      en 12 s sur un portable (12,0 s de peinture), 17 images/s sur un téléphone.
+      Même dessin, réparti sur deux boîtes : les ombres restent sur la boîte,
+      les caches passent sur la TABLE — qui défile avec son contenu, ce que
+      `local` simulait. Mesuré après : 61 repeintes (0,6 s), 52 images/s.
+      Limité à `.overflow-x > table` (nos 74 usages, tous) : `.table-container`
+      et `.table-responsive` ne défilent pas en hauteur, elles gardent la règle
+      d'origine. Sans `:has()`, un navigateur garde aussi la règle d'origine. */
+.overflow-x:has(> table) {
+  background:
+    radial-gradient(farthest-side at 0 50%, rgba(32,30,29,.16), rgba(32,30,29,0)) left center / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(32,30,29,.16), rgba(32,30,29,0)) right center / 12px 100% no-repeat scroll,
+    var(--bg-card, #fffaf1);
+}
+/* `background-image` seul : la couleur de fond de la table, s'il y en a une, reste la sienne. */
+.overflow-x:has(> table) > table {
+  background-image:
+    linear-gradient(to right, var(--bg-card, #fffaf1) 30%, rgba(255,250,241,0)),
+    linear-gradient(to left, var(--bg-card, #fffaf1) 30%, rgba(255,250,241,0));
+  background-position: left center, right center;
+  background-size: 28px 100%;
+  background-repeat: no-repeat;
+}
+/* En cartes (≤ 640, plus bas) la boîte est transparente : la table ne porte pas de cache. */
+@media (max-width: 640px) {
+  .overflow-x:has(> table) > table[data-cartes] { background-image: none; }
+}
+
+/* 2. `body { background-attachment: fixed }` (style.css, la sienne — copiée au
+      caractère près, on ne la modifie pas). Son commentaire dit « fixed évite
+      tout recalcul au défilement » ; à densité 1 — un portable 1366 × 768 —
+      c'est l'inverse : le navigateur repeint et retrame tout l'écran à chaque
+      image (Finance : 815 repeintes et 23 902 tâches de tramage en 20 s ; 71 et
+      2 779 après). Les deux mêmes halos, posés sur un calque FIXE derrière la
+      page : le contenu glisse dessus sans rien redessiner. L'écart avec
+      l'ancien rendu ne dépasse pas 4/255 (le tramage des dégradés).
+      ⚠ AU-DESSUS DE 640 px SEULEMENT. En dessous, les listes sont des cartes
+      posées à même le fond : avec le calque, une fenêtre de BUREAU étroite
+      changeait le lissage de leurs lettres (mesuré à 375 px : ~10 000 pixels
+      de bord de lettre, écart jusqu'à 86/255). Un téléphone, lui, compose déjà
+      le fond fixe sans repeindre (19 à 28 repeintes en 20 s) : il n'a rien à y
+      gagner. `screen` seulement : à l'impression un élément fixe se répéterait
+      sur chaque feuille, et ses règles d'impression remettent déjà le body en
+      blanc. Pas sur les pages de l'espace parent (parent.css), dont le body a
+      ses propres `::before`. */
+@media screen and (min-width: 641px) {
+  body:not(.parent-body):not(.parent-login-body) { background-image: none; background-attachment: scroll; }
+  body:not(.parent-body):not(.parent-login-body)::before {
+    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background-image:
+      radial-gradient(1100px 520px at 12% -12%, rgba(198,113,57,.09), transparent 70%),
+      radial-gradient(900px 480px at 100% 0%,  rgba(122,138,94,.08), transparent 68%);
+    background-repeat: no-repeat;
+  }
+}
+
 /* Grands écrans : le contenu respire, centré, au lieu de s'étirer. */
 @media (min-width: 1600px) {
   .page-content { margin-inline: auto; }

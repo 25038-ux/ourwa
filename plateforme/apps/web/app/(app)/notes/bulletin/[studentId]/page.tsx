@@ -1,4 +1,6 @@
 import { apiFetch, requireSession, nulSiIntrouvable } from '@/lib/session';
+import { peutVoirLesBulletins } from '@/lib/acces-notes';
+import { PageHeader } from '@/components/page-header';
 import { currentSchool } from '@/lib/tenant';
 import { anneeAffichee, type Annee } from '@/lib/annee';
 import { PrintButton } from '@/components/print-button';
@@ -37,7 +39,20 @@ export default async function BulletinPage({
 }) {
   const { studentId } = await params;
   const sp = await searchParams;
-  await requireSession();
+  const { user } = await requireSession();
+  // Son `require_staff_admin()` en tête de `notes_etudiants.php` (10/10/2026) :
+  // la page ne demandait que la session, un professeur ouvrait le bulletin de
+  // n'importe quel élève par l'adresse. Refus AVANT tout appel à l'API.
+  if (!peutVoirLesBulletins(user)) {
+    return (
+      <>
+        <PageHeader titre="Bulletin de notes" />
+        <div className="form-card">
+          <p className="text-muted">Cette page est réservée à l&apos;administration.</p>
+        </div>
+      </>
+    );
+  }
   const trimestre = Math.max(1, Math.min(3, Number(sp.trimestre ?? 1) || 1));
 
   const [school, annees, vue] = await Promise.all([

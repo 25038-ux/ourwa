@@ -141,10 +141,25 @@ export default async function GererProfesseursPage() {
           </div>
         </div>
 
+        {/* ⚠ SEULEMENT LES CHAMPS QUE LA TABLE LIT (10/10/2026). Un composant client
+            reçoit ses propriétés DANS la page, en plus du balisage : `...a` y
+            envoyait toute la réponse de l'API, dont trois identifiants (professeur,
+            groupe, matière) que rien n'affiche — incompressibles, ils faisaient
+            l'essentiel du poids transféré de cette page. Les trois champs de paie
+            restent ABSENTS (et non `null`) pour qui ne peut pas la voir : la table
+            distingue « absent » de « vide ». */}
         <AssignationsExistantes
-          assignations={assignations.map((a) => ({
-            ...a,
+          assignations={assignations.map((a): Assignation => ({
+            id: a.id,
             teacherName: nomProfesseurAffichable('', a.teacherName),
+            employment: a.employment,
+            levelName: a.levelName,
+            groupName: a.groupName,
+            subject: a.subject,
+            hoursPerWeek: a.hoursPerWeek,
+            ...(a.hourlyRate !== undefined ? { hourlyRate: a.hourlyRate } : {}),
+            ...(a.teacherRate !== undefined ? { teacherRate: a.teacherRate } : {}),
+            ...(a.monthlyCost !== undefined ? { monthlyCost: a.monthlyCost } : {}),
           }))}
         />
       </MessagePage>
