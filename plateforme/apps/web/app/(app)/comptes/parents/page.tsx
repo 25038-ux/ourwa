@@ -3,6 +3,7 @@ import { PageHeader } from '@/components/page-header';
 import { MessagePage } from '@/components/message-page';
 import { GererParent } from './gerer';
 import { formatTelephone } from '@/lib/telephone';
+import type { Annee } from '@/lib/annee';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +18,8 @@ interface Parent {
   must_change_password: boolean;
   last_login_at: string | null;
   children: number;
+  /** Enfants inscrits l'année filtrée ; `null` sans filtre d'année. */
+  children_in_year?: number | null;
 }
 
 /** Sa `derniere_connexion` telle quelle : « YYYY-MM-DD HH:MM:SS ». */
@@ -31,11 +34,17 @@ function dateSql(iso: string): string {
  * (nom ou téléphone), la table Parent / Identifiant (téléphone) / Enfants /
  * Statut / Dernière connexion / Actions, et par ligne « Identifiant »,
  * « Reset mdp », « Désactiver » / « Réactiver ». Pages de 50.
+ *
+ * ⚠ DEUX FILTRES QUI NE SONT PAS CHEZ LUI (07/10/2026, demande du propriétaire) :
+ * « Année » — les familles ACTIVES d'une année (un enfant inscrit, inscription non
+ * annulée) — et « Sans numéro seulement ». Sur 1 372 familles reprises, 1 073
+ * n'ont pas de vrai numéro ; il les saisit lui-même, et ne veut voir que celles
+ * de l'année. Sans filtre, la page est celle d'avant.
  */
 export default async function ComptesParentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; cursor?: string }>;
+  searchParams: Promise<{ q?: string; cursor?: string; annee?: string; sans_numero?: string }>;
 }) {
   const { user } = await requireSession();
 
@@ -51,10 +60,21 @@ export default async function ComptesParentsPage({
     );
   }
 
-  const { q, cursor } = await searchParams;
+  const { q, cursor, annee, sans_numero: sansNumeroBrut } = await searchParams;
   const recherche = (q ?? '').trim();
+  const annees = await apiFetch<Annee[]>('/academic-years').catch(() => [] as Annee[]);
+  // Une année qui n'est pas de la liste est ignorée : jamais un identifiant libre vers l'API.
+  const anneeChoisie = annees.find((a) => a.id === annee) ?? null;
+  const sansNumero = sansNumeroBrut === '1';
+  const filtres: Record<string, string> = {
+    ...(recherche ? { q: recherche } : {}),
+    ...(anneeChoisie ? { annee: anneeChoisie.id } : {}),
+    ...(sansNumero ? { sans_numero: '1' } : {}),
+  };
   const query = new URLSearchParams();
   if (recherche) query.set('q', recherche);
+  if (anneeChoisie) query.set('academicYearId', anneeChoisie.id);
+  if (sansNumero) query.set('sansNumero', '1');
   if (cursor) query.set('cursor', cursor);
 
   const data = await apiFetch<{ rows: Parent[]; nextCursor: string | null }>(
@@ -72,8 +92,21 @@ export default async function ComptesParentsPage({
               <label htmlFor="q">Rechercher un parent par identifiant (nom ou téléphone)</label>
               <input type="text" id="q" name="q" defaultValue={recherche} placeholder="Ex : Mohamed, ou 22 12 34 56" autoFocus />
             </div>
+            <div style={{ minWidth: 170 }}>
+              <label htmlFor="annee">Année (familles actives)</label>
+              <select id="annee" name="annee" defaultValue={anneeChoisie?.id ?? ''}>
+                <option value="">Toutes les années</option>
+                {annees.map((a) => (
+                  <option key={a.id} value={a.id}>{a.label}</option>
+                ))}
+              </select>
+            </div>
+            <label htmlFor="sans_numero" style={{ display: 'flex', alignItems: 'center', gap: '.4rem', margin: 0, paddingBottom: '.55rem' }}>
+              <input type="checkbox" id="sans_numero" name="sans_numero" value="1" defaultChecked={sansNumero} style={{ width: 'auto' }} />
+              Sans numéro seulement
+            </label>
             <button className="btn btn-primary" style={{ width: 'auto' }}>Rechercher</button>
-            {recherche !== '' && (
+            {Object.keys(filtres).length > 0 && (
               <a href="/comptes/parents" className="btn btn-secondary">Réinitialiser</a>
             )}
           </form>
@@ -81,7 +114,11 @@ export default async function ComptesParentsPage({
 
         <div className="table-container">
           <div className="table-header">
-            <h3>Comptes parents</h3>
+            <h3>
+              Comptes parents
+              {anneeChoisie && <small className="text-muted" style={{ fontWeight: 400 }}> — actifs en {anneeChoisie.label}</small>}
+              {sansNumero && <small className="text-muted" style={{ fontWeight: 400 }}> — sans numéro</small>}
+            </h3>
             <span className="badge badge-primary">{parents.length}</span>
           </div>
           <div className="overflow-x">
@@ -105,7 +142,13 @@ export default async function ComptesParentsPage({
                         <><br /><small style={{ color: 'var(--secondary)' }}>⚠ Doit changer mdp</small></>
                       )}
                     </td>
-                    <td><span className="badge badge-primary">{p.children}</span></td>
+                    <td>
+                      {/* Avec le filtre d'année : les enfants inscrits cette année-là, puis le total. */}
+                      <span className="badge badge-primary">{anneeChoisie ? (p.children_in_year ?? 0) : p.children}</span>
+                      {anneeChoisie && p.children !== (p.children_in_year ?? 0) && (
+                        <small className="text-muted"> sur {p.children}</small>
+                      )}
+                    </td>
                     <td>
                       {p.active
                         ? <span style={{ color: 'var(--success)' }}>Actif</span>
@@ -138,7 +181,7 @@ export default async function ComptesParentsPage({
           <nav className="pagination" style={{ display: 'flex', gap: '.3rem', justifyContent: 'center', margin: '1.5rem 0', flexWrap: 'wrap' }}>
             <a
               className="btn btn-sm btn-secondary"
-              href={`/comptes/parents?${new URLSearchParams({ ...(recherche ? { q: recherche } : {}), cursor: data.nextCursor })}`}
+              href={`/comptes/parents?${new URLSearchParams({ ...filtres, cursor: data.nextCursor })}`}
             >
               Suivant ›
             </a>

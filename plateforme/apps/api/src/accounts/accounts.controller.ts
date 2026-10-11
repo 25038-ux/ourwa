@@ -58,12 +58,17 @@ export class AccountsController {
     @Query('q') q?: string,
     @Query('cursor') cursor?: string,
     @Query('limit') limit?: string,
+    @Query('academicYearId') academicYearId?: unknown,
+    @Query('sansNumero') sansNumero?: unknown,
   ) {
     return this.accounts.listParents({
       q,
       cursor,
       // « abc » partait en NaN jusqu'à la requête SQL (500) : un entier, ou rien.
       limit: /^\d{1,4}$/.test(limit ?? '') ? Number(limit) : undefined,
+      // Un paramètre répété arrive en tableau : on ne lit qu'une chaîne.
+      academicYearId: typeof academicYearId === 'string' ? academicYearId : undefined,
+      sansNumero: sansNumero === '1' || sansNumero === 'true',
     });
   }
 

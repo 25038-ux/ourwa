@@ -555,7 +555,21 @@ export class AccountsService {
     });
   }
 
-  async listParents(input: { q?: string; cursor?: string; limit?: number } = {}) {
+  /**
+   * ⚠ DEUX FILTRES POUR UN TRAVAIL PRÉCIS (07/10/2026). Sur 1 372 familles
+   * reprises de l'ancien logiciel, 1 073 n'ont pas de vrai numéro ; le
+   * propriétaire les saisit lui-même, et seules comptent celles qui ont un
+   * enfant inscrit cette année.
+   *   - `academicYearId` : les familles ACTIVES cette année-là — au moins un
+   *     enfant dont l'inscription de l'année n'est pas annulée. `children`
+   *     reste le total des enfants ; `children_in_year` compte ceux de l'année.
+   *   - `sansNumero` : l'identifiant du compte ne porte pas huit chiffres ET
+   *     aucun numéro supplémentaire n'est enregistré.
+   * Sans filtre, la liste est exactement celle d'avant.
+   */
+  async listParents(
+    input: { q?: string; cursor?: string; limit?: number; academicYearId?: string; sansNumero?: boolean } = {},
+  ) {
     // ⚠ `?limit=abc` arrivait ici en NaN (et `-3` tel quel) : `LIMIT NaN` est
     // une erreur SQL, donc un 500. Une limite illisible vaut la limite par défaut.
     const voulu = Number.isInteger(input.limit) && input.limit! >= 1 ? input.limit! : 50;
@@ -564,6 +578,12 @@ export class AccountsService {
     const cut = input.cursor ? input.cursor.lastIndexOf('~') : -1;
     const afterName = cut >= 0 ? input.cursor!.slice(0, cut) : null;
     const afterId = cut >= 0 ? input.cursor!.slice(cut + 1) : null;
+    const annee = (input.academicYearId ?? '').trim() || null;
+    // Une année illisible partait en SQL (« invalid input syntax for type uuid ») : 500.
+    if (annee !== null && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(annee)) {
+      throw new BadRequestException('Année scolaire illisible.');
+    }
+    const sansNumero = input.sansNumero === true;
 
     return this.db.query(async (tx) => {
       const pattern = q ? `%${q.replace(/[%_\\]/g, (c) => `\\${c}`)}%` : null;
@@ -573,6 +593,12 @@ export class AccountsService {
         `SELECT u.id AS user_id, u.full_name, u.email, u.phone, u.active,
                 u.must_change_password, u.last_login_at,
                 count(DISTINCT s.id)::int AS children,
+                CASE WHEN $6::uuid IS NULL THEN NULL
+                     ELSE (count(DISTINCT s.id) FILTER (WHERE EXISTS (
+                             SELECT 1 FROM enrollments e
+                              WHERE e.student_id = s.id AND e.academic_year_id = $6::uuid
+                                AND e.status <> 'cancelled')))::int
+                END AS children_in_year,
                 -- Les numéros supplémentaires (0041), dans l'ordre où ils ont été ajoutés.
                 COALESCE((SELECT json_agg(json_build_object('phone', up.phone, 'label', up.label) ORDER BY up.created_at)
                             FROM user_phones up WHERE up.user_id = u.id), '[]'::json) AS phones
@@ -586,10 +612,21 @@ export class AccountsService {
                  OR ($2 <> '' AND EXISTS (SELECT 1 FROM user_phones up
                                            WHERE up.user_id = u.id AND up.phone LIKE '%' || $2 || '%')))
             AND ($3::text IS NULL OR (u.full_name, u.id::text) > ($3::text, $4::text))
+            -- Active cette année : un enfant inscrit, inscription non annulée.
+            AND ($6::uuid IS NULL OR EXISTS (
+                  SELECT 1 FROM students sa
+                    JOIN enrollments ea ON ea.student_id = sa.id
+                   WHERE sa.guardian_id = u.id AND ea.academic_year_id = $6::uuid
+                     AND ea.status <> 'cancelled'))
+            -- Sans numéro : moins de huit chiffres dans l'identifiant (« SANSTEL-… »,
+            -- adresse électronique seule) et aucun numéro supplémentaire.
+            AND ($7::boolean = false OR (
+                  length(regexp_replace(coalesce(u.phone, ''), '[^0-9]', '', 'g')) < 8
+                  AND NOT EXISTS (SELECT 1 FROM user_phones un WHERE un.user_id = u.id)))
           GROUP BY u.id
           ORDER BY u.full_name, u.id
           LIMIT $5`,
-        [pattern, digits, afterName, afterId, limit + 1],
+        [pattern, digits, afterName, afterId, limit + 1, annee, sansNumero],
       );
 
       const more = rows.length > limit;
