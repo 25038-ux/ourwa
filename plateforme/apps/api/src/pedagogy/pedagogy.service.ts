@@ -278,6 +278,14 @@ export class PedagogyService {
 
   // ── Homework ──────────────────────────────────────────────────────────────
 
+  /** L'enseignement existe-t-il dans CETTE école (RLS) ? */
+  async teachingExists(teachingId: string): Promise<boolean> {
+    return this.db.query(async (tx) => {
+      const { rows } = await tx.query('SELECT 1 FROM teachings WHERE id = $1', [teachingId]);
+      return rows.length > 0;
+    });
+  }
+
   async sendHomework(
     teachingId: string,
     input: { title: string; body: string; dueOn?: string },

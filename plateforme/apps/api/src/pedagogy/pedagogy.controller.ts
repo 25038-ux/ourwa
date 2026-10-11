@@ -146,10 +146,17 @@ export class HomeworkController {
   ) {
     const body = z
       .object({
-        title: z.string().trim().max(150),
-        body: z.string().trim().max(5000),
+        // ⚠ LES LONGUEURS SONT JUGÉES PLUS BAS, PAR UNE PHRASE. Un `.max()` ici
+        // répondait « title: String must contain at most 150 character(s) » à
+        // un professeur — et plafonnait les consignes à 5 000 caractères alors
+        // que sa colonne `description` est un TEXT : un énoncé recopié en
+        // entier était refusé, en anglais.
+        title: z.string().trim(),
+        body: z.string().trim(),
         dueOn: z.string().trim().optional(),
-        academicYearId: z.string().uuid().optional(),
+        // Le champ caché du formulaire arrive vide quand aucune année n'est
+        // consultée : vide veut dire « pas d'année », pas « identifiant invalide ».
+        academicYearId: z.preprocess((v) => (v === '' || v === null ? undefined : v), z.string().uuid().optional()),
       })
       .parse(raw ?? {});
     const id = uuid.safeParse(teachingId);
@@ -160,12 +167,25 @@ export class HomeworkController {
     // applies when the caller has no administrative reach.
     if (!request.auth!.permissions.includes('scolarite.groupes')) {
       await this.grades.assertOwnTeaching(request.auth!.userId, id.data, 'Enseignement invalide.');
+    } else if (!(await this.pedagogy.teachingExists(id.data))) {
+      // Son `if (!$ens) $refus = 'Enseignement invalide.'` : la direction envoie
+      // sur n'importe quel enseignement EXISTANT. Sans ce contrôle, un
+      // identifiant inconnu allait jusqu'à l'INSERT et la clé étrangère
+      // répondait 500.
+      throw new BadRequestException('Enseignement invalide.');
     }
     if (body.title === '' || body.body === '') {
       throw new BadRequestException('Titre et description obligatoires.');
     }
     if (body.dueOn && !isoDate.safeParse(body.dueOn).success) {
       throw new BadRequestException('Date limite invalide.');
+    }
+    // Son champ : `maxlength="150"` (colonne VARCHAR(150)) ; ses consignes : un TEXT.
+    if ([...body.title].length > 150) {
+      throw new BadRequestException('Titre trop long (150 caractères au plus).');
+    }
+    if (Buffer.byteLength(body.body, 'utf8') > 65_535) {
+      throw new BadRequestException('Description trop longue.');
     }
 
     return this.pedagogy.sendHomework(

@@ -1,5 +1,6 @@
 'use client';
 
+import { startTransition, useEffect, useRef, useState } from 'react';
 import { sendHomeworkAction } from '@/app/actions';
 import { useActionMessage } from '@/components/message-page';
 import { Dropzone } from '@/components/dropzone';
@@ -19,8 +20,22 @@ export function ExerciceForm({
   enseignements: { id: string; groupe: string; matiere: string }[];
   academicYearId: string;
 }) {
-  const [, action, pending] = useActionMessage(sendHomeworkAction);
+  const [state, action, pending] = useActionMessage(sendHomeworkAction);
 
+  // ⚠ LE FORMULAIRE NE SE VIDE QU'APRÈS UN ENVOI RÉUSSI. Passée à `<form
+  // action>`, l'action laissait React réinitialiser le formulaire à CHAQUE
+  // retour : un refus effaçait le titre et les consignes, et le champ des
+  // fichiers se vidait pendant que la liste affichée gardait leurs noms — le
+  // second envoi partait SANS pièce jointe, sans rien dire. On lance l'action
+  // nous-mêmes ; après un envoi réussi (son POST / Redirect / GET), on vide le
+  // formulaire ET la liste des fichiers.
+  const formulaire = useRef<HTMLFormElement>(null);
+  const [serie, setSerie] = useState(0);
+  useEffect(() => {
+    if (!state || 'error' in state) return;
+    formulaire.current?.reset();
+    setSerie((n) => n + 1);
+  }, [state]);
 
   // Décision du propriétaire (2026-09-17) : on choisit une CLASSE, pas une
   // matière. L'exercice reste rattaché à l'enseignement (classe + matière) ;
@@ -44,7 +59,16 @@ export function ExerciceForm({
   // (multipart dès qu'un fichier est joint) et l'attribut rendu côté serveur ne
   // correspondait pas au client — avertissement d'hydratation, bandeau en dev.
   return (
-    <form action={action} className="form-card" style={{ maxWidth: 720 }}>
+    <form
+      ref={formulaire}
+      onSubmit={(e) => {
+        e.preventDefault();
+        const donnees = new FormData(e.currentTarget);
+        startTransition(() => action(donnees));
+      }}
+      className="form-card"
+      style={{ maxWidth: 720 }}
+    >
       <input type="hidden" name="academicYearId" value={academicYearId} />
       <div className="form-group">
         <label>Classe *</label>
@@ -61,7 +85,7 @@ export function ExerciceForm({
           elle accrochait le sélecteur aux seuls JPG/PNG/WebP/GIF/PDF — sur un
           téléphone, une fiche Word était grisée, impossible à choisir (Jinan,
           04/10/2026 : « you can't send any document there »). */}
-      <Dropzone name="fichiers" label="📎 Pièces jointes (optionnel)" />
+      <Dropzone key={serie} name="fichiers" label="📎 Pièces jointes (optionnel)" />
 
       <button type="submit" className="btn btn-primary" disabled={pending}>📨 Envoyer l&apos;exercice</button>
     </form>

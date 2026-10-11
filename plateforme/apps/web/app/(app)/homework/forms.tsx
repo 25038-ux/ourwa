@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 import { sendHomeworkAction } from '@/app/actions';
 import { useActionMessage } from '@/components/message-page';
 import { Dropzone } from '@/components/dropzone';
@@ -19,7 +19,7 @@ export function HomeworkForm({
   teachings: { id: string; label: string; g?: string; m?: string }[];
   academicYearId: string;
 }) {
-  const [, action, pending] = useActionMessage(sendHomeworkAction);
+  const [state, action, pending] = useActionMessage(sendHomeworkAction);
   // LA CLASSE D'ABORD, LA MATIÈRE ENSUITE. Un seul professeur n'a que ses
   // classes ; la direction les a toutes — un sélecteur de classes, puis les
   // matières de cette classe seulement.
@@ -27,8 +27,37 @@ export function HomeworkForm({
   const [classe, setClasse] = useState(classes.length === 1 ? classes[0]! : '');
   const matieres = useMemo(() => teachings.filter((t) => (t.g ?? t.label.split(' — ')[0]) === classe), [teachings, classe]);
 
+  // ⚠ LE FORMULAIRE NE SE VIDE QU'APRÈS UN ENVOI RÉUSSI. Passée à `<form
+  // action>`, l'action laissait React réinitialiser le formulaire à CHAQUE
+  // retour — un refus (« Échec des téléversements… ») effaçait le titre et les
+  // consignes, et le champ des fichiers se vidait pendant que la liste
+  // affichée gardait leurs noms : le second envoi partait SANS pièce jointe,
+  // et rien ne le disait. On lance donc l'action nous-mêmes ; après un envoi
+  // réussi (son POST / Redirect / GET : pas de second exercice au clic
+  // suivant), on vide le formulaire ET la liste des fichiers.
+  const formulaire = useRef<HTMLFormElement>(null);
+  const [serie, setSerie] = useState(0);
+  // Une seule fois par résultat : la liste des classes est recalculée quand le
+  // serveur rafraîchit la page, et ne doit pas revider un formulaire en cours.
+  const classeInitiale = useRef(classe);
+  useEffect(() => {
+    if (!state || 'error' in state) return;
+    formulaire.current?.reset();
+    setSerie((n) => n + 1);
+    setClasse(classeInitiale.current);
+  }, [state]);
+
   return (
-    <form action={action} className="form-card" style={{ maxWidth: 720 }}>
+    <form
+      ref={formulaire}
+      onSubmit={(e) => {
+        e.preventDefault();
+        const donnees = new FormData(e.currentTarget);
+        startTransition(() => action(donnees));
+      }}
+      className="form-card"
+      style={{ maxWidth: 720 }}
+    >
       <input type="hidden" name="academicYearId" value={academicYearId} />
       <div className="form-row">
         <div className="form-group">
@@ -52,7 +81,7 @@ export function HomeworkForm({
 
       {/* Images, PDF et, depuis le 04/10/2026, documents Word / Excel /
           PowerPoint / OpenDocument : le sélecteur grisait une fiche Word. */}
-      <Dropzone name="fichiers" label="Pièces jointes (optionnel)" max={5} />
+      <Dropzone key={serie} name="fichiers" label="Pièces jointes (optionnel)" max={5} />
 
       <button type="submit" className="btn btn-primary" disabled={pending}>Envoyer l&apos;exercice</button>
     </form>

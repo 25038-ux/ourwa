@@ -14,6 +14,7 @@ import { z } from 'zod';
 import { AttachmentsService } from './attachments.service.js';
 import { MAX_BYTES, UploadRejected } from './storage.js';
 import { RequirePermission, type AuthenticatedRequest } from '../auth/permissions.guard.js';
+import { GradesService } from '../grades/grades.service.js';
 import { runInTenant } from '../tenant/tenant.context.js';
 
 const uuid = z.string().uuid();
@@ -22,6 +23,7 @@ const uuid = z.string().uuid();
 export class AttachmentsController {
   constructor(
     @Inject(AttachmentsService) private readonly attachments: AttachmentsService,
+    @Inject(GradesService) private readonly grades: GradesService,
   ) {}
 
   /**
@@ -54,6 +56,19 @@ export class AttachmentsController {
     };
     if (!anyRequest.isMultipart?.()) {
       throw new BadRequestException('Envoyez le fichier en multipart/form-data.');
+    }
+
+    // ⚠ LA MÊME FRONTIÈRE QUE L'ENVOI. Un professeur n'envoie qu'à SES classes
+    // (« Enseignement invalide. ») — mais joindre un fichier ne demandait que
+    // `exercices.envoyer`, que tout professeur porte : n'importe lequel
+    // pouvait ajouter un document à l'exercice d'un collègue, et les familles
+    // de cette classe le recevaient. La direction (`scolarite.groupes`)
+    // garde toute l'école, comme pour l'envoi.
+    const exercice = uuid.parse(homeworkId);
+    const enseignement = await this.attachments.teachingOf(exercice);
+    if (!enseignement) throw new NotFoundException('Exercice introuvable.');
+    if (!request.auth!.permissions.includes('scolarite.groupes')) {
+      await this.grades.assertOwnTeaching(request.auth!.userId, enseignement, 'Enseignement invalide.');
     }
 
     const part = await anyRequest.file?.({ limits: { fileSize: MAX_BYTES } });

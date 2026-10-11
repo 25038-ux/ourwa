@@ -30,6 +30,17 @@ export class AttachmentsService {
     @Inject(AuditService) private readonly audit: AuditService,
   ) {}
 
+  /** L'enseignement d'un exercice de CETTE école (RLS), ou null. */
+  async teachingOf(homeworkId: string): Promise<string | null> {
+    return this.db.query(async (tx) => {
+      const { rows } = await tx.query<{ teaching_id: string }>(
+        'SELECT teaching_id FROM homework WHERE id = $1',
+        [homeworkId],
+      );
+      return rows[0]?.teaching_id ?? null;
+    });
+  }
+
   async attach(
     homeworkId: string,
     file: { buffer: Buffer; filename: string },
@@ -199,7 +210,16 @@ export class AttachmentsService {
       }
     }
 
-    const buffer = await readStored(schoolId, row.stored_name);
+    // ⚠ LA LIGNE EXISTE, LE FICHIER PEUT NE PLUS ÊTRE LÀ (une restauration de
+    // la base sans le dossier des pièces jointes — ce que `integrity()`
+    // signale). La lecture levait ENOENT et la famille recevait 500 ; c'est
+    // une pièce jointe introuvable, et on le dit.
+    let buffer: Buffer;
+    try {
+      buffer = await readStored(schoolId, row.stored_name);
+    } catch {
+      throw new NotFoundException('Pièce jointe introuvable.');
+    }
     return { buffer, mime: row.mime, displayName: row.display_name };
   }
 }
