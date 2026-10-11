@@ -128,6 +128,9 @@ export async function clearSession(slug: string | null): Promise<void> {
   const jar = await cookies();
   jar.delete(cookieName(slug, 'access'));
   jar.delete(cookieName(slug, 'refresh'));
+  // L'année choisie dans l'en-tête vit avec la session (sa `$_SESSION['annee_vue']`,
+  // middleware.ts) : la personne suivante au même poste repart de l'année par défaut.
+  jar.delete(cookieName(slug, 'annee'));
 }
 
 /**

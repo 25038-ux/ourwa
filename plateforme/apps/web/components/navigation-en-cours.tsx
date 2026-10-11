@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { NAVIGATION_DEBUT, NAVIGATION_FIN } from '@/lib/navigation-signal';
 
 /**
  * LE SITE RÉPOND AU CLIC — une barre en haut de l'écran dès qu'on quitte la page.
@@ -26,6 +27,14 @@ import { useEffect, useRef } from 'react';
  * vingt secondes elle s'efface d'elle-même — un export servi en pièce jointe ne
  * décharge jamais la page, et une barre qui tourne sans fin serait pire que pas
  * de barre.
+ *
+ * ⚠ DEPUIS LE 10/10/2026, LA PLUPART DES LIENS NE RECHARGENT PLUS LA PAGE
+ * (`navigation-douce.tsx`). La barre part toujours d'ici, au clic ; mais une
+ * navigation interne ne décharge rien, et la barre serait restée. Qui lance
+ * une telle navigation le dit donc par deux signaux (`lib/navigation-signal`) :
+ * « début » la montre (le sélecteur d'année, un retour arrière), « fin »
+ * l'efface. Une seule barre, dessinée ici ; celle de `loading.tsx` prend le
+ * relais sous la même forme pendant que la trame est à l'écran.
  */
 const EFFACEE_APRES_MS = 20_000;
 
@@ -85,10 +94,15 @@ export function NavigationEnCours() {
     document.addEventListener('click', surClic);
     document.addEventListener('submit', surEnvoi);
     window.addEventListener('pageshow', surRetour);
+    // Les navigations internes (navigation-douce.tsx, selecteur-annee.tsx).
+    window.addEventListener(NAVIGATION_DEBUT, montrer);
+    window.addEventListener(NAVIGATION_FIN, cacher);
     return () => {
       document.removeEventListener('click', surClic);
       document.removeEventListener('submit', surEnvoi);
       window.removeEventListener('pageshow', surRetour);
+      window.removeEventListener(NAVIGATION_DEBUT, montrer);
+      window.removeEventListener(NAVIGATION_FIN, cacher);
       window.clearTimeout(minuterie);
     };
   }, []);

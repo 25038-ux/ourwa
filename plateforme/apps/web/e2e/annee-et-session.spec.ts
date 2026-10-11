@@ -22,8 +22,14 @@ import { test, expect } from './session';
  * bloquait. Il ne reste que la garde qui vérifie qu'ils ne reviennent pas.
  */
 
-const DIRECTOR = 'e2e/.auth/nour-admin.json';
-const BASE = 'http://nour.localhost:3000';
+// Par défaut l'école de démonstration. Les mêmes essais se rejouent sur une autre
+// installation (l'instance locale de production d'El Ourwa, par exemple) avec
+// E2E_BASE, E2E_ETAT (le fichier d'état d'une session ouverte), E2E_IDENTIFIANT
+// et E2E_MOT_DE_PASSE — et `--no-deps`, pour ne pas rejouer auth.setup.ts.
+const DIRECTOR = process.env.E2E_ETAT ?? 'e2e/.auth/nour-admin.json';
+const BASE = process.env.E2E_BASE ?? 'http://nour.localhost:3000';
+const IDENTIFIANT = process.env.E2E_IDENTIFIANT ?? 'admin@nour.test';
+const MOT_DE_PASSE = process.env.E2E_MOT_DE_PASSE ?? 'dev12345';
 
 test.describe('le sélecteur d’année', () => {
   test.use({ storageState: DIRECTOR });
@@ -58,6 +64,58 @@ test.describe('le sélecteur d’année', () => {
     // whichever year was picked — the operator could read this year's arrears
     // believing they were last year's.
     await expect(page.locator('table tbody tr').first()).not.toHaveText(thisYear);
+  });
+
+  /**
+   * ⚠ « LE SÉLECTEUR D'ANNÉE NE MARCHE PAS ET MEURT À CHAQUE PAGE » (propriétaire,
+   * 10/10/2026, le jour de la mise en ligne).
+   *
+   * Le test ci-dessus passait, et le défaut était là : l'année choisie ne vivait
+   * que dans `?annee_id=` de l'adresse courante. Au premier clic du menu —
+   * dont les liens ne portent pas ce paramètre — la page revenait à l'année en
+   * cours. Chez lui (`annee_vue()`, includes/annee_scolaire.php) : « ?annee_id=
+   * change l'année consultée ET LA MÉMORISE » dans la session ; sans paramètre,
+   * c'est l'année mémorisée ; la session finie, la mémoire aussi.
+   */
+  test('⚠ se souvient de l’année d’une page à l’autre, et l’oublie à la déconnexion', async ({
+    page,
+  }) => {
+    await page.goto(`${BASE}/scolarite/groupes`);
+
+    const selector = page.locator('select[name="annee_id"]');
+    await expect(selector).toBeVisible();
+    const opened = await selector.inputValue();
+    const closedValue = await page
+      .locator('select[name="annee_id"] option', { hasText: 'clôturée' })
+      .first()
+      .getAttribute('value');
+    expect(closedValue).not.toBe(opened);
+
+    await selector.selectOption(closedValue!);
+    await page.waitForURL(/annee_id=/);
+    await expect(page.locator('select[name="annee_id"]')).toHaveValue(closedValue!);
+
+    // ⚠ UN CLIC DU MENU : l'adresse ne porte plus l'année, la page la garde.
+    await page.locator('#sidebar a.sidebar-link[href="/scolarite"]').click();
+    await page.waitForURL((u) => u.pathname === '/scolarite' && !u.searchParams.has('annee_id'));
+    await expect(page.locator('select[name="annee_id"]')).toHaveValue(closedValue!);
+
+    // Une adresse tapée à la main, puis un rechargement : toujours elle.
+    await page.goto(`${BASE}/scolarite/groupes`);
+    await expect(page.locator('select[name="annee_id"]')).toHaveValue(closedValue!);
+    await page.reload();
+    await expect(page.locator('select[name="annee_id"]')).toHaveValue(closedValue!);
+
+    // ⚠ DÉCONNEXION PUIS RECONNEXION : une session PHP finit là, et sa mémoire
+    // avec elle — la personne suivante au même poste repart de l'année par défaut.
+    await page.getByRole('button', { name: 'Déconnexion' }).click();
+    await page.waitForURL(/\/login/);
+    await page.getByLabel('Identifiant').fill(IDENTIFIANT);
+    await page.getByLabel('Mot de passe', { exact: true }).fill(MOT_DE_PASSE);
+    await page.getByRole('button', { name: 'Se connecter' }).click();
+    await expect(page).not.toHaveURL(/\/login/);
+    await page.goto(`${BASE}/scolarite/groupes`);
+    await expect(page.locator('select[name="annee_id"]')).toHaveValue(opened);
   });
 });
 

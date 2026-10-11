@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { clientIdentityHeaders } from '@/lib/client-identity';
 import { writeSession } from '@/lib/session';
 import { accueilParRole, COOKIE_IDENTIFIANT_SAISI } from '@/lib/accueil';
-import { DEPLOIEMENT, slugFromHost } from '@/lib/brand';
+import { DEPLOIEMENT, cookieName, slugFromHost } from '@/lib/brand';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -120,6 +120,10 @@ export async function POST(request: Request): Promise<Response> {
 
     const r = NextResponse.redirect(`${base}${home}`, 303);
     r.cookies.delete({ name: COOKIE_IDENTIFIANT_SAISI, path: '/login' });
+    // Une nouvelle session s'ouvre sur l'année par défaut : l'année mémorisée
+    // par la précédente (middleware.ts, sa `$_SESSION['annee_vue']`) ne lui
+    // appartient pas — même si celle-ci a fini sans déconnexion.
+    r.cookies.delete(cookieName(slug, 'annee'));
     return r;
   } catch {
     return back("Le serveur ne répond pas.");

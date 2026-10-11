@@ -21,6 +21,10 @@ import { apiFetch } from '@/lib/session';
  * opaque string and resolved there against the tenant's own years; one belonging
  * to another school comes back not-found, which is the check that matters.
  * Callers must never interpolate it into SQL or trust it as a fact.
+ *
+ * ⚠ ET ELLE EST MÉMORISÉE (10/10/2026) : sans `?annee_id=` dans l'adresse, le
+ * middleware transmet ici l'année choisie plus tôt dans la session — son
+ * `annee_vue()`. Une page n'a rien à faire pour la garder d'un clic à l'autre.
  */
 export async function anneeConsultee(): Promise<string | null> {
   const h = await headers();

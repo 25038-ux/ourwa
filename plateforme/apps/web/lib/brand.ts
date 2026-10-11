@@ -20,7 +20,12 @@ export const LIBELLE_FRAIS_PHOTOCOPIE = libelleFraisPhotocopie(process.env);
 /** Le préfixe de tous les cookies de session de cette installation. */
 export const COOKIE_PREFIX = `${MARQUE.slug}_`;
 
-export function cookieName(slug: string | null, kind: 'access' | 'refresh'): string {
+/**
+ * `annee` (10/10/2026) : l'année scolaire que la personne a choisie dans
+ * l'en-tête — sa `$_SESSION['annee_vue']`. Même schéma de nom que les jetons,
+ * donc une par école et par installation ; posée et lue par `middleware.ts`.
+ */
+export function cookieName(slug: string | null, kind: 'access' | 'refresh' | 'annee'): string {
   return `${COOKIE_PREFIX}${slug ?? 'platform'}_${kind}`;
 }
 

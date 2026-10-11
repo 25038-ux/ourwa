@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState, useTransition } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { signalerNavigation } from '@/lib/navigation-signal';
 
 export interface AnneeOption {
   id: string;
@@ -37,6 +39,27 @@ export function SelecteurAnnee({
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+  /*
+   * ⚠ « LE SÉLECTEUR D'ANNÉE NE MARCHE PAS » (propriétaire, 10/10/2026). La
+   * liste est tenue par le serveur (`courante`) : sur une ligne lente, l'année
+   * choisie REVENAIT à l'ancienne le temps que la page arrive — une à trois
+   * secondes pendant lesquelles rien ne disait que le choix avait été pris, et
+   * l'on rechoisissait. Tant que la page est en route, la liste montre l'année
+   * voulue et la barre du haut tourne ; à l'arrivée, le serveur a de nouveau
+   * le dernier mot. (Et le choix est désormais mémorisé : middleware.ts.)
+   *
+   * Sur « Dérogations examens », la page n'arrivait même JAMAIS (mesuré le
+   * même jour) : c'est `page-par-adresse.tsx`, dans la coquille, qui la fait
+   * aboutir — ce sélecteur compte sur lui.
+   */
+  const [enRoute, demarrer] = useTransition();
+  const [voulue, setVoulue] = useState<string | null>(null);
+
+  // La page est arrivée — ou ce sélecteur est démonté avec l'ancienne page.
+  useEffect(() => {
+    if (!enRoute) return;
+    return () => signalerNavigation('fin');
+  }, [enRoute]);
 
   if (annees.length === 0) return null;
 
@@ -47,7 +70,9 @@ export function SelecteurAnnee({
       next.delete(k);
     }
     next.set('annee_id', id);
-    router.push(`${pathname}?${next.toString()}`);
+    setVoulue(id);
+    signalerNavigation('debut');
+    demarrer(() => router.push(`${pathname}?${next.toString()}`));
   };
 
   return (
@@ -58,7 +83,7 @@ export function SelecteurAnnee({
       <select
         id="hdr-annee"
         name="annee_id"
-        value={courante ?? ''}
+        value={(enRoute && voulue) || courante || ''}
         onChange={(e) => change(e.target.value)}
         title="Année scolaire consultée"
       >

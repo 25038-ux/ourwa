@@ -30,22 +30,76 @@ import { COOKIE_PREFIX, cookieName, slugFromHost } from '@/lib/brand';
  * opaque string; the API resolves it against `academic_years` for THIS tenant
  * and a year belonging to another school comes back as not found. Filtering on
  * shape in middleware would only give a false sense that it had been checked.
+ *
+ * ⚠ ET L'ANNÉE CHOISIE EST MÉMORISÉE — « le sélecteur d'année ne marche pas et
+ * meurt à chaque page » (propriétaire, 10/10/2026, le jour de la mise en ligne).
+ * Elle ne vivait que dans `?annee_id=` de l'adresse courante : au premier clic
+ * du menu, dont les liens ne portent pas ce paramètre, la page revenait à
+ * l'année en cours. Chez lui, `annee_vue()` (includes/annee_scolaire.php) :
+ *
+ *   1. `?annee_id=` change l'année consultée ET LA MÉMORISE (`$_SESSION['annee_vue']`) ;
+ *   2. sans paramètre, c'est l'année mémorisée ;
+ *   3. sans l'un ni l'autre, l'année par défaut (inchangée : celle de l'API).
+ *
+ * Sa session est ici un cookie de la session de l'école (`cookieName(slug,
+ * 'annee')`, httpOnly, SameSite=Lax, sans durée : il finit avec le navigateur),
+ * effacé à la connexion, à la déconnexion et quand la session est morte — une
+ * session PHP finit là. L'en-tête `x-annee-id` reste le seul chemin vers les
+ * pages : elles et l'en-tête de page lisent donc toujours la même année.
+ *
+ * Ce qui n'est PAS mémorisé : une valeur qui n'a pas la forme d'un identifiant
+ * (elle est transmise comme avant, la page retombe sur l'année par défaut), et
+ * une requête sans session.
+ * Le middleware n'a pas de base : un identifiant bien formé mais inconnu de
+ * cette école est mémorisé tel quel, et chaque page retombe sur l'année par
+ * défaut, en-tête compris (chez lui, il n'aurait pas remplacé l'année mémorisée).
+ *
+ * ⚠ UN PRÉCHARGEMENT NE SE RECONNAÎT PAS ICI. Next retire `next-router-prefetch`
+ * (et `rsc`, `next-router-state-tree`) des en-têtes AVANT d'appeler le
+ * middleware — mesuré le 10/10/2026 : une requête qui les portait a été
+ * mémorisée comme une autre. Survoler un lien qui porte `?annee_id=` changerait
+ * donc l'année de toutes les pages suivantes ; c'est `navigation-douce.tsx` qui
+ * s'en garde : il ne précharge JAMAIS un tel lien.
  */
 export async function middleware(request: NextRequest) {
   const headers = new Headers(request.headers);
   headers.set('x-pathname', request.nextUrl.pathname);
 
-  const annee = request.nextUrl.searchParams.get('annee_id');
+  const slug = slugFromHost(
+    request.headers.get('x-forwarded-host') ?? request.headers.get('host'),
+  );
+  const cookieAnnee = cookieName(slug, 'annee');
+  const dansAdresse = request.nextUrl.searchParams.get('annee_id');
+  const brute = request.cookies.get(cookieAnnee)?.value;
+  const memorisee = brute && FORME_ANNEE.test(brute) ? brute : null;
+
+  const annee = dansAdresse || memorisee;
   if (annee) headers.set('x-annee-id', annee);
   else headers.delete('x-annee-id');
 
   const renewed = await renewSession(request, headers);
 
   const response = NextResponse.next({ request: { headers } });
+  if (
+    dansAdresse &&
+    dansAdresse !== memorisee &&
+    FORME_ANNEE.test(dansAdresse) &&
+    (request.cookies.has(cookieName(slug, 'access')) || request.cookies.has(cookieName(slug, 'refresh')))
+  ) {
+    response.cookies.set(cookieAnnee, dansAdresse, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+  }
   applyRenewal(response, request, renewed);
   applySecurityHeaders(response, request);
   return response;
 }
+
+/** La forme d'un identifiant d'année (UUID) — une forme, pas une vérification : l'API tranche. */
+const FORME_ANNEE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -229,6 +283,8 @@ function applyRenewal(response: NextResponse, request: NextRequest, renewal: Ren
   if (renewal.kind === 'dead') {
     response.cookies.delete(cookieName(renewal.slug, 'access'));
     response.cookies.delete(cookieName(renewal.slug, 'refresh'));
+    // La session est finie : l'année qu'elle avait mémorisée aussi (sa session PHP).
+    response.cookies.delete(cookieName(renewal.slug, 'annee'));
     return;
   }
 

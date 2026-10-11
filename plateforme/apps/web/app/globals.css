@@ -1043,6 +1043,9 @@ fieldset.fieldset legend {
 }
 /* Pendant qu'une page se charge après un clic (components/navigation-en-cours.tsx). */
 html.navigation-en-cours, html.navigation-en-cours a, html.navigation-en-cours button { cursor: progress; }
+/* Une seule barre (10/10/2026, navigation interne) : tant que celle du clic est
+   à l'écran, celle de la trame (loading.tsx) ne se dessine pas par-dessus. */
+html.navigation-en-cours #main-content .nav-progress { display: none; }
 @keyframes nav-progress {
   0% { transform: scaleX(0); opacity: 1; }
   70% { transform: scaleX(.85); opacity: 1; }

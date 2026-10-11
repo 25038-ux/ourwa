@@ -1,4 +1,5 @@
 import { ICONS } from './elourwa-icons';
+import { SidebarLiens } from './sidebar-liens';
 
 /**
  * El Ourwa's sidebar, item for item.
@@ -213,23 +214,13 @@ export function Sidebar({
       </div>
 
       <nav className="sidebar-nav">
-        {items.map((item) => {
-          const path = item.href.split('?')[0]!;
-          const active = path === '/' ? current === '/' : current.startsWith(path);
-          return (
-            <a
-              key={item.href}
-              href={item.href}
-              className={`sidebar-link${active ? ' active' : ''}`}
-            >
-              <span
-                className="sidebar-icon"
-                dangerouslySetInnerHTML={{ __html: item.icon }}
-              />
-              <span>{item.titre}</span>
-            </a>
-          );
-        })}
+        {/* L'entrée active suit l'adresse du navigateur : la coquille n'est plus
+            rendue à chaque clic (sidebar-liens.tsx, 10/10/2026). Seuls le titre,
+            le lien et l'icône partent au navigateur — pas les règles d'accès. */}
+        <SidebarLiens
+          items={items.map(({ titre, href, icon }) => ({ titre, href, icon }))}
+          current={current}
+        />
       </nav>
 
       <div className="sidebar-footer">

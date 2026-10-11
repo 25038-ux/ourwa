@@ -7,6 +7,8 @@ import { Sidebar } from '@/components/sidebar';
 import { FormValidation } from '@/components/form-validation';
 import { TiroirNavigation } from '@/components/tiroir-navigation';
 import { NavigationEnCours } from '@/components/navigation-en-cours';
+import { NavigationDouce } from '@/components/navigation-douce';
+import { PageParAdresse } from '@/components/page-par-adresse';
 import { TableauxEnCartes } from '@/components/tableaux-cartes';
 import { DEPLOIEMENT, MARQUE, hoteAvecSlug } from '@/lib/brand';
 import { LOGO_MARQUE } from '@/lib/brand-logo';
@@ -73,6 +75,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       parent: 'Parent',
     }[user.roles[0] ?? ''] ?? 'Sans rôle';
 
+  // L'interrupteur de la navigation interne (navigation-douce.tsx), lu à chaque
+  // requête : avec `NAVIGATION_DOUCE=0`, chaque lien recharge la page entière,
+  // comme avant elle.
+  const douce = process.env.NAVIGATION_DOUCE !== '0';
+
   return (
     <>
       {/* ⚠ Ses règles de validation, qui n'avaient jamais été portées — alors
@@ -83,6 +90,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       {/* La barre du haut dès le clic : chaque lien recharge la page entière, et sans elle
           rien ne dit, le temps du trajet, que le clic a été compris. */}
       <NavigationEnCours />
+      {/* Un clic sur un lien du site change de page sans recharger la coquille
+          (navigation-douce.tsx, 10/10/2026). Éteinte par NAVIGATION_DOUCE=0 — lu
+          ici, à chaque requête, donc sans reconstruire — et tant que le mot de
+          passe doit être changé : chaque clic repasse alors par cette coquille,
+          qui est seule à renvoyer vers « Mon profil ». */}
+      <NavigationDouce active={douce && !user.mustChangePassword} />
 
       <a href="#main-content" className="skip-link">
         Aller au contenu
@@ -119,7 +132,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <a href={`${entetes.get('x-forwarded-proto') ?? 'http'}://${hoteAvecSlug(entetes.get('x-forwarded-host') ?? entetes.get('host') ?? 'localhost:3000', null)}/platform`}>Quitter</a>
             </div>
           )}
-          {children}
+          {/* Une adresse, une page neuve : rien d'une fiche ne survit dans une
+              autre quand on change de page sans recharger — et c'est ce qui fait
+              aboutir le sélecteur d'année sur « Dérogations examens », où la mise
+              à jour sur place ne s'affichait jamais (page-par-adresse.tsx). Ne
+              dépend PAS de l'interrupteur ci-dessus : le sélecteur d'année
+              navigue par le routeur que les liens le fassent ou non. */}
+          <PageParAdresse>{children}</PageParAdresse>
         </main>
       </div>
     </>
