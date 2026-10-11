@@ -50,6 +50,27 @@ export default {
    * qui ne sert à personne d'autre qu'à qui cherche une porte.
    */
   poweredByHeader: false,
+  /*
+   * ⚠ LES FEUILLES REPRISES (/elourwa/*.css?v=…) NE SE REDEMANDENT PLUS À CHAQUE PAGE.
+   *
+   * Next sert public/ avec « max-age=0 » : à chaque page — et chaque clic du site
+   * recharge la page entière — le navigateur revérifiait les sept feuilles auprès
+   * du serveur avant de rien dessiner. Mesuré le 10/10/2026 depuis Nouakchott :
+   * 340 ms de plus par page sur une bonne ligne. Leur adresse porte
+   * « ?v=<construction> » (VERSION_FEUILLES, ci-dessus), qui change à chaque
+   * construction : une adresse donnée ne change donc jamais de contenu. Sans
+   * « ?v= », rien n’est changé. (Le Caddyfile dit la même chose, pour une image
+   * construite avant ce réglage.)
+   */
+  async headers() {
+    return [
+      {
+        source: '/elourwa/:fichier*',
+        has: [{ type: 'query', key: 'v' }],
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+    ];
+  },
   // Deux serveurs de développement (El Ourwa :3000, El Mourad :3010) ne
   // peuvent pas partager .next : le second écrase les morceaux du premier
   // (404, 500 aléatoires). NEXT_DIST_DIR donne au second son propre dossier.

@@ -6,6 +6,7 @@ import { currentSchool } from '@/lib/tenant';
 import { Sidebar } from '@/components/sidebar';
 import { FormValidation } from '@/components/form-validation';
 import { TiroirNavigation } from '@/components/tiroir-navigation';
+import { NavigationEnCours } from '@/components/navigation-en-cours';
 import { TableauxEnCartes } from '@/components/tableaux-cartes';
 import { DEPLOIEMENT, MARQUE, hoteAvecSlug } from '@/lib/brand';
 import { LOGO_MARQUE } from '@/lib/brand-logo';
@@ -79,6 +80,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           depuis le premier jour, copiée au caractère près de la sienne. Rien ne
           les posait : chaque formulaire retombait sur la bulle native. */}
       <FormValidation />
+      {/* La barre du haut dès le clic : chaque lien recharge la page entière, et sans elle
+          rien ne dit, le temps du trajet, que le clic a été compris. */}
+      <NavigationEnCours />
 
       <a href="#main-content" className="skip-link">
         Aller au contenu

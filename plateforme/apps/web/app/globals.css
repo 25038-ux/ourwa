@@ -1041,6 +1041,8 @@ fieldset.fieldset legend {
   animation: nav-progress 1.2s ease-in-out infinite;
   transform-origin: left;
 }
+/* Pendant qu'une page se charge après un clic (components/navigation-en-cours.tsx). */
+html.navigation-en-cours, html.navigation-en-cours a, html.navigation-en-cours button { cursor: progress; }
 @keyframes nav-progress {
   0% { transform: scaleX(0); opacity: 1; }
   70% { transform: scaleX(.85); opacity: 1; }

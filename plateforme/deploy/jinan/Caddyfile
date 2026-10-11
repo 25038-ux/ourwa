@@ -22,9 +22,45 @@ api.{$PUBLIC_DOMAIN} {
 }
 
 {$PUBLIC_DOMAIN}, www.{$PUBLIC_DOMAIN} {
+	# ⚠ LES FEUILLES DE STYLE REPRISES NE SE REDEMANDENT PLUS À CHAQUE PAGE (10/10/2026).
+	# Chaque clic du site recharge la page entière, et les sept feuilles de
+	# /elourwa/ partaient avec « max-age=0 » : le navigateur revérifiait chacune
+	# auprès du serveur avant de dessiner quoi que ce soit — un aller-retour
+	# vers l'Europe par page, mesuré à 340 ms depuis Nouakchott sur une bonne
+	# ligne, bien plus sur une mauvaise. Leur adresse porte « ?v=<construction> »
+	# (VERSION_FEUILLES, next.config.mjs), qui change à chaque construction :
+	# une adresse donnée ne changera donc jamais de contenu, et peut être gardée
+	# un an. Sans « ?v= » rien n'est changé. « defer » : posé APRÈS la réponse
+	# du site, sinon son « max-age=0 » l'emporterait.
+	@feuilles {
+		path /elourwa/*
+		query v=*
+	}
+	header @feuilles {
+		Cache-Control "public, max-age=31536000, immutable"
+		defer
+	}
+
 	# École unique : quel que soit le nom, c'est cette école (SINGLE_SCHOOL_SLUG).
 	reverse_proxy web:3000
 	encode zstd gzip
+
+	# Le journal des requêtes du site : la durée, le code et la taille de chaque
+	# réponse — ce qui a manqué le 10/10 pour dire ce que « c'est lent » voulait
+	# dire. ⚠ NI en-têtes, NI paramètres : une recherche porte un nom de famille
+	# dans son adresse, et ce journal ne doit en garder aucun. Tourné par Docker
+	# (10 Mo × 5, comme les autres services).
+	log {
+		format filter {
+			wrap json
+			fields {
+				request>uri regexp "\?.*$" ""
+				request>headers delete
+				request>tls delete
+				resp_headers delete
+			}
+		}
+	}
 }
 
 # Les AUTRES sites de ce serveur, chacun sur son propre domaine — aujourd'hui le
