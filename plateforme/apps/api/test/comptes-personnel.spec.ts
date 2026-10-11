@@ -105,7 +105,15 @@ describe('un compte listé sans fiche de personnel (compte semé ou repris)', ()
     expect(c).toBeDefined();
     expect(c!.est_professeur).toBe(false);
     expect(c!.fonction).not.toBe('Professeur');
-    expect(c!.fonction).toMatch(/^Collecteur d.absence$/);
+    // Le libellé est LU dans `roles`, pas écrit ici : la base de test est
+    // partagée entre les fichiers, et `accounts.spec.ts` y sème ce rôle sous
+    // « Collecteur » (ON CONFLICT DO NOTHING — le premier arrivé gagne). Ce
+    // qui est affirmé : la fonction est le libellé du rôle du compte.
+    const { rows } = await owner.query<{ label: string }>(
+      `SELECT label FROM roles WHERE code = 'collecteur_absence'`,
+    );
+    expect(rows[0]!.label).toMatch(/^Collecteur/);
+    expect(c!.fonction).toBe(rows[0]!.label);
   });
 
   it('se désactive et se réactive depuis la page', async () => {
