@@ -102,6 +102,10 @@ services:
       BRAND_TAGLINE: ${BRAND_TAGLINE}
       FEE_PHOTOCOPY_LABEL: ${FEE_PHOTOCOPY_LABEL:-}
       SINGLE_SCHOOL_SLUG: ${SINGLE_SCHOOL_SLUG}
+      # La navigation sans rechargement (components/navigation-douce.tsx) : « NAVIGATION_DOUCE=0 »
+      # dans .env puis « docker compose up -d web » la coupe sans reconstruire — chaque lien
+      # recharge alors la page entière, comme avant (porté d'El Ourwa, 10/10/2026).
+      NAVIGATION_DOUCE: ${NAVIGATION_DOUCE:-1}
       PLATFORM_CONSOLE: ${PLATFORM_CONSOLE}
       # Les mentions des pages publiques /legal/… (lues à chaque affichage).
       PUBLIC_DOMAIN: ${PUBLIC_DOMAIN}
