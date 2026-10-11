@@ -30,13 +30,20 @@ import { usePathname, useSearchParams } from 'next/navigation';
  * trame NEUVE, que React remplit au fil de la réponse — le chemin que prend
  * toute navigation, et qui aboutit partout où il a été essayé.
  *
- * Ce qui reste sur le chemin bloqué, faute de changer d'adresse : une mise à
- * jour sur place — `router.refresh()`, que rien n'appelle ici (sur « Finance »
- * il lit ses 704 ko jusqu'au bout et n'affiche rien). Le retour d'une action
- * serveur qui ne redirige pas met lui aussi la page à jour sur place : il n'a
- * PAS été essayé (aucune écriture n'a été faite sur les données réelles), et
- * la cause du blocage n'est pas comprise à ce jour — à vérifier sur les deux
- * pages les plus lourdes avant de le tenir pour acquis.
+ * Ce qui restait sur le chemin bloqué, faute de changer d'adresse : toute mise
+ * à jour sur place — `router.refresh()` (sur « Finance » il lisait ses 704 ko
+ * jusqu'au bout et n'affichait rien) et, surtout, le retour d'une action
+ * serveur qui ne redirige pas : on enregistrait, le message disait que c'était
+ * fait, et la page ne changeait pas.
+ *
+ * ⚠ LA CAUSE EST TROUVÉE ET CORRIGÉE (11/10/2026) : un défaut du React que Next
+ * embarque, qui jette un réveil arrivé pendant le rendu — voir
+ * `correctifs/react-reveil-perdu.cjs`, appliqué à la construction par
+ * `next.config.mjs`. Mesuré sur une copie des données réelles, construction de
+ * production : « Dérogations examens » passait de 9 blocages sur 10 à 0 sur 24,
+ * `router.refresh()` sur « Finance » de 0 réussite sur 4 à 6 sur 6. La clé
+ * ci-dessous reste : c'est elle qui garantit qu'une fiche ne garde rien de la
+ * précédente, ce que le correctif ne fait pas et n'a pas à faire.
  *
  * Ce composant ne dépend donc PAS de l'interrupteur `NAVIGATION_DOUCE`.
  */

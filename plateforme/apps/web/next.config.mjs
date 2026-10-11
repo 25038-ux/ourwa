@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+
 /*
  * ⚠ LA VERSION DES FEUILLES (/elourwa/*.css?v=…), UNE PAR CONSTRUCTION.
  *
@@ -29,17 +32,12 @@ import { fileURLToPath } from 'node:url';
  */
 const SOURCES_PARTAGEES = fileURLToPath(new URL('../../packages/shared/src', import.meta.url));
 
+/** Pour charger, À LA CONSTRUCTION SEULEMENT, le correctif de React — voir `webpack()` plus bas. */
+const require = createRequire(import.meta.url);
+
 /** @type {import('next').NextConfig} */
 export default {
   env: { VERSION_FEUILLES: process.env.VERSION_FEUILLES },
-  webpack(config) {
-    config.module.rules.push({
-      test: /\.tsx?$/,
-      include: [SOURCES_PARTAGEES],
-      resolve: { extensionAlias: { '.js': ['.ts', '.tsx', '.js'] } },
-    });
-    return config;
-  },
   reactStrictMode: true,
   /*
    * ⚠ `X-Powered-By: Next.js` PARTAIT SUR CHAQUE RÉPONSE.
@@ -75,6 +73,55 @@ export default {
   // peuvent pas partager .next : le second écrase les morceaux du premier
   // (404, 500 aléatoires). NEXT_DIST_DIR donne au second son propre dossier.
   distDir: process.env.NEXT_DIST_DIR || ".next",
+  /*
+   * ⚠ « J'ENREGISTRE ET LA PAGE NE CHANGE PAS » — UN DÉFAUT DE REACT, CORRIGÉ ICI
+   * À LA CONSTRUCTION (11/10/2026).
+   *
+   * Après une action serveur qui reste sur la même adresse, la base était à jour,
+   * le message de succès s'affichait, et la page gardait l'ancien état, bouton
+   * grisé, jusqu'à un rechargement : 9 fois sur 10 sur « Dérogations examens »,
+   * mesuré sur la construction de production. Le React que Next embarque jette
+   * un réveil quand il arrive pendant le rendu ; l'explication complète, les
+   * mesures et la marche à suivre après une montée de version de Next sont dans
+   * `correctifs/react-reveil-perdu.cjs`.
+   *
+   * La règle ci-dessous fait passer CE fichier de React, et lui seul, par le
+   * chargeur qui en corrige une expression. `node_modules` n'est pas modifié.
+   *
+   * ⚠ LA CONSTRUCTION ÉCHOUE SI LE CORRECTIF NE S'APPLIQUE PLUS — exprès. Une
+   * montée de version qui le ferait sauter en silence ramènerait le défaut en
+   * silence. La vérification est faite ici, sur le fichier lui-même, pour ne pas
+   * dépendre de ce que webpack choisit de relire ou de reprendre de son cache.
+   *
+   * ⚠ LE CORRECTIF EST CHARGÉ ICI, PAS EN TÊTE DE FICHIER. Ce fichier est aussi
+   * lu par `next start`, sur un serveur qui peut n'avoir reçu que le site déjà
+   * construit (`tools/packager.sh` : `.next`, `public`, `next.config.mjs` — pas
+   * `correctifs/`). Seule la construction a besoin du correctif ; un `require`
+   * en tête empêcherait un tel serveur de démarrer.
+   */
+  webpack(config, { dev, isServer }) {
+    // Les imports « ./x.js » du paquet partagé (voir SOURCES_PARTAGEES en tête) — UNE
+    // seule fonction webpack : un objet ne garde que la dernière clé du même nom.
+    config.module.rules.push({
+      test: /\.tsx?$/,
+      include: [SOURCES_PARTAGEES],
+      resolve: { extensionAlias: { '.js': ['.ts', '.tsx', '.js'] } },
+    });
+    const reveilPerdu = require('./correctifs/react-reveil-perdu.cjs');
+    config.module.rules.push({
+      test: reveilPerdu.FICHIER,
+      enforce: 'pre',
+      use: [{ loader: reveilPerdu.CHEMIN }],
+    });
+    if (!dev && !isServer) {
+      const fichier = require.resolve('next/dist/compiled/react-dom/cjs/react-dom-client.production.js');
+      if (!reveilPerdu.FICHIER.test(fichier)) {
+        throw new Error(`correctifs/react-reveil-perdu.cjs — le React des pages n'est plus à l'adresse attendue : ${fichier}`);
+      }
+      reveilPerdu.corriger(readFileSync(fichier, 'utf8'), fichier);
+    }
+    return config;
+  },
   // Branding differs per subdomain, so nothing here may be statically shared
   // between tenants. Rendering is dynamic by default for that reason.
   // ⚠ Les exercices partent avec jusqu'à cinq fichiers de 10 Mo par une action

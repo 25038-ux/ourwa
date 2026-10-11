@@ -54,6 +54,10 @@ import { signalerNavigation } from '@/lib/navigation-signal';
  * réponse (704 ko) et ne l'affiche JAMAIS — la page restaurée, périmée, reste
  * à l'écran sans erreur ni fin. Sur les pages rapides il fonctionne. Tant que
  * ce défaut n'est pas compris, rien ici ne s'appuie sur lui.
+ * (Compris et corrigé le 11/10/2026 — `correctifs/react-reveil-perdu.cjs` :
+ * `router.refresh()` aboutit désormais sur « Finance », 6 fois sur 6. Le
+ * rechargement complet au retour d'historique reste le choix fait ici : il ne
+ * dépend d'aucun correctif.)
  *
  * ⚠ LE SURVOL NE RAPPORTE JAMAIS LES CHIFFRES D'UNE PAGE. Le préchargement est
  * « auto » — jamais « full », le défaut de `router.prefetch`, qui garderait la
