@@ -7,6 +7,7 @@ import { AutoSubmitSelect } from '@/components/auto-submit-select';
 import { PrintButton } from '@/components/print-button';
 import { dateHeure } from '@/components/recu-document';
 import { ExporterCsv } from '../rapport/exporter';
+import { dmy, jourValide, lirePlage } from '../rapport/periode';
 import { ImprimerRapport, JourInput } from './boutons';
 import { SyntheseAnnuelle, type Bilan } from './synthese-annuelle';
 import { financeTabsFor } from '../tabs';
@@ -60,18 +61,27 @@ const ucfirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
  * `annee`, défaut date du jour ; années civile −2…+1) : synthèse par moyen,
  * « Payé aux professeurs / au staff », journal détaillé du mois. Puis la
  * « Synthèse — Année scolaire » de l'année consultée.
+ *
+ * ⚠ EN PLUS DE LUI (propriétaire, octobre 2026) : le suivi journalier accepte
+ * une date de fin (`au`) — « du … au … », bornes comprises. Sans elle, ou
+ * égale au jour, la page est la sienne : un seul jour.
  */
 export default async function RevenuePage({
   searchParams,
 }: {
-  searchParams: Promise<{ jour?: string; mois?: string; annee?: string; synthese?: string }>;
+  searchParams: Promise<{ jour?: string; au?: string; mois?: string; annee?: string; synthese?: string }>;
 }) {
   const params = await searchParams;
   const { user } = await requireSession();
 
   const now = new Date();
   const aujourdhui = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const jour = /^\d{4}-\d{2}-\d{2}$/.test(params.jour ?? '') ? params.jour! : aujourdhui;
+  const jour = jourValide(params.jour) ? params.jour : aujourdhui;
+  // La date de fin, si elle est demandée : une période de plusieurs jours.
+  const lue = params.au && params.au !== jour ? lirePlage(jour, params.au) : null;
+  const plage = lue && 'from' in lue ? lue : null;
+  const erreurPlage = lue && 'erreur' in lue ? lue.erreur : null;
+  const au = plage ? plage.to : jour;
   const mois = /^\d{1,2}$/.test(params.mois ?? '') && Number(params.mois) >= 1 && Number(params.mois) <= 12
     ? Number(params.mois)
     : now.getMonth() + 1;
@@ -88,8 +98,8 @@ export default async function RevenuePage({
   const anneeSynthese =
     anneesScolaires.find((a) => a.id === params.synthese) ?? contientAujourdhui ?? vue ?? null;
   const [j, jourTx, moisSyn, moisTx, salaires, bilan] = await Promise.all([
-    apiFetch<Jour>(`/reports/jour?jour=${jour}`),
-    apiFetch<Mouvement[]>(`/reports/transactions?day=${jour}`),
+    apiFetch<Jour>(plage ? `/reports/jour?from=${plage.from}&to=${plage.to}` : `/reports/jour?jour=${jour}`),
+    apiFetch<Mouvement[]>(plage ? `/reports/transactions?from=${plage.from}&to=${plage.to}` : `/reports/transactions?day=${jour}`),
     apiFetch<Synthese[]>(`/reports/methods?month=${mois}&year=${annee}`),
     apiFetch<Mouvement[]>(`/reports/transactions?month=${mois}&year=${annee}`),
     apiFetch<{ professeur: string; staff: string }>(`/reports/salaires?month=${mois}&year=${annee}`),
@@ -99,7 +109,20 @@ export default async function RevenuePage({
   const totE = toStorage(sum(moisSyn.map((r) => r.entrant)));
   const totS = toStorage(sum(moisSyn.map((r) => r.sortant)));
   const solde = money(totE).minus(totS);
-  const jourDmy = jour.split('-').reverse().join('/');
+  const jourDmy = plage ? `${dmy(jour)} au ${dmy(au)}` : dmy(jour);
+  const aucunMouvement = plage ? 'Aucun mouvement sur la période.' : 'Aucun mouvement ce jour.';
+  /** Vert si le solde est positif ou nul, rouge sinon — en décimal (règle 6). */
+  const couleurSolde = (v: string) => (money(v).isNegative() ? '#a8341f' : '#728157');
+  // Raccourcis de période (El Mourad 0.7.9), sur le sélecteur unique.
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const lundi = new Date(now);
+  lundi.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  const raccourcis: [string, string, string][] = [
+    ["Aujourd'hui", aujourdhui, aujourdhui],
+    ['Cette semaine', iso(lundi), aujourdhui],
+    ['Ce mois', iso(new Date(now.getFullYear(), now.getMonth(), 1)), aujourdhui],
+    ['Le mois dernier', iso(new Date(now.getFullYear(), now.getMonth() - 1, 1)), iso(new Date(now.getFullYear(), now.getMonth(), 0))],
+  ];
   const annees = [now.getFullYear() - 2, now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1];
 
   const LigneTx = ({ m, date }: { m: Mouvement; date: string }) => (
@@ -153,17 +176,30 @@ export default async function RevenuePage({
           {/* ===== Revenus du jour ===== */}
           <div className="section-title-row">
             <h2 style={{ margin: 0 }}>Suivi journalier</h2>
-            <a href={`/finance/revenue/periode?du=${jour}&au=${jour}`} className="btn btn-primary no-print">
-              📅 Rapport sur une période (du … au …)
-            </a>
+            {/* FUSION (0.7.10) — UN SEUL sélecteur de période : « Jusqu’au », ci-dessous.
+                Le détail jour par jour (El Mourad 0.7.9) s'ouvre sur la période choisie. */}
+            {plage && (
+              <a href={`/finance/revenue/periode?du=${plage.from}&au=${plage.to}`} className="btn btn-primary no-print">
+                📅 Détail jour par jour
+              </a>
+            )}
           </div>
 
           <form method="GET" className="form-card no-print" style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
               <div>
-                <label>Sélectionner le jour</label>
+                <label>{plage ? 'Du' : 'Sélectionner le jour'}</label>
                 <JourInput name="jour" defaultValue={jour} />
               </div>
+              <div>
+                <label>Jusqu’au (plusieurs jours)</label>
+                <JourInput name="au" defaultValue={plage ? au : ''} />
+              </div>
+              {(plage || erreurPlage) && (
+                <a className="btn btn-secondary" href={`?jour=${jour}&mois=${mois}&annee=${annee}`}>
+                  Un seul jour
+                </a>
+              )}
               <div style={{ flex: 1 }}></div>
               <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', textAlign: 'right' }}>
                 <div>
@@ -175,14 +211,31 @@ export default async function RevenuePage({
                   <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#a8341f' }}>{mru(j.sortant ?? '0')} MRU</div>
                 </div>
                 <div>
-                  <div className="text-muted" style={{ fontSize: '.85rem' }}>Solde du jour</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: Number(j.solde ?? j.total) >= 0 ? '#728157' : '#a8341f' }}>
+                  <div className="text-muted" style={{ fontSize: '.85rem' }}>{plage ? 'Solde de la période' : 'Solde du jour'}</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: couleurSolde(j.solde ?? j.total) }}>
                     {mru(j.solde ?? j.total)} MRU
                   </div>
                 </div>
               </div>
             </div>
+            <div style={{ display: 'flex', gap: '.4rem', flexWrap: 'wrap', marginTop: '.75rem' }}>
+              {raccourcis.map(([nom, d, a]) => (
+                <a
+                  key={nom}
+                  href={`?jour=${d}${a !== d ? `&au=${a}` : ''}&mois=${mois}&annee=${annee}`}
+                  className="btn btn-sm btn-secondary"
+                >
+                  {nom}
+                </a>
+              ))}
+            </div>
           </form>
+
+          {erreurPlage && (
+            <div className="alert alert-error no-print" role="alert" style={{ marginBottom: '1rem' }}>
+              {erreurPlage} Seul le {dmy(jour)} est affiché.
+            </div>
+          )}
 
           <div className="rev-deux" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(20rem, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
             <div className="table-container" style={{ margin: 0 }}>
@@ -194,16 +247,17 @@ export default async function RevenuePage({
                   </thead>
                   <tbody>
                     {(j.moyens ?? []).length === 0 ? (
-                      <tr><td colSpan={4} className="text-muted" style={{ textAlign: 'center' }}>Aucun mouvement ce jour.</td></tr>
+                      <tr><td colSpan={4} className="text-muted" style={{ textAlign: 'center' }}>{aucunMouvement}</td></tr>
                     ) : (
                       (j.moyens ?? []).map((r) => {
-                        const sol = Number(r.entrant) - Number(r.sortant);
+                        // Règle 6 : un solde se calcule en décimal, jamais en `number`.
+                        const sol = toStorage(money(r.entrant).minus(r.sortant));
                         return (
                           <tr key={r.moyen}>
                             <td><strong>{r.moyen}</strong></td>
                             <td style={{ color: '#728157' }}>{mru(r.entrant)} MRU</td>
                             <td style={{ color: '#a8341f' }}>{mru(r.sortant)} MRU</td>
-                            <td><strong style={{ color: sol >= 0 ? '#728157' : '#a8341f' }}>{mru(sol)} MRU</strong></td>
+                            <td><strong style={{ color: couleurSolde(sol) }}>{mru(sol)} MRU</strong></td>
                           </tr>
                         );
                       })
@@ -227,13 +281,13 @@ export default async function RevenuePage({
                   </thead>
                   <tbody>
                     {(j.origines ?? []).length === 0 ? (
-                      <tr><td colSpan={3} className="text-muted" style={{ textAlign: 'center' }}>Aucun mouvement ce jour.</td></tr>
+                      <tr><td colSpan={3} className="text-muted" style={{ textAlign: 'center' }}>{aucunMouvement}</td></tr>
                     ) : (
                       (j.origines ?? []).map((r) => (
                         <tr key={r.source_type}>
                           <td>{r.label}</td>
-                          <td style={{ color: '#728157' }}>{Number(r.entrant) > 0 ? `${mru(r.entrant)} MRU` : '—'}</td>
-                          <td style={{ color: '#a8341f' }}>{Number(r.sortant) > 0 ? `${mru(r.sortant)} MRU` : '—'}</td>
+                          <td style={{ color: '#728157' }}>{money(r.entrant).greaterThan(0) ? `${mru(r.entrant)} MRU` : '—'}</td>
+                          <td style={{ color: '#a8341f' }}>{money(r.sortant).greaterThan(0) ? `${mru(r.sortant)} MRU` : '—'}</td>
                         </tr>
                       ))
                     )}
@@ -249,7 +303,7 @@ export default async function RevenuePage({
               <div className="section-title-row" style={{ width: '100%', margin: 0 }}>
                 <h3 style={{ margin: 0 }}>Transactions du {jourDmy}</h3>
                 <div className="btn-export-group">
-                  <ExporterCsv tableId="table_jour" filename={`transactions_jour_${jour}.csv`} petit />
+                  <ExporterCsv tableId="table_jour" filename={plage ? `transactions_${jour}_${au}.csv` : `transactions_jour_${jour}.csv`} petit />
                   <ImprimerRapport tableId="table_jour" titre={`Transactions du ${jourDmy}`} />
                   <PrintButton label="Imprimer" className="btn btn-sm btn-secondary" />
                 </div>
@@ -259,7 +313,7 @@ export default async function RevenuePage({
               <table id="table_jour">
                 <thead>
                   <tr>
-                    <th>Heure</th>
+                    <th>{plage ? 'Date / Heure' : 'Heure'}</th>
                     <th>Enregistré par</th>
                     <th>Sens</th>
                     <th>Type</th>
@@ -272,11 +326,11 @@ export default async function RevenuePage({
                   {jourTx.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="text-muted" style={{ textAlign: 'center' }}>
-                        Aucune transaction enregistrée ce jour.
+                        {plage ? 'Aucune transaction enregistrée sur la période.' : 'Aucune transaction enregistrée ce jour.'}
                       </td>
                     </tr>
                   ) : (
-                    jourTx.map((m, i) => <LigneTx key={i} m={m} date={heure(m.at)} />)
+                    jourTx.map((m, i) => <LigneTx key={i} m={m} date={plage ? dateHeure(m.at) : heure(m.at)} />)
                   )}
                 </tbody>
               </table>
@@ -290,6 +344,10 @@ export default async function RevenuePage({
 
           <form method="GET" className="form-card no-print" style={{ marginBottom: '1.5rem' }}>
             <input type="hidden" name="jour" value={jour} />
+            {plage && <input type="hidden" name="au" value={au} />}
+            {params.synthese && anneeSynthese?.id === params.synthese && (
+              <input type="hidden" name="synthese" value={anneeSynthese.id} />
+            )}
             <div style={{ display: 'flex', gap: '.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
               <div>
                 <label>Mois</label>
@@ -411,6 +469,7 @@ export default async function RevenuePage({
           {anneesScolaires.length > 0 && (
             <form method="GET" className="no-print" style={{ marginTop: '2rem', display: 'flex', gap: '.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <input type="hidden" name="jour" value={jour} />
+              {plage && <input type="hidden" name="au" value={au} />}
               <input type="hidden" name="mois" value={String(mois)} />
               <input type="hidden" name="annee" value={String(annee)} />
               <label style={{ margin: 0 }}>Synthèse de l&apos;année scolaire</label>

@@ -7,6 +7,7 @@ import { AutoSubmitSelect } from '@/components/auto-submit-select';
 import { PrintButton } from '@/components/print-button';
 import { dateHeure } from '@/components/recu-document';
 import { ExporterCsv } from './exporter';
+import { dmy, lirePlage } from './periode';
 import { SyntheseAnnuelle, type Bilan } from '../revenue/synthese-annuelle';
 import { financeTabsFor } from '../tabs';
 import { money, sum, toStorage } from '@elourwa/shared/money';
@@ -39,11 +40,16 @@ interface Transaction {
  * GÉNÉRAL », et le détail est une ligne par mouvement. Puis la « Synthèse —
  * Année scolaire » de l'année consultée, sur les reçus d'archive quand il y en
  * a, sur la caisse sinon, avec son contrôle de ventilation.
+ *
+ * ⚠ EN PLUS DE LUI (propriétaire, octobre 2026) : une période de plusieurs
+ * jours, « du … au … » bornes comprises (`?du=&au=`). Quand elle est demandée,
+ * les cartes, la synthèse et le détail portent sur elle ; choisir un mois y
+ * revient. Sans elle, la page est la sienne, au mois.
  */
 export default async function RapportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mois?: string; annee?: string }>;
+  searchParams: Promise<{ mois?: string; annee?: string; du?: string; au?: string }>;
 }) {
   const params = await searchParams;
   const { user } = await requireSession();
@@ -65,9 +71,20 @@ export default async function RapportPage({
   // La synthèse : l'année scolaire qui contient aujourd'hui, sinon l'année affichée.
   const anneeSynthese = anneeContenant(anneesScolaires, aujourdhui) ?? vue ?? null;
 
+  // La période de plusieurs jours, si elle est demandée et possible.
+  const lue = lirePlage(params.du, params.au);
+  const plage = lue && 'from' in lue ? lue : null;
+  const erreurPlage = lue && 'erreur' in lue ? lue.erreur : null;
+  const filtre = plage ? `from=${plage.from}&to=${plage.to}` : `month=${mois}&year=${annee}`;
+  const libellePeriode = plage
+    ? plage.from === plage.to
+      ? `le ${dmy(plage.from)}`
+      : `du ${dmy(plage.from)} au ${dmy(plage.to)}`
+    : `${MOIS_NOMS[mois]} ${annee}`;
+
   const [synthese, transactions, bilan, bornes] = await Promise.all([
-    apiFetch<Synthese[]>(`/reports/methods?month=${mois}&year=${annee}`),
-    apiFetch<Transaction[]>(`/reports/transactions?month=${mois}&year=${annee}`),
+    apiFetch<Synthese[]>(`/reports/methods?${filtre}`),
+    apiFetch<Transaction[]>(`/reports/transactions?${filtre}`),
     apiFetch<Bilan>(`/reports/bilan-annuel${anneeSynthese ? `?academicYearId=${anneeSynthese.id}` : ''}`).catch(() => null),
     apiFetch<{ anneeMin: number | null; anneeMax: number | null }>('/reports/bornes-annees').catch(
       () => ({ anneeMin: null, anneeMax: null }),
@@ -121,11 +138,39 @@ export default async function RapportPage({
                 />
               </div>
             </form>
+            {/* Une période de plusieurs jours, bornes comprises. */}
+            <form method="GET" style={{ display: 'flex', gap: '.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <div>
+                <label htmlFor="rapport_du">Du</label>
+                <input id="rapport_du" type="date" name="du" defaultValue={params.du ?? ''} />
+              </div>
+              <div>
+                <label htmlFor="rapport_au">Au</label>
+                <input id="rapport_au" type="date" name="au" defaultValue={params.au ?? ''} />
+              </div>
+              <button type="submit" className="btn btn-secondary">
+                Afficher la période
+              </button>
+              {(plage || erreurPlage) && (
+                <a className="btn btn-secondary" href={`?mois=${mois}&annee=${annee}`}>
+                  Revenir au mois
+                </a>
+              )}
+            </form>
             <div style={{ display: 'flex', gap: '.5rem' }}>
-              <ExporterCsv tableId="table_rapport" filename={`rapport_finance_${mois}_${annee}.csv`} />
+              <ExporterCsv
+                tableId="table_rapport"
+                filename={plage ? `rapport_finance_${plage.from}_${plage.to}.csv` : `rapport_finance_${mois}_${annee}.csv`}
+              />
               <PrintButton label="Imprimer / PDF" className="btn btn-primary" />
             </div>
           </div>
+
+          {erreurPlage && (
+            <div className="alert alert-error no-print" role="alert" style={{ marginBottom: '1rem' }}>
+              {erreurPlage} Le rapport affiché est celui du mois ({MOIS_NOMS[mois]} {annee}).
+            </div>
+          )}
 
           <div
             style={{
@@ -171,7 +216,7 @@ export default async function RapportPage({
           <div className="table-container" style={{ marginBottom: '1.5rem' }}>
             <div className="table-header">
               <h3>
-                Synthèse par moyen de paiement — {MOIS_NOMS[mois]} {annee}
+                Synthèse par moyen de paiement — {libellePeriode}
               </h3>
             </div>
             <div className="overflow-x">
@@ -213,7 +258,7 @@ export default async function RapportPage({
 
           <div className="table-container">
             <div className="table-header">
-              <h3>Détails des transactions de la période</h3>
+              <h3>Détails des transactions de la période{plage ? ` (${libellePeriode})` : ''}</h3>
             </div>
             <div className="overflow-x">
               <table id="table_rapport">
@@ -232,7 +277,7 @@ export default async function RapportPage({
                   {transactions.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="text-center text-muted" style={{ padding: '2rem' }}>
-                        Aucune transaction enregistrée pour ce mois.
+                        {plage ? 'Aucune transaction enregistrée sur cette période.' : 'Aucune transaction enregistrée pour ce mois.'}
                       </td>
                     </tr>
                   ) : (

@@ -19,13 +19,23 @@ import { SOURCES_SERVICES } from '@elourwa/shared';
  * Les grands livres qui s'annulent par contre-passation, et l'origine de leurs
  * lignes de caisse (`tender_lines.source_type`).
  */
-const LIVRES: { table: string; origines: readonly string[] }[] = [
-  { table: 'payments', origines: ['paiement'] },
-  { table: 'service_payments', origines: SOURCES_SERVICES },
-  { table: 'evening_payments', origines: ['cours_soir'] },
-  { table: 'evening_teacher_payments', origines: ['cours_soir_prof'] },
-  { table: 'expenses', origines: ['depense'] },
-  { table: 'salary_payments', origines: ['salaire_prof', 'salaire_staff', 'salaire'] },
+/*
+ * ⚠ FUSION (0.7.10) — la même règle avait été écrite deux fois : ici
+ * (`ligneRetenue` / `ecritureRetenue`, El Mourad 0.7.9) et dans
+ * `reports.service.ts` (`ligneVive` / `vive`, balayage du 04/10, ADR-0077).
+ * Il n'en reste QU'UNE, ici ; les rapports, la caisse par moyen
+ * (`tender.service`) et la plateforme la lisent tous. Elle porte la forme la
+ * plus stricte des deux : les grands livres qui marquent aussi l'originale
+ * (`reversed`) sont écartés sur ce drapeau également.
+ */
+/** `drapeau` : le grand livre marque aussi l'originale annulée (`reversed`). */
+const LIVRES: { table: string; origines: readonly string[]; drapeau: boolean }[] = [
+  { table: 'payments', origines: ['paiement'], drapeau: false },
+  { table: 'service_payments', origines: SOURCES_SERVICES, drapeau: false },
+  { table: 'evening_payments', origines: ['cours_soir'], drapeau: false },
+  { table: 'evening_teacher_payments', origines: ['cours_soir_prof'], drapeau: true },
+  { table: 'expenses', origines: ['depense'], drapeau: true },
+  { table: 'salary_payments', origines: ['salaire_prof', 'salaire_staff', 'salaire'], drapeau: true },
 ];
 
 const liste = (xs: readonly string[]) => xs.map((x) => `'${x.replace(/'/g, "''")}'`).join(', ');
@@ -33,16 +43,18 @@ const liste = (xs: readonly string[]) => xs.map((x) => `'${x.replace(/'/g, "''")
 /**
  * La condition SQL « cette ligne de caisse compte » : elle n'appartient ni à
  * une écriture annulée, ni à une annulation. `alias` : la table `tender_lines`
- * dans la requête (des identifiants de code, jamais une saisie).
+ * dans la requête (des identifiants de code, jamais une saisie). Les
+ * `source_type` sont des constantes du code : les écrire dans la requête la
+ * laisse lisible et servie par l'index `(school_id, source_type, source_id)`.
  */
 export function ligneRetenue(alias = 'tl'): string {
   if (!/^[a-z_]+$/.test(alias)) throw new Error(`alias invalide : ${alias}`);
   return LIVRES.map(
-    ({ table, origines }) =>
-      `NOT (${alias}.source_type IN (${liste(origines)}) AND (
-         EXISTS (SELECT 1 FROM ${table} x WHERE x.id = ${alias}.source_id AND x.reverses_id IS NOT NULL)
-         OR EXISTS (SELECT 1 FROM ${table} x WHERE x.reverses_id = ${alias}.source_id)))`,
-  ).join('\n AND ');
+    ({ table, origines, drapeau }) =>
+      `NOT EXISTS (SELECT 1 FROM ${table} src WHERE ${alias}.source_type IN (${liste(origines)}) AND src.id = ${alias}.source_id` +
+      ` AND (src.reverses_id IS NOT NULL${drapeau ? ' OR src.reversed' : ''}` +
+      ` OR EXISTS (SELECT 1 FROM ${table} annul WHERE annul.reverses_id = src.id)))`,
+  ).join('\n            AND ');
 }
 
 /**
@@ -50,10 +62,14 @@ export function ligneRetenue(alias = 'tl'): string {
  * `table` doit être l'un des grands livres ci-dessus.
  */
 export function ecritureRetenue(table: string, alias: string): string {
-  if (!LIVRES.some((l) => l.table === table)) throw new Error(`grand livre inconnu : ${table}`);
+  const livre = LIVRES.find((l) => l.table === table);
+  if (!livre) throw new Error(`grand livre inconnu : ${table}`);
   if (!/^[a-z_]+$/.test(alias)) throw new Error(`alias invalide : ${alias}`);
-  return `${alias}.reverses_id IS NULL
-      AND NOT EXISTS (SELECT 1 FROM ${table} x WHERE x.reverses_id = ${alias}.id)`;
+  return (
+    `${alias}.reverses_id IS NULL` +
+    (livre.drapeau ? ` AND ${alias}.reversed = false` : '') +
+    ` AND NOT EXISTS (SELECT 1 FROM ${table} annul WHERE annul.reverses_id = ${alias}.id)`
+  );
 }
 
 /**

@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { ReportsService } from './reports.service.js';
 import { RequirePermission, type AuthenticatedRequest } from '../auth/permissions.guard.js';
 import { AcademicYearService } from '../academic/academic-year.service.js';
-import { dateIso } from '../common/dates.js';
+import { jourReel, parsePlage } from './periode.js';
 
 const month = z.coerce.number().int().min(1).max(12);
 const year = z.coerce.number().int().min(2000).max(2100);
@@ -48,10 +48,11 @@ export class ReportsController {
   }
 
   /**
-   * The day's or the month's movements, one row each.
+   * The day's, the period's or the month's movements, one row each.
    *
    * `revenue_live.php`'s `table_jour` and `table_mois`. A day is asked for by
-   * date; a month by number and year.
+   * date; a month by number and year ; une période de plusieurs jours par
+   * `from` et `to` (AAAA-MM-JJ, bornes comprises — demande du propriétaire).
    */
   @Get('transactions')
   @RequirePermission('finance.consulter', 'finance.rapport')
@@ -59,19 +60,29 @@ export class ReportsController {
     @Query('day') day?: string,
     @Query('month') m?: string,
     @Query('year') y?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
   ) {
+    const plage = parsePlage(from, to);
     return this.reports.transactions({
-      day: day ? dateIso.parse(day) : undefined,
+      day: day ? jourReel(day) : undefined,
+      from: plage?.from,
+      to: plage?.to,
       month: m ? month.parse(m) : undefined,
       year: y ? year.parse(y) : undefined,
     });
   }
 
-  /** Les entrées d'un jour, par moyen et par origine — `revenue_live.php`. */
+  /**
+   * Les entrées d'un jour, par moyen et par origine — `revenue_live.php` ; ou
+   * d'une période de plusieurs jours (`from`, `to`, bornes comprises).
+   */
   @Get('jour')
   @RequirePermission('finance.consulter', 'finance.rapport')
-  jour(@Query('jour') jour: string) {
-    return this.reports.revenusDuJour(dateIso.parse(jour));
+  jour(@Query('jour') jour?: string, @Query('from') from?: string, @Query('to') to?: string) {
+    const plage = parsePlage(from, to);
+    if (plage) return this.reports.revenusDuJour(plage.from, plage.to);
+    return this.reports.revenusDuJour(jourReel(z.string().parse(jour)));
   }
 
   /**
@@ -104,9 +115,17 @@ export class ReportsController {
     return this.reports.dailyCollections(month.parse(m), year.parse(y));
   }
 
+  /** La synthèse par moyen : d'un mois, ou d'une période de jours (`from`, `to`). */
   @Get('methods')
   @RequirePermission('finance.rapport')
-  methods(@Query('month') m: string, @Query('year') y: string) {
+  methods(
+    @Query('month') m?: string,
+    @Query('year') y?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    const plage = parsePlage(from, to);
+    if (plage) return this.reports.byPaymentMethod(plage);
     return this.reports.byPaymentMethod(month.parse(m), year.parse(y));
   }
 

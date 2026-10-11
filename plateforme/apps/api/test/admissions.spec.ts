@@ -389,12 +389,20 @@ describe('expenses — depenses.php', () => {
     expect(rows[0]!.amount).toBe('12500.50');
     expect(rows[0]!.reversed).toBe(true);
 
-    // 0.7.9 (El Mourad, annulations.ts) : une écriture annulée et son
-    // annulation disparaissent ENSEMBLE de tous les rapports, quels que soient
-    // leurs mois — la caisse n'a rien dépensé. Novembre ne la compte plus, et
-    // aujourd'hui ne compte pas la négation ; le grand livre garde les deux.
+    // ⚠ DEMANDE DU PROPRIÉTAIRE (octobre 2026) — une dépense annulée sort des
+    // rapports, comme chez El Ourwa qui la supprime. Ce test attendait que
+    // novembre GARDE les 12 500,50 (l'annulation pesant sur le mois où elle
+    // est faite, ADR-0013) : novembre ne les porte plus, et le mois de
+    // l'annulation n'est pas creusé d'autant. La ligne, elle, est intacte
+    // (vérifié ci-dessus).
     const november = await inTenant(() => reports.monthly(11, 2020));
     expect(november.outgoings.expenses).toBe('0.00');
+    const now = new Date();
+    const thisMonth = await inTenant(() => reports.monthly(now.getMonth() + 1, now.getFullYear()));
+    expect(thisMonth.outgoings.expenses).toBe('0.00');
+    // 0.7.9 (El Mourad, annulations.ts) : une écriture annulée et son
+    // annulation disparaissent ENSEMBLE de tous les rapports, quels que soient
+    // leurs mois ; le grand livre, lui, garde les deux.
     const { rows: deux } = await owner.query<{ n: string }>(
       'SELECT count(*)::text AS n FROM expenses WHERE id = $1 OR reverses_id = $1',
       [expenseId],
