@@ -22,7 +22,12 @@ export const dynamic = 'force-dynamic';
 interface Family {
   guardian: { id: string; full_name: string; phone: string | null; email?: string | null } | null;
   years: { id: string; label: string; start_year: number; status: string; children: number }[];
-  children: { studentId: string; name: string; fee: string; free: boolean; className: string | null }[];
+  /** 0.7.9 : `fee` est ce que l'enfant coûte ce mois-ci (exemptions et réductions comprises). */
+  children: {
+    studentId: string; name: string; fee: string; free: boolean; className: string | null;
+    fullFee?: string; exempt?: boolean; monthExempt?: boolean; discount?: string;
+    refMonth?: { month: number; year: number } | null;
+  }[];
   monthlyTotal: string;
   freeCount: number;
   year?: { id: string; label: string; startYear: number };
@@ -214,7 +219,11 @@ export default async function ProfilCorrespondantPage({
             academicYearId={anneeObj?.id ?? ''}
             yearLabel={anneeObj?.label ?? ''}
             anneesPar={anneesPar}
-            enfAn={family.children.map((c) => ({ id: c.studentId, nom: c.name, frais: c.fee, gratuit: c.free, classe: c.className }))}
+            enfAn={family.children.map((c) => ({
+              id: c.studentId, nom: c.name, frais: c.fee, gratuit: c.free, classe: c.className,
+              plein: c.fullFee ?? c.fee, reduction: c.discount ?? '0.00', moisExempte: c.monthExempt ?? false,
+              moisRef: c.refMonth ?? null,
+            }))}
             mensAn={family.monthlyTotal}
             nbGratuits={family.freeCount}
             dette={{

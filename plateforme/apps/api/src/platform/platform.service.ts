@@ -1,3 +1,4 @@
+import { ligneRetenue } from '../finance/annulations.js';
 import {
   BadRequestException,
   ConflictException,
@@ -612,7 +613,9 @@ export class PlatformService {
              COALESCE(SUM(amount) FILTER (WHERE direction = 'out' AND EXTRACT(MONTH FROM created_at) = $1 AND EXTRACT(YEAR FROM created_at) = $2), 0)::numeric(14,2)::text AS mois_out,
              COALESCE(SUM(amount) FILTER (WHERE direction = 'in'  AND EXTRACT(YEAR FROM created_at) = $2), 0)::numeric(14,2)::text AS annee_in,
              COALESCE(SUM(amount) FILTER (WHERE direction = 'out' AND EXTRACT(YEAR FROM created_at) = $2), 0)::numeric(14,2)::text AS annee_out
-           FROM tender_lines`,
+           FROM tender_lines tl
+          -- 0.7.9 : ni une écriture annulée, ni son annulation (annulations.ts).
+          WHERE ${ligneRetenue('tl')}`,
           [mois, annee],
         );
         // Le rapport mensuel de l'année : douze lignes, comme la « synthèse
@@ -621,16 +624,17 @@ export class PlatformService {
           `SELECT EXTRACT(MONTH FROM created_at)::int AS mois,
                   COALESCE(SUM(amount) FILTER (WHERE direction = 'in'), 0)::numeric(14,2)::text AS entrees,
                   COALESCE(SUM(amount) FILTER (WHERE direction = 'out'), 0)::numeric(14,2)::text AS sorties
-             FROM tender_lines
-            WHERE EXTRACT(YEAR FROM created_at) = $1
+             FROM tender_lines tl
+            WHERE EXTRACT(YEAR FROM created_at) = $1 AND ${ligneRetenue('tl')}
             GROUP BY 1 ORDER BY 1`,
           [annee],
         );
         // Le détail du mois par origine, entrées comme sorties.
         const { rows: parSource } = await tx.query<{ source_type: string; direction: string; total: string }>(
           `SELECT source_type, direction::text, COALESCE(SUM(amount), 0)::numeric(14,2)::text AS total
-             FROM tender_lines
+             FROM tender_lines tl
             WHERE EXTRACT(MONTH FROM created_at) = $1 AND EXTRACT(YEAR FROM created_at) = $2
+              AND ${ligneRetenue('tl')}
             GROUP BY source_type, direction ORDER BY direction, SUM(amount) DESC`,
           [mois, annee],
         );

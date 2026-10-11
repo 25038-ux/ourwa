@@ -1,5 +1,5 @@
 import { apiFetch, requireSession } from '@/lib/session';
-import { anneeAffichee } from '@/lib/annee';
+import { anneeAffichee, anneeContenant, type Annee } from '@/lib/annee';
 import { MOIS_NOMS } from '@/lib/mois';
 import { PageHeader } from '@/components/page-header';
 import { HubNav, mru } from '@/components/hub';
@@ -48,17 +48,27 @@ export default async function RapportPage({
   const params = await searchParams;
   const { user } = await requireSession();
 
-  const vue = await anneeAffichee();
-  const anneeDefaut = vue?.start_year ?? new Date().getFullYear();
+  const [vue, anneesScolaires] = await Promise.all([
+    anneeAffichee(),
+    apiFetch<Annee[]>('/academic-years').catch(() => [] as Annee[]),
+  ]);
+  const now = new Date();
+  const aujourdhui = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  // ⚠ 0.7.9 : le mois et l'année CIVILS d'aujourd'hui par défaut. L'année de
+  // début de l'année scolaire affichée ouvrait « Septembre 2025 » en septembre
+  // 2026 — un mois vide.
+  const anneeDefaut = now.getFullYear();
   const mois = /^\d{1,2}$/.test(params.mois ?? '') && Number(params.mois) >= 1 && Number(params.mois) <= 12
     ? Number(params.mois)
-    : new Date().getMonth() + 1;
+    : now.getMonth() + 1;
   const annee = /^\d{4}$/.test(params.annee ?? '') ? Number(params.annee) : anneeDefaut;
+  // La synthèse : l'année scolaire qui contient aujourd'hui, sinon l'année affichée.
+  const anneeSynthese = anneeContenant(anneesScolaires, aujourdhui) ?? vue ?? null;
 
   const [synthese, transactions, bilan, bornes] = await Promise.all([
     apiFetch<Synthese[]>(`/reports/methods?month=${mois}&year=${annee}`),
     apiFetch<Transaction[]>(`/reports/transactions?month=${mois}&year=${annee}`),
-    apiFetch<Bilan>(`/reports/bilan-annuel${vue ? `?academicYearId=${vue.id}` : ''}`).catch(() => null),
+    apiFetch<Bilan>(`/reports/bilan-annuel${anneeSynthese ? `?academicYearId=${anneeSynthese.id}` : ''}`).catch(() => null),
     apiFetch<{ anneeMin: number | null; anneeMax: number | null }>('/reports/bornes-annees').catch(
       () => ({ anneeMin: null, anneeMax: null }),
     ),

@@ -1,5 +1,5 @@
 import { apiFetch, requireSession } from '@/lib/session';
-import { anneeAffichee } from '@/lib/annee';
+import { anneeAffichee, anneeContenant, type Annee } from '@/lib/annee';
 import { MOIS_NOMS } from '@/lib/mois';
 import { PageHeader } from '@/components/page-header';
 import { HubNav, mru } from '@/components/hub';
@@ -16,8 +16,14 @@ export const dynamic = 'force-dynamic';
 
 interface Jour {
   total: string;
+  /** 0.7.9 : les sorties du jour, et le solde. */
+  sortant: string;
+  solde: string;
   parMoyen: { moyen: string; total: string }[];
   parSource: { source_type: string; label: string; total: string }[];
+  /** Entrées ET sorties, par moyen et par origine. */
+  moyens: { moyen: string; entrant: string; sortant: string }[];
+  origines: { source_type: string; label: string; entrant: string; sortant: string }[];
 }
 
 interface Mouvement {
@@ -58,7 +64,7 @@ const ucfirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 export default async function RevenuePage({
   searchParams,
 }: {
-  searchParams: Promise<{ jour?: string; mois?: string; annee?: string }>;
+  searchParams: Promise<{ jour?: string; mois?: string; annee?: string; synthese?: string }>;
 }) {
   const params = await searchParams;
   const { user } = await requireSession();
@@ -71,14 +77,23 @@ export default async function RevenuePage({
     : now.getMonth() + 1;
   const annee = /^\d{4}$/.test(params.annee ?? '') ? Number(params.annee) : now.getFullYear();
 
-  const vue = await anneeAffichee();
+  const [vue, anneesScolaires] = await Promise.all([
+    anneeAffichee(),
+    apiFetch<Annee[]>('/academic-years').catch(() => [] as Annee[]),
+  ]);
+  // LA SYNTHÈSE DE L'ANNÉE (0.7.9) : celle qu'on choisit, sinon celle qui
+  // CONTIENT aujourd'hui (du 1er juillet au 30 juin — la rentrée de septembre
+  // en fait partie), sinon l'année affichée.
+  const contientAujourdhui = anneeContenant(anneesScolaires, aujourdhui);
+  const anneeSynthese =
+    anneesScolaires.find((a) => a.id === params.synthese) ?? contientAujourdhui ?? vue ?? null;
   const [j, jourTx, moisSyn, moisTx, salaires, bilan] = await Promise.all([
     apiFetch<Jour>(`/reports/jour?jour=${jour}`),
     apiFetch<Mouvement[]>(`/reports/transactions?day=${jour}`),
     apiFetch<Synthese[]>(`/reports/methods?month=${mois}&year=${annee}`),
     apiFetch<Mouvement[]>(`/reports/transactions?month=${mois}&year=${annee}`),
     apiFetch<{ professeur: string; staff: string }>(`/reports/salaires?month=${mois}&year=${annee}`),
-    apiFetch<Bilan>(`/reports/bilan-annuel${vue ? `?academicYearId=${vue.id}` : ''}`).catch(() => null),
+    apiFetch<Bilan>(`/reports/bilan-annuel${anneeSynthese ? `?academicYearId=${anneeSynthese.id}` : ''}`).catch(() => null),
   ]);
 
   const totE = toStorage(sum(moisSyn.map((r) => r.entrant)));
@@ -138,6 +153,9 @@ export default async function RevenuePage({
           {/* ===== Revenus du jour ===== */}
           <div className="section-title-row">
             <h2 style={{ margin: 0 }}>Suivi journalier</h2>
+            <a href={`/finance/revenue/periode?du=${jour}&au=${jour}`} className="btn btn-primary no-print">
+              📅 Rapport sur une période (du … au …)
+            </a>
           </div>
 
           <form method="GET" className="form-card no-print" style={{ marginBottom: '1.5rem' }}>
@@ -147,39 +165,81 @@ export default async function RevenuePage({
                 <JourInput name="jour" defaultValue={jour} />
               </div>
               <div style={{ flex: 1 }}></div>
-              <div style={{ textAlign: 'right' }}>
-                <div className="text-muted" style={{ fontSize: '.85rem' }}>Total encaissé ce jour</div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#728157' }}>{mru(j.total)} MRU</div>
+              <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', textAlign: 'right' }}>
+                <div>
+                  <div className="text-muted" style={{ fontSize: '.85rem' }}>Total entrées</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#728157' }}>{mru(j.total)} MRU</div>
+                </div>
+                <div>
+                  <div className="text-muted" style={{ fontSize: '.85rem' }}>Total sorties</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#a8341f' }}>{mru(j.sortant ?? '0')} MRU</div>
+                </div>
+                <div>
+                  <div className="text-muted" style={{ fontSize: '.85rem' }}>Solde du jour</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: Number(j.solde ?? j.total) >= 0 ? '#728157' : '#a8341f' }}>
+                    {mru(j.solde ?? j.total)} MRU
+                  </div>
+                </div>
               </div>
             </div>
           </form>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }} className="no-print">
-            <div className="form-card">
-              <h3 style={{ marginTop: 0 }}>Par moyen de paiement</h3>
-              {j.parMoyen.length === 0 ? (
-                <p className="text-muted">Aucun encaissement ce jour.</p>
-              ) : (
-                j.parMoyen.map((r) => (
-                  <div key={r.moyen} style={{ display: 'flex', justifyContent: 'space-between', padding: '.4rem 0', borderBottom: '1px solid #f0f0f0' }}>
-                    <span>{r.moyen}</span>
-                    <strong>{mru(r.total)} MRU</strong>
-                  </div>
-                ))
-              )}
+          <div className="rev-deux" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(20rem, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div className="table-container" style={{ margin: 0 }}>
+              <div className="table-header"><h3 style={{ margin: 0 }}>Par moyen de paiement — {jourDmy}</h3></div>
+              <div className="overflow-x">
+                <table id="table_jour_moyens">
+                  <thead>
+                    <tr><th>Moyen</th><th>Entrées</th><th>Sorties</th><th>Solde</th></tr>
+                  </thead>
+                  <tbody>
+                    {(j.moyens ?? []).length === 0 ? (
+                      <tr><td colSpan={4} className="text-muted" style={{ textAlign: 'center' }}>Aucun mouvement ce jour.</td></tr>
+                    ) : (
+                      (j.moyens ?? []).map((r) => {
+                        const sol = Number(r.entrant) - Number(r.sortant);
+                        return (
+                          <tr key={r.moyen}>
+                            <td><strong>{r.moyen}</strong></td>
+                            <td style={{ color: '#728157' }}>{mru(r.entrant)} MRU</td>
+                            <td style={{ color: '#a8341f' }}>{mru(r.sortant)} MRU</td>
+                            <td><strong style={{ color: sol >= 0 ? '#728157' : '#a8341f' }}>{mru(sol)} MRU</strong></td>
+                          </tr>
+                        );
+                      })
+                    )}
+                    <tr style={{ background: '#f8f8f8', fontWeight: 700 }}>
+                      <td>Total</td>
+                      <td style={{ color: '#728157' }}>{mru(j.total)} MRU</td>
+                      <td style={{ color: '#a8341f' }}>{mru(j.sortant ?? '0')} MRU</td>
+                      <td>{mru(j.solde ?? j.total)} MRU</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div className="form-card">
-              <h3 style={{ marginTop: 0 }}>Par origine</h3>
-              {j.parSource.length === 0 ? (
-                <p className="text-muted">Aucun encaissement ce jour.</p>
-              ) : (
-                j.parSource.map((r) => (
-                  <div key={r.source_type} style={{ display: 'flex', justifyContent: 'space-between', padding: '.4rem 0', borderBottom: '1px solid #f0f0f0' }}>
-                    <span>{r.label}</span>
-                    <strong>{mru(r.total)} MRU</strong>
-                  </div>
-                ))
-              )}
+            <div className="table-container" style={{ margin: 0 }}>
+              <div className="table-header"><h3 style={{ margin: 0 }}>Par origine</h3></div>
+              <div className="overflow-x">
+                <table>
+                  <thead>
+                    <tr><th>Origine</th><th>Entrées</th><th>Sorties</th></tr>
+                  </thead>
+                  <tbody>
+                    {(j.origines ?? []).length === 0 ? (
+                      <tr><td colSpan={3} className="text-muted" style={{ textAlign: 'center' }}>Aucun mouvement ce jour.</td></tr>
+                    ) : (
+                      (j.origines ?? []).map((r) => (
+                        <tr key={r.source_type}>
+                          <td>{r.label}</td>
+                          <td style={{ color: '#728157' }}>{Number(r.entrant) > 0 ? `${mru(r.entrant)} MRU` : '—'}</td>
+                          <td style={{ color: '#a8341f' }}>{Number(r.sortant) > 0 ? `${mru(r.sortant)} MRU` : '—'}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -348,6 +408,19 @@ export default async function RevenuePage({
             </div>
           </div>
 
+          {anneesScolaires.length > 0 && (
+            <form method="GET" className="no-print" style={{ marginTop: '2rem', display: 'flex', gap: '.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <input type="hidden" name="jour" value={jour} />
+              <input type="hidden" name="mois" value={String(mois)} />
+              <input type="hidden" name="annee" value={String(annee)} />
+              <label style={{ margin: 0 }}>Synthèse de l&apos;année scolaire</label>
+              <AutoSubmitSelect
+                name="synthese"
+                defaultValue={anneeSynthese?.id ?? ''}
+                options={anneesScolaires.map((a) => ({ value: a.id, label: `${a.label}${a.status === 'active' ? ' • en cours' : ''}` }))}
+              />
+            </form>
+          )}
           {bilan && <SyntheseAnnuelle bilan={bilan} />}
         </div>
       </div>

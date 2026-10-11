@@ -2487,7 +2487,9 @@ describe('le grand livre des services et la caisse (§5, §7)', () => {
       ]);
       expect(de(`Frais scolaires : ${nom} (Octobre 2025)`)).toHaveLength(1);
 
-      // L'annulation : une sortie décrite de même, datée du jour où elle est faite.
+      // L'annulation (0.7.9, annulations.ts) : l'encaissement annulé ET son
+      // annulation disparaissent ensemble de tous les rapports — la caisse n'a
+      // rien vu passer. Le grand livre, lui, garde les deux écritures.
       const { rows: pc } = await owner.query<{ id: string }>(
         'SELECT id FROM service_payments WHERE student_service_id = $1 AND receipt_id = $2',
         [subs.cantine_dejeuner, r.receiptId],
@@ -2502,9 +2504,16 @@ describe('le grand livre des services et la caisse (§5, §7)', () => {
           .filter((l) => l.description === `Cantine (déjeuner) : ${nom} (Octobre 2025)`)
           .map((l) => [l.direction, l.amount])
           .sort(),
-      ).toEqual([['in', '800.00'], ['out', '800.00']]);
-      // « Par origine » ne compte que les entrées.
-      expect(ecart((await inS(() => reports.revenusDuJour(jour))).total, jourApres.total)).toBe('0.00');
+      ).toEqual([]);
+      // Les entrées du jour ne comptent plus les 800 annulés, et aucune sortie ne les remplace.
+      const jourAnnule = await inS(() => reports.revenusDuJour(jour));
+      expect(ecart(jourAnnule.total, jourApres.total)).toBe('-800.00');
+      expect(ecart(jourAnnule.sortant, jourApres.sortant)).toBe('0.00');
+      const { rows: ecritures } = await owner.query<{ n: string }>(
+        'SELECT count(*)::text AS n FROM service_payments WHERE id = $1 OR reverses_id = $1',
+        [pc[0]!.id],
+      );
+      expect(ecritures[0]!.n).toBe('2');
     });
 
     it('le bilan de l’année contrôle aussi le grand livre des services', async () => {

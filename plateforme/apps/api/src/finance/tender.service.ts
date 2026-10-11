@@ -1,4 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { ligneRetenue } from './annulations.js';
 import { Decimal } from 'decimal.js';
 import { money, toStorage, type SourceService } from '@elourwa/shared';
 import type { Queryable } from '@elourwa/db';
@@ -129,6 +130,8 @@ export class TenderService {
            JOIN tender_lines t ON t.payment_method_id = m.id
           WHERE EXTRACT(MONTH FROM t.created_at) = $1
             AND EXTRACT(YEAR  FROM t.created_at) = $2
+            -- 0.7.9 : ni une écriture annulée, ni son annulation (annulations.ts).
+            AND ${ligneRetenue('t')}
           GROUP BY m.name
          HAVING SUM(t.amount) <> 0
           ORDER BY 2 DESC`,

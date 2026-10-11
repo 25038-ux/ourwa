@@ -1424,8 +1424,23 @@ export class DebtService {
     {
       studentId: string;
       name: string;
+      /**
+       * CE QUE L'ENFANT COÛTE CE MOIS-CI (0.7.9) : 0 s'il est gratuit, exempté ou
+       * si le mois est exempté ; sinon son tarif moins la réduction du mois.
+       */
       fee: string;
+      /** Son tarif mensuel, avant réduction. */
+      fullFee: string;
+      /** Gratuit : scolarité gratuite à l'inscription, ou exemption totale. */
       free: boolean;
+      /** Exemption totale (« Exemption du frais »). */
+      exempt: boolean;
+      /** Le mois de référence est exempté, seul. */
+      monthExempt: boolean;
+      /** La réduction du mois de référence. */
+      discount: string;
+      /** Le mois de référence : le mois en cours, sinon le prochain de l'année, sinon le dernier. */
+      refMonth: { month: number; year: number } | null;
       status: string;
       className: string | null;
     }[]
@@ -1439,13 +1454,39 @@ export class DebtService {
         is_free: boolean;
         status: string;
         class_name: string | null;
+        exempt_total: boolean;
+        ref_month: number | null;
+        ref_year: number | null;
+        ref_discount: string;
+        ref_exempt: boolean;
       }>(
         `SELECT s.id AS student_id, s.first_name, s.last_name,
                 e.monthly_fee::text AS monthly_fee, e.is_free, e.status,
-                g.name AS class_name
+                g.name AS class_name,
+                EXISTS (SELECT 1 FROM exemptions x WHERE x.student_id = s.id AND x.kind = 'full') AS exempt_total,
+                ref.calendar_month AS ref_month, ref.calendar_year AS ref_year,
+                COALESCE(d.amount, 0)::text AS ref_discount,
+                EXISTS (SELECT 1 FROM exemptions x
+                         WHERE x.student_id = s.id AND x.kind = 'monthly'
+                           AND x.calendar_month = ref.calendar_month
+                           AND x.calendar_year = ref.calendar_year) AS ref_exempt
            FROM enrollments e
            JOIN students s ON s.id = e.student_id
            LEFT JOIN groups g ON g.id = e.group_id
+           -- Le mois de référence : le mois en cours ou le prochain de l'année,
+           -- sinon (année passée) le dernier.
+           LEFT JOIN LATERAL (
+             SELECT m.calendar_month, m.calendar_year
+               FROM enrollment_months m
+              WHERE m.enrollment_id = e.id
+              ORDER BY (make_date(m.calendar_year, m.calendar_month, 1) < date_trunc('month', CURRENT_DATE)::date),
+                       CASE WHEN make_date(m.calendar_year, m.calendar_month, 1) >= date_trunc('month', CURRENT_DATE)::date
+                            THEN make_date(m.calendar_year, m.calendar_month, 1) END ASC NULLS LAST,
+                       make_date(m.calendar_year, m.calendar_month, 1) DESC
+              LIMIT 1
+           ) ref ON true
+           LEFT JOIN discounts d
+             ON d.student_id = s.id AND d.calendar_month = ref.calendar_month AND d.calendar_year = ref.calendar_year
           WHERE s.guardian_id = $1
             AND e.academic_year_id = $2
             AND e.status <> 'cancelled'
@@ -1453,18 +1494,31 @@ export class DebtService {
         [guardianId, academicYearId],
       );
 
-      return rows.map((r) => ({
-        studentId: r.student_id,
-        name: `${r.first_name} ${r.last_name === '—' ? '' : r.last_name}`.trim(),
+      return rows.map((r) => {
         // A free child costs nothing. Reporting the rate anyway is how a
-        // scholarship pupil ends up on a debt list.
-        fee: r.is_free ? '0.00' : money(r.monthly_fee).toFixed(2),
-        free: r.is_free,
-        status: r.status,
-        className: r.class_name,
-      }));
+        // scholarship pupil ends up on a debt list — et un enfant exempté
+        // depuis la caisse l'est tout autant (0.7.9).
+        const free = r.is_free || r.exempt_total;
+        const plein = money(r.monthly_fee);
+        const reduction = money(r.ref_discount);
+        const fee = free || r.ref_exempt ? new Decimal(0) : Decimal.max(0, plein.minus(reduction));
+        return {
+          studentId: r.student_id,
+          name: `${r.first_name} ${r.last_name === '—' ? '' : r.last_name}`.trim(),
+          fee: fee.toFixed(2),
+          fullFee: plein.toFixed(2),
+          free,
+          exempt: r.exempt_total,
+          monthExempt: !free && r.ref_exempt,
+          discount: free || r.ref_exempt ? '0.00' : reduction.toFixed(2),
+          refMonth: r.ref_month && r.ref_year ? { month: r.ref_month, year: r.ref_year } : null,
+          status: r.status,
+          className: r.class_name,
+        };
+      });
     });
   }
+
 
   /**
    * The correspondents list — `gestion_caisse.php`'s landing table.

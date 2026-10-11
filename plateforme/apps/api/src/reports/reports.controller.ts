@@ -74,6 +74,17 @@ export class ReportsController {
     return this.reports.revenusDuJour(dateIso.parse(jour));
   }
 
+  /**
+   * LE RAPPORT D'UNE PÉRIODE (0.7.9) — du `du` au `au` inclus : par moyen
+   * (entrées, sorties), jour par jour, et les totaux.
+   */
+  @Get('periode')
+  @RequirePermission('finance.consulter', 'finance.rapport')
+  periode(@Query('du') du: string, @Query('au') au: string) {
+    const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date invalide (AAAA-MM-JJ).');
+    return this.reports.periode(date.parse(du), date.parse(au));
+  }
+
   /** « Payé aux professeurs / au staff » du mois. */
   @Get('salaires')
   @RequirePermission('finance.consulter', 'finance.rapport')

@@ -81,3 +81,19 @@ export const anneeAffichee = cache(async function anneeAffichee(): Promise<Annee
   );
   return year;
 });
+
+/**
+ * L'ANNÉE SCOLAIRE QUI CONTIENT UN JOUR (AAAA-MM-JJ) — pour la « Synthèse —
+ * Année scolaire » (0.7.9). Même fenêtre que l'API (`fenetreAnnee`) : du 1er du
+ * mois qui suit la fin de l'année précédente (le 1er juillet) au dernier jour
+ * du mois de fin — la rentrée de septembre appartient à son année.
+ */
+export function anneeContenant<T extends Annee>(annees: T[], jour: string): T | undefined {
+  return annees.find((a) => {
+    if (!a.start_year || !a.start_month || !a.end_month) return false;
+    const debut = a.end_month + 1 <= a.start_month ? a.end_month + 1 : a.start_month;
+    const du = `${a.start_year}-${String(debut).padStart(2, '0')}-01`;
+    const au = `${a.start_year + 1}-${String(a.end_month).padStart(2, '0')}-31`;
+    return du <= jour && jour <= au;
+  });
+}

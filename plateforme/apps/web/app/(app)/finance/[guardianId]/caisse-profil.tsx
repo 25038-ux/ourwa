@@ -166,7 +166,14 @@ export function CaisseProfil(props: {
   academicYearId: string;
   yearLabel: string;
   anneesPar: { annee: number; tag: string }[];
-  enfAn: { id: string; nom: string; frais: string; gratuit: boolean; classe: string | null }[];
+  /**
+   * Les enfants de l'année sous la fiche. `frais` : ce que l'enfant coûte ce
+   * mois-ci (0.7.9 — exemptions et réductions comprises) ; `plein` : son tarif.
+   */
+  enfAn: {
+    id: string; nom: string; frais: string; gratuit: boolean; classe: string | null;
+    plein?: string; reduction?: string; moisExempte?: boolean; moisRef?: { month: number; year: number } | null;
+  }[];
   mensAn: string;
   nbGratuits: number;
   dette: { total: string; scolarite: string; divers: string; services?: string };
@@ -344,7 +351,8 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
         <p className="text-muted" style={{ margin: '.25rem 0' }}>
           {parent.phone}
           &nbsp;·&nbsp; {enfAn.length} enfant(s) inscrit(s) en {anneeCourante}–{anneeCourante + 1} · Total
-          mensuel : <strong>{mru(mensAn)} MRU</strong>{' '}
+          mensuel{enfAn.some((x) => x.moisRef) ? ` (${MOIS_NOMS[enfAn.find((x) => x.moisRef)!.moisRef!.month]})` : ''}, exemptions et réductions
+          déduites : <strong>{mru(mensAn)} MRU</strong>{' '}
           {nbGratuits > 0 && (
             <span style={{ color: '#059669' }}>
               (dont {nbGratuits} exempté{nbGratuits > 1 ? 's' : ''} de scolarité)
@@ -369,12 +377,33 @@ function Profil(props: Parameters<typeof CaisseProfil>[0] & { totalDette: number
                       <span className="badge badge-secondary" style={{ marginLeft: '.35rem' }}>{x.classe}</span>
                     )}
                   </td>
-                  <td style={{ padding: '.25rem .5rem' }}>{mru(x.frais)} MRU</td>
+                  <td style={{ padding: '.25rem .5rem' }}>
+                    {x.gratuit ? (
+                      <strong style={{ color: '#059669' }}>Gratuit</strong>
+                    ) : (
+                      <>
+                        {mru(x.frais)} MRU
+                        {Number(x.plein ?? x.frais) - Number(x.frais) > 0.009 && (
+                          <small className="text-muted" style={{ marginLeft: '.35rem', textDecoration: 'line-through' }}>
+                            {mru(x.plein ?? x.frais)}
+                          </small>
+                        )}
+                      </>
+                    )}
+                  </td>
                   <td style={{ padding: '.25rem .5rem' }}>
                     {x.gratuit ? (
                       <span style={{ color: '#059669', fontWeight: 600 }}>Exempté — scolarité gratuite</span>
+                    ) : x.moisExempte ? (
+                      <span style={{ color: '#059669', fontWeight: 600 }}>
+                        Mois exempté{x.moisRef ? ` (${MOIS_NOMS[x.moisRef.month]} ${x.moisRef.year})` : ''} — tarif {mru(x.plein ?? x.frais)}
+                      </span>
+                    ) : Number(x.reduction ?? 0) > 0.009 ? (
+                      <span style={{ color: '#B45309', fontWeight: 600 }}>
+                        Réduction de {mru(x.reduction ?? 0)}{x.moisRef ? ` (${MOIS_NOMS[x.moisRef.month]} ${x.moisRef.year})` : ''} — tarif {mru(x.plein ?? x.frais)}
+                      </span>
                     ) : (
-                      <span style={{ color: 'var(--text-light)' }}>Tarif {mru(x.frais)}</span>
+                      <span style={{ color: 'var(--text-light)' }}>Tarif {mru(x.plein ?? x.frais)}</span>
                     )}
                   </td>
                 </tr>

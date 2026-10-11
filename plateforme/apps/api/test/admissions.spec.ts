@@ -389,10 +389,17 @@ describe('expenses — depenses.php', () => {
     expect(rows[0]!.amount).toBe('12500.50');
     expect(rows[0]!.reversed).toBe(true);
 
-    // The reversal lands in the month it was MADE (ADR-0013). November keeps
-    // its original entry; the negation belongs to today.
+    // 0.7.9 (El Mourad, annulations.ts) : une écriture annulée et son
+    // annulation disparaissent ENSEMBLE de tous les rapports, quels que soient
+    // leurs mois — la caisse n'a rien dépensé. Novembre ne la compte plus, et
+    // aujourd'hui ne compte pas la négation ; le grand livre garde les deux.
     const november = await inTenant(() => reports.monthly(11, 2020));
-    expect(november.outgoings.expenses).toBe('12500.50');
+    expect(november.outgoings.expenses).toBe('0.00');
+    const { rows: deux } = await owner.query<{ n: string }>(
+      'SELECT count(*)::text AS n FROM expenses WHERE id = $1 OR reverses_id = $1',
+      [expenseId],
+    );
+    expect(deux[0]!.n).toBe('2');
 
     // And the screen no longer shows either line — his DELETE, without a DELETE.
     const page = await inTenant(() => expenses.list());
