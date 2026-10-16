@@ -4308,3 +4308,25 @@ Docker sur une copie propre du commit : `pnpm install --frozen-lockfile`
 (pnpm 9.12.3, les manifestes que copie le Dockerfile) ✓, construction de l'API
 et du site avec `NEXT_PUBLIC_API_URL=http://api:3001` ✓, migration 0051 sur une
 copie de la base de la répétition ✓ (effectifs et montants identiques).
+
+**Addendum — la construction durcie, la répétition réussie (16/10, soir).**
+Demande du propriétaire : « make sure it doesn't fail and solve the docker
+problem ». Le seul pas de la mise à jour qui dépend du réseau est le
+téléchargement des paquets (pnpm via corepack, puis ~500 paquets npm) ; une
+coupure y arrêtait tout et la relance repartait de zéro. Décidé :
+(1) le magasin de pnpm dans un cache de construction BuildKit
+(`--mount=type=cache,id=jinan-pnpm-store`) — gardé d'une construction à
+l'autre, hors de l'image ; une relance ne télécharge que ce qui manque ;
+(2) six essais par paquet (10 s à 2 min), cinq pour pnpm lui-même ;
+(3) `install.sh` construit jusqu'à trois fois (30 s d'écart), puis teste
+`registry.npmjs.org` et le dit ; (4) `dpkg --configure -a` avant apt (une mise à
+jour système interrompue l'avait bloqué sur la copie). Le cache est retiré
+avec le reste quand le disque descend sous 6 Go (garde existante de
+`installer-serveur.sh`) : la construction retélécharge alors tout, une fois.
+Vérifié : le Dockerfile se construit sans AUCUN réseau une fois le cache rempli
+(pnpm install en 12 s) ; puis la commande unique, sur la copie du serveur
+(0050, données), de bout en bout : commit 4886edf, migration 0051, `[OK]
+terminé`, données identiques, nouvelle construction servie par Caddy. Dans ce
+bac à sable les conteneurs n'ont pas d'accès au réseau (le relais qui le leur
+donnait n'est plus permis) : le cache y a été rempli depuis l'hôte, sans
+réseau pour les conteneurs ; un serveur le remplit lui-même depuis Internet.

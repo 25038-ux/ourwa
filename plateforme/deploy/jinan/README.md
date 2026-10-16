@@ -188,6 +188,15 @@ par défaut dans `deploy/brands/jinan.env`), puis :
     docker compose logs --tail=80 caddy     # les certificats HTTPS
     docker compose restart caddy            # après une correction du DNS
 
+**« La construction des images a échoué »** — le site continue sur la version
+précédente, rien n'est perdu. La construction est déjà essayée trois fois, et
+pnpm réessaie chaque paquet ; les paquets reçus restent dans le cache de
+construction. Le plus souvent, c'est le réseau du serveur : le message le dit
+s'il n'atteint pas `registry.npmjs.org` (`curl -I https://registry.npmjs.org/pnpm`
+pour vérifier). Quand il répond, relancer `bash /root/installer-jinan.sh` reprend
+sans retélécharger ce qui l'a déjà été. Sinon : `df -h` (disque), `free -m`
+(mémoire).
+
 ## L'application Android (sur le PC de construction, Git Bash)
 
 Voir `docs/store/jinan/PLAY-CONSOLE.md`. La clé de signature existe déjà
