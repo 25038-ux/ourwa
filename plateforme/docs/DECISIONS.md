@@ -4168,3 +4168,131 @@ logo fondé sur un **cèdre du Liban**, « d'une couleur séduisante », aux
 fournir : le domaine, l'adresse de la console, les informations légales et les
 hébergeurs ; à faire relire : les pages légales, l'anglais, l'arabe. Changer le
 nombre d'élèves = trois fichiers de textes (voir le `README.md` du site).
+
+## ADR-0085 — Les correctifs d'El Ourwa (master) portés à Jinan, sans la copie nocturne
+
+*16/10/2026. Demande du propriétaire : « appliquer à Jinan (ecole-jinan.com) les
+changements faits sur main de la plateforme — certains sont très, très
+importants, notre client Jinan en souffre » ; puis « ne copie pas la logique de
+la copie nocturne, l'école n'en a pas besoin », un balayage des bogues et la
+commande de déploiement.*
+
+**Contexte.** Jinan vit dans `25038-ux/ourwa`, sous `plateforme/`, importé de la
+branche de Jinan d'`elourwa` (b32c5c9 ; arbre identique, 785 fichiers). Sa base
+commune avec `elourwa/master` est 0549996 (29/09) ; master a reçu 89 commits
+depuis, dont les correctifs de la mise en ligne d'El Ourwa (10–11/10).
+
+**Décision — porté (18 commits)**, par `git cherry-pick -X subtree=plateforme`,
+chacun avec son message d'origine et « Porté depuis elourwa/master <sha> » :
+
+| Jinan | master | Ce que cela change |
+|---|---|---|
+| 9224a71 | 6f825d0 | Dette calculée par lot : « Dérogations » et « Réinscriptions » 5 à 15 fois plus rapides ; bulletin de classe 4× plus vite. Aucun chiffre ne change (même calcul, un lot au lieu d'une famille à la fois). |
+| 598307c | ac6475c | Le site répond au clic ; les feuilles de style `/elourwa/…?v=` gardées un an (Caddyfile, `next.config.mjs`). |
+| c13de09 | 42fab50 | L'année choisie se garde d'une page à l'autre (cookie de session `…_annee`, oublié à la déconnexion) ; navigation douce (sans rechargement complet). |
+| 3832644 | 5680f2f | `NAVIGATION_DOUCE` passe au conteneur du site (`docker-compose.yml` de Jinan). |
+| d836f11 | 9ff11a9 | Un professeur ne lit plus les notes de toute l'école ; le changement de mot de passe imposé est tenu par le serveur. |
+| 19bf2a7 | dcc6c48 | Paquets corrigés (audit : 7 hauts + 9 modérés → 2 hauts, hors du chemin des requêtes). |
+| 8fc977a | d54cf74 | Défilement sans repeindre l'écran ; pages allégées ; pages de notes refusées comme chez El Ourwa. |
+| 2ae28c7 | d86e151 | « J'enregistre et la page ne change pas » : le réveil perdu de React, corrigé à la construction (`correctifs/react-reveil-perdu.cjs`). |
+| 7e204c5 | ed68bf9 | L'onglet porte le nom de la page ; le bulletin défile sur un téléphone. |
+| f783c42 | 7ee6072 | Session : fenêtre de grâce à l'API ; API injoignable ; 500 sur paramètre invalide. |
+| 91b2fec | 301b0ff | Comptes du personnel : droit selon le type du compte visé, super administrateur protégé, refus en français. |
+| 3eea63f | 277d5c4 | Essai des comptes : libellé du rôle lu en base. |
+| a580f52 | 4ed2fb5 | « Envoyer un exercice » : pièces jusqu'à la limite, formulaire vidé seulement après un envoi réussi, droits sur les pièces, 404 si le fichier manque. |
+| ed3c961 | f3d173f | Comptes parents : familles actives d'une année, « sans numéro seulement ». |
+| 446c5bb | d6beb12 | « Appels du jour » : sans groupe choisi, chaque classe et chaque cours du jour selon l'emploi du temps, fait ou non. |
+| a7c5d15 | 850b809 | Une écriture annulée disparaît des rapports ; rapport d'une période ; synthèse de l'année de juillet à juin ; mensualités nettes. |
+| 3d6d79e | 78091e9 | Plage de plusieurs jours ; synthèse de l'année qui affiche ses chiffres ; paiements annulés retirés. |
+| e38f01e | 859fbd8 | La synthèse d'une année ne compte que l'argent de cette année ; pages lentes côté API. |
+
+Puis 0ff20bd : les essais portés suivent les règles de Jinan (types de fichiers
+des exercices, libellé « Personnel administratif », requêtes bornées à l'école
+de l'essai).
+
+**Décision — pas porté, et pourquoi.**
+- **La copie nocturne** — tout `feat/fix/docs(copie)`, l'écran « Copie
+  nocturne », `POST /copie/depot`, `apres-copie`, les outils `corriger-*` :
+  demande explicite ; Jinan n'a pas d'ancien logiciel à recopier.
+- **f9ae1e8** (mois impayés réclamés après la bascule) : écrit pour la copie
+  (`apres-copie.ts` y est mêlé) et sans effet sans son réglage ; Jinan en est à
+  sa première année, il n'y a pas d'année précédente à reporter.
+- **Le serveur et l'installateur d'El Ourwa, l'enseigne unique** (2eed472,
+  44004c5, 0174572, 8bf2af2, d03f3c6, 923843d, 45dfa57, 7f51f03, b53d9e3,
+  0862755, e6a91c5, 6fa9637, 57a3f72 ; 2d851ca, 82bb79a, 8db2afd) : ils
+  retirent la seconde enseigne et remplacent l'installation par celle d'El
+  Ourwa — l'inverse de ce dépôt.
+- **L'application des familles refaite et son canal** (ce32e14, b109021) ;
+  **l'iPhone d'El Mourad / El Ourwa** (1547b11, 57d8f62, ee17d6b) :
+  l'application de Jinan (0.8.1+21 : « Jardin », Documents, Firebase) a sa
+  propre ligne. Aucune application n'est livrée par ce portage.
+- **Les frais de plateforme d'El Ourwa** (13b20c9, de398ee — ADR-0079 de
+  master) : Jinan a les siens (ADR-0082), sur son grand livre des services.
+- **Facturation « famille »** — frais annuels par élève d'El Mourad (0df3bcb),
+  leur historique (ef35711, 383416b), la caisse « famille » (ce0e501, ec9a168) :
+  Jinan facture en « services » (`schools.billing_model`).
+- **Corrections des données reprises d'El Ourwa** (a742d1f noms et téléphones
+  des parents, ef35711 paie en double) et la documentation propre à El Ourwa.
+
+**Ce que le propriétaire doit savoir — ce qui change pour Jinan.**
+1. **Argent, rapports.** Une écriture annulée ET son annulation disparaissent
+   de tous les rapports (jour, mois, période, par origine, par moyen, journal,
+   synthèse de l'année, tableau de bord), quels que soient leurs jours. Avant,
+   le jour de l'encaissement gardait l'entrée et celui de l'annulation montrait
+   une sortie. Les grands livres restent en ajout seul (règle 7) ; un reçu
+   annulé se lit toujours et dit qu'il l'est ; le contrôle de caisse lit tout.
+   Les paiements de services de Jinan (`service_payments` : cantine, piscine,
+   docteur, transport, plateforme, fourniture, photocopie, inscription) y sont
+   compris. Règle décidée pour El Ourwa (ADR-0076 et ADR-0077 de master),
+   portée à la demande du propriétaire.
+2. **Renouvellement de session — fenêtre de grâce à l'API (ajuste la règle 13
+   et revient sur l'alternative écartée par l'ADR-0081).** Le renouvellement
+   unique côté site (ADR-0081) reste. L'API donne en plus un jeton frère à un
+   jeton déjà dépensé SEULEMENT s'il l'a été il y a moins de 30 s, avec la même
+   empreinte d'appareil, sans révocation, et moins de 6 successeurs ; tout
+   autre rejeu révoque la famille, comme avant. Raison : une réponse perdue
+   (navigation interrompue) que le site seul ne couvre pas. Confirmée par le
+   propriétaire pour El Ourwa (addendum à l'ADR-0077 de master).
+3. **Mot de passe imposé, tenu par le serveur** : tant que
+   `must_change_password` est levé, tout est refusé (403,
+   `code: MOT_DE_PASSE_A_CHANGER`) sauf les sept routes des écrans de
+   changement. Vérifié sur les appels de l'application de Jinan (écran obligé
+   avant tout le reste ; les sondages de fond avalent le refus) et du site.
+4. **Notes** : un professeur ne lit que ses classes. **Comptes du personnel** :
+   le droit du type de compte visé ; la règle de Jinan (`appartientIci`, comptes
+   sans fiche) est gardée.
+5. **Navigation douce** : `NAVIGATION_DOUCE=0` dans `.env` puis
+   `docker compose up -d web` la coupe sans reconstruire.
+
+**Migration.** Une seule, sans effet sur les données : l'index
+`payments (school_id, calendar_year)` de master (son 0046) devient
+`0051_index_annees_des_paiements.sql` — 0043 à 0050 désignent des fichiers
+différents des deux côtés (`CREATE INDEX IF NOT EXISTS`).
+
+**Fusions à la main** (relues) : `next.config.mjs` (UNE fonction `webpack` :
+les imports `.js` du paquet partagé ET le correctif de React — deux clés du même
+nom, la seconde aurait effacé la première), `accounts.service.ts`
+(`appartientIci` de Jinan + `exigerDroitSur` de master), les formulaires
+d'exercice (la zone de dépôt de Jinan, l'envoi de master), le Caddyfile de Jinan
+(le bloc `@feuilles` était tombé sur celui d'El Mourad), `responsive.css`.
+
+**Balayage du 16/10.** API 1 257/1 257 · base 93/93 · partagé ✓ · types web et
+API ✓ · construction de production ✓ (le correctif de React présent dans le
+paquet construit) · Caddyfile validé (`caddy:2-alpine`). Défaut trouvé par la
+suite du navigateur : son banc (`e2e/session.ts`) réécrivait TOUT l'état du
+contexte après chaque test, cookie d'année compris — le test suivant du même
+compte s'ouvrait sur l'année choisie par le précédent (« se souvient de
+l'année… » échouait, puis le dossier de la famille). Il ne garde plus que les
+jetons. Le même défaut est latent sur `elourwa/master`. Ensuite : suite complète
+du navigateur sur la construction de production, 182 réussis, 0 échec (48
+sautés, comme avant) ; les 33 essais de Jinan repassés sur des données neuves.
+Un parcours de chaque page de Jinan (directeur, comptable, secrétaire, agent
+d'absence) n'a trouvé qu'un défaut, antérieur au portage :
+`/finance/<identifiant mal formé>` affichait la page « n'a pas pu s'afficher »
+(l'API répond 400) ; elle dit maintenant « Correspondant introuvable. », comme
+les reçus. Laissé tel quel : une page de finance ouverte par adresse par un
+rôle qui n'y a pas droit (secrétaire, agent d'absence) montre la page d'erreur
+générale — l'API refuse bien (403), ces pages ne sont pas dans leur menu.
+Vérifié de bout en bout : l'annulation d'un paiement de transport de
+1 200 MRU le retire du jour, de la période et du mois (29 800 → 28 600), sans
+ligne de sortie.

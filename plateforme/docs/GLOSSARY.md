@@ -445,3 +445,27 @@ même écran chez lui, et l'écran dit laquelle est laquelle.
 - **Le cèdre** — le logo d'EduPlateforme, généré par `src/logo.py` ; ses tracés
   (`bois`, `plateaux`, `feuilles`) sont dans `src/marque.json` et repris par
   toutes les pages. ADR-0084 §4.
+
+## Ajouts du 16/10 — les correctifs d'El Ourwa portés à Jinan (ADR-0085)
+
+- **Année mémorisée** — l'année choisie dans le sélecteur de l'en-tête est
+  gardée pour la session (cookie httpOnly `…_annee`, posé par `middleware.ts`),
+  oubliée à la déconnexion ; l'équivalent d'`annee_vue()` d'El Ourwa.
+- **Navigation douce** — les liens du site changent de page sans tout
+  recharger (`components/navigation-douce.tsx`) ; coupée par
+  `NAVIGATION_DOUCE=0`.
+- **Réveil perdu** — le défaut de React (embarqué par Next) qui laissait une
+  page inchangée après un enregistrement ; corrigé à la construction par
+  `correctifs/react-reveil-perdu.cjs`.
+- **Fenêtre de grâce (session)** — un jeton de renouvellement présenté une
+  deuxième fois dans les 30 s, du même appareil, reçoit un jeton frère au lieu
+  de révoquer la famille ; 6 au plus. ADR-0085 §2.
+- **Écriture écartée** — une écriture annulée et son annulation : toutes deux
+  hors des rapports, toutes deux gardées au grand livre
+  (`finance/annulations.ts`).
+- **Appels du jour** — le tableau de la page d'appel sans groupe choisi :
+  chaque classe, chaque cours du jour d'après l'emploi du temps, appel fait ou
+  non.
+- **`MOT_DE_PASSE_A_CHANGER`** — le code du 403 que l'API rend à un compte
+  qui doit encore changer son mot de passe, pour toute route hors des écrans de
+  changement.

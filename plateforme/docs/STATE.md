@@ -8,6 +8,46 @@ every session, even short or unproductive ones.
 
 
 
+## JINAN REÇOIT LES CORRECTIFS D'EL OURWA (SANS LA COPIE NOCTURNE) — 2026-10-16
+
+**Demande du propriétaire** : appliquer à Jinan (ecole-jinan.com) les
+changements de `elourwa/master` — « certains sont très, très importants, notre
+client Jinan en souffre » — sans la logique de la copie nocturne ; un large
+balayage des bogues ; la commande de déploiement. Détail : **ADR-0085**.
+
+- **Fait** : 18 commits de master portés sous `plateforme/` (navigation qui
+  répond au clic, année mémorisée, « j'enregistre et la page ne change pas »,
+  sessions qui ne tombent plus, mot de passe imposé tenu par le serveur, notes
+  aux seules classes du professeur, comptes du personnel, exercices, comptes
+  parents, « Appels du jour », rapports d'une période, annulations hors des
+  rapports, synthèse de l'année, performances de la dette et des bulletins,
+  paquets corrigés). Liste, origines et raisons des exclusions : ADR-0085.
+- **Pas porté** : la copie nocturne (demande), le serveur et l'installateur
+  d'El Ourwa, l'enseigne unique, l'application refaite d'El Ourwa, ses frais de
+  plateforme, la facturation « famille », les corrections de ses données.
+- **Migration** : `0051_index_annees_des_paiements.sql` (un index, sans effet
+  sur les données). Rien d'autre en base.
+- **À savoir** : un paiement annulé et son annulation disparaissent désormais
+  des rapports (le grand livre garde les deux) ; fenêtre de grâce de 30 s au
+  renouvellement de session (ADR-0085 §2) ; `NAVIGATION_DOUCE=0` coupe la
+  navigation douce sans reconstruire.
+- **Balayage** : API 1 257/1 257, base 93/93, partagé ✓, types ✓,
+  construction ✓, Caddyfile ✓. Suite du navigateur (construction de production) : 182 réussis, 0 échec
+  (48 sautés, comme avant) ; les 33 essais de Jinan repassés sur des données
+  neuves. Parcours de chaque page de Jinan en directeur, comptable,
+  secrétaire et agent d'absence : aucune page cassée. Annulation d'un
+  transport de 1 200 MRU : sorti du jour, de la période et du mois.
+  Corrigés : le banc du navigateur passait l'année choisie d'un test au
+  suivant (`e2e/session.ts`) ; `/finance/<identifiant mal formé>` affichait
+  « n'a pas pu s'afficher » au lieu de « Correspondant introuvable ».
+- **Répétition de la mise à jour** : RESULTAT_REPETITION.
+- **Déployer** (sur le serveur, en root) :
+  `bash /root/installer-jinan.sh` — ou, si le fichier n'y est pas, la ligne de
+  `deploy/jinan/README.md` §1 (curl … `installer-serveur.sh`). Sauvegarde
+  d'abord, `.env` et `secrets/` gardés, migration 0051 appliquée, preuve que le
+  site en ligne est la nouvelle construction.
+- **Application des familles** : inchangée (0.8.1+21) ; rien à republier.
+
 ## LE SITE D'EDUPLATEFORME, REFONDU — 2026-10-11 (soir)
 
 **Demande du propriétaire** (le site du matin rejeté : « ai slop », « nothing to
