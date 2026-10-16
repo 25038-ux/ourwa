@@ -67,6 +67,17 @@ export default async function ProfilCorrespondantPage({
   const { guardianId } = await params;
   const sp = await searchParams;
   const { user } = await requireSession();
+  // Une adresse dont l'identifiant n'en a pas la forme : « introuvable », comme
+  // les reçus — pas la page « n'a pas pu s'afficher » (l'API répond 400 et
+  // `/finance/family` n'est pas rattrapé plus bas).
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(guardianId)) {
+    return (
+      <div className="form-card">
+        <p className="text-muted">Correspondant introuvable.</p>
+        <a href="/finance">← Tous les correspondants</a>
+      </div>
+    );
+  }
   const comptable = user.roles.includes('comptable');
   const peutAdministrer = user.roles.includes('super_admin') || user.roles.includes('admin');
 

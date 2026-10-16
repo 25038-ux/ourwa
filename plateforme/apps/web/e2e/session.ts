@@ -1,4 +1,5 @@
 import { test as base } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
 
 export { expect } from '@playwright/test';
 
@@ -17,13 +18,24 @@ export { expect } from '@playwright/test';
  * avait tort de partager un jeton entre contextes, ce qu'aucun navigateur ne
  * fait. Après chaque test, l'état du contexte est réécrit dans le fichier dont
  * il vient : le test suivant repart du jeton courant.
+ *
+ * ⚠ LE JETON, PAS L'ANNÉE CHOISIE (16/10/2026). Depuis que le middleware
+ * mémorise l'année du sélecteur dans un cookie de session (`…_annee`), réécrire
+ * TOUT l'état la passait au test suivant : un test qui choisit une année
+ * clôturée laissait chaque test suivant du même compte s'ouvrir sur elle
+ * (« se souvient de l'année… » échouait, l'année « ouverte » étant déjà la
+ * clôturée). Dans un navigateur, cette mémoire finit avec la session ; ici,
+ * chaque test est une nouvelle session qui garde seulement le jeton.
  */
 export const test = base.extend<{ persisterLaSession: void }>({
   persisterLaSession: [
     async ({ page, storageState }, use) => {
       await use();
       if (typeof storageState === 'string') {
-        await page.context().storageState({ path: storageState }).catch(() => undefined);
+        const etat = await page.context().storageState().catch(() => null);
+        if (!etat) return;
+        etat.cookies = etat.cookies.filter((c) => !c.name.endsWith('_annee'));
+        await writeFile(storageState, JSON.stringify(etat, null, 2)).catch(() => undefined);
       }
     },
     { auto: true },
