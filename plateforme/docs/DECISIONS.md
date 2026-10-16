@@ -4296,3 +4296,15 @@ générale — l'API refuse bien (403), ces pages ne sont pas dans leur menu.
 Vérifié de bout en bout : l'annulation d'un paiement de transport de
 1 200 MRU le retire du jour, de la période et du mois (29 800 → 28 600), sans
 ligne de sortie.
+
+**Répétition de la mise à jour (16/10).** `bash /root/installer-jinan.sh` sur la
+copie locale du serveur (migration 0050, données) : commit 1c58b76 téléchargé,
+sauvegarde, code remplacé, `.env` et `secrets/` gardés ; la construction Docker
+s'est arrêtée au téléchargement des paquets npm — une limite de ce bac à sable
+(les conteneurs n'y ont plus de chemin vers Internet), pas du code : la
+résolution du fichier de verrouillage était passée. Rien n'a été redémarré, le
+site est resté sur la version précédente (le comportement voulu). Vérifié hors
+Docker sur une copie propre du commit : `pnpm install --frozen-lockfile`
+(pnpm 9.12.3, les manifestes que copie le Dockerfile) ✓, construction de l'API
+et du site avec `NEXT_PUBLIC_API_URL=http://api:3001` ✓, migration 0051 sur une
+copie de la base de la répétition ✓ (effectifs et montants identiques).

@@ -40,7 +40,17 @@ balayage des bogues ; la commande de déploiement. Détail : **ADR-0085**.
   Corrigés : le banc du navigateur passait l'année choisie d'un test au
   suivant (`e2e/session.ts`) ; `/finance/<identifiant mal formé>` affichait
   « n'a pas pu s'afficher » au lieu de « Correspondant introuvable ».
-- **Répétition de la mise à jour** : RESULTAT_REPETITION.
+- **Répétition de la mise à jour** (`bash /root/installer-jinan.sh` sur la copie
+  locale du serveur, en 0050 avec données) : téléchargement du commit poussé,
+  sauvegarde, code remplacé, `.env` et `secrets/` gardés — puis la
+  construction Docker n'a pas pu télécharger les paquets npm **dans ce bac à
+  sable** (le relais réseau des conteneurs n'est plus permis ici ; le serveur a
+  Internet). Le site de la copie a continué sur l'ancienne version, comme
+  prévu. Vérifié à la place, hors Docker, sur une copie propre du commit : le
+  `pnpm install --frozen-lockfile` du Dockerfile (pnpm 9.12.3, mêmes
+  manifestes) réussit ; la construction de l'API et du site réussit (correctif
+  de React présent) ; la migration 0051 s'applique à une copie de la base de la
+  répétition, données identiques avant/après.
 - **Déployer** (sur le serveur, en root) :
   `bash /root/installer-jinan.sh` — ou, si le fichier n'y est pas, la ligne de
   `deploy/jinan/README.md` §1 (curl … `installer-serveur.sh`). Sauvegarde
