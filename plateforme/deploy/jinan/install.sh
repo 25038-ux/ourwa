@@ -120,6 +120,12 @@ else
   vert "échange (swap) déjà présent"
 fi
 
+# Une mise à jour système interrompue (coupure, redémarrage pendant apt) bloque
+# apt ensuite : « dpkg was interrupted, you must manually run 'dpkg --configure
+# -a' ». On la termine d'abord, comme apt le demande — sans danger si rien
+# n'est en attente ; un verrou tenu par une mise à jour en cours la laisse finir.
+dpkg --configure -a >/dev/null 2>&1 || true
+
 # Une mise à jour n'a pas besoin d'apt (Docker est déjà là) : un dépôt de
 # paquets injoignable ne doit pas arrêter la mise à jour du site.
 "${APT[@]}" update || jaune "apt-get update a échoué (sans gravité si Docker est déjà installé)"
@@ -410,9 +416,28 @@ fi
 titre "4. Construction et démarrage (10 à 20 minutes la première fois)"
 # ⚠ Une construction ratée ne redémarre rien : le site continue sur les
 # images précédentes. Le dire, au lieu d'un arrêt muet sur cette ligne.
-if ! docker compose build --quiet; then
-  rouge "La construction des images a échoué (message ci-dessus). Rien n'a été redémarré : le site continue sur la version précédente."
-  rouge "Causes habituelles : disque plein (df -h), mémoire (free -m), réseau (téléchargement des paquets)."
+#
+# ⚠ TROIS ESSAIS (16/10/2026). Le seul pas qui dépend du réseau est le
+# téléchargement des paquets npm ; une coupure passagère y suffisait à tout
+# arrêter. Les paquets déjà reçus restent dans le cache de construction (voir
+# le Dockerfile) : l'essai suivant ne télécharge que ce qui manque.
+CONSTRUIT=0
+for ESSAI in 1 2 3; do
+  if docker compose build --quiet; then CONSTRUIT=1; break; fi
+  if [ "$ESSAI" -lt 3 ]; then
+    jaune "La construction a échoué (essai $ESSAI sur 3). Nouvel essai dans 30 s — les paquets déjà téléchargés sont gardés."
+    sleep 30
+  fi
+done
+if [ "$CONSTRUIT" -ne 1 ]; then
+  rouge "La construction des images a échoué trois fois (message ci-dessus). Rien n'a été redémarré : le site continue sur la version précédente."
+  # Le réseau d'abord, puisque c'est la cause la plus fréquente : le dire au
+  # lieu de laisser le deviner.
+  if ! curl -fsS --max-time 20 -o /dev/null https://registry.npmjs.org/pnpm; then
+    rouge "Ce serveur n'atteint pas registry.npmjs.org (les paquets npm) : réseau ou DNS du serveur. Relancez quand il répond :"
+    rouge "  curl -I https://registry.npmjs.org/pnpm"
+  fi
+  rouge "Autres causes : disque plein (df -h), mémoire (free -m). Relancer le script reprend là où il s'est arrêté."
   exit 3
 fi
 docker compose up -d db
