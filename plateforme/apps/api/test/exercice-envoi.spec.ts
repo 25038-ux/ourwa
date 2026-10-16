@@ -13,6 +13,7 @@ import { hashPassword } from '../src/auth/passwords.js';
 import { ParentController } from '../src/parent/parent.controller.js';
 import { runInTenant } from '../src/tenant/tenant.context.js';
 import type { AuthenticatedRequest } from '../src/auth/permissions.guard.js';
+import { MAX_BYTES } from '../src/attachments/storage.js';
 
 /**
  * « ENVOYER UN EXERCICE », DE BOUT EN BOUT ET PAR SES ROUTES.
@@ -98,7 +99,7 @@ beforeAll(async () => {
   const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
   app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
   // Comme `main.ts`.
-  await app.register(multipart, { limits: { fileSize: 5 * 1024 * 1024, files: 1 } });
+  await app.register(multipart, { limits: { fileSize: MAX_BYTES, files: 1 } }); // comme main.ts
   await app.init();
   await app.getHttpAdapter().getInstance().ready();
   parent = moduleRef.get(ParentController);
@@ -239,15 +240,17 @@ describe('un exercice envoyé, avec ses pièces jointes', () => {
     expect(r.statusCode).toBe(201);
   });
 
-  it('⚠ un fichier de 5 Mo PILE passe (sa règle : refusé AU-DELÀ de 5 Mo)', async () => {
-    const pile = Buffer.concat([Buffer.from('%PDF-1.7\n'), Buffer.alloc(5 * 1024 * 1024 - 9, 1)]);
-    expect(pile.length).toBe(5 * 1024 * 1024);
-    const r = await joindre(profA, homeworkId, 'cinq-mo.pdf', pile);
+  // Jinan (04/10/2026) : 10 Mo par fichier (MAX_BYTES, @elourwa/shared/fichiers),
+  // et non 5 comme El Ourwa — les fiches Word et les photos de téléphone.
+  it('⚠ un fichier de MAX_BYTES PILE passe (refusé AU-DELÀ)', async () => {
+    const pile = Buffer.concat([Buffer.from('%PDF-1.7\n'), Buffer.alloc(MAX_BYTES - 9, 1)]);
+    expect(pile.length).toBe(MAX_BYTES);
+    const r = await joindre(profA, homeworkId, 'pile.pdf', pile);
     expect(r.statusCode, message(r)).toBe(201);
   });
 
   it('un octet de plus est refusé, par une phrase', async () => {
-    const trop = Buffer.concat([Buffer.from('%PDF-1.7\n'), Buffer.alloc(5 * 1024 * 1024 - 8, 1)]);
+    const trop = Buffer.concat([Buffer.from('%PDF-1.7\n'), Buffer.alloc(MAX_BYTES - 8, 1)]);
     const r = await joindre(profA, homeworkId, 'trop.pdf', trop);
     expect(r.statusCode).toBe(400);
     expect(message(r)).toMatch(/trop volumineux/i);
@@ -257,7 +260,8 @@ describe('un exercice envoyé, avec ses pièces jointes', () => {
     const avant = readdirSync(join(uploadDir, schoolId)).length;
     const r = await joindre(profA, homeworkId, 'notes.docx', Buffer.from('PK\u0003\u0004 pas une image'));
     expect(r.statusCode).toBe(400);
-    expect(message(r)).toBe('Type de fichier non autorisé. Acceptés : JPG, PNG, WebP, GIF, PDF.');
+    // Jinan accepte aussi les documents de bureau — mais un vrai : ce « .docx » n'en est pas un.
+    expect(message(r)).toBe('Type de fichier non autorisé. Acceptés : JPG, PNG, WebP, GIF, PDF, Word, Excel, PowerPoint, OpenDocument, RTF.');
     expect(readdirSync(join(uploadDir, schoolId)).length).toBe(avant);
   });
 
@@ -290,7 +294,7 @@ describe('un exercice envoyé, avec ses pièces jointes', () => {
       expect(exo, 'l’exercice est dans la liste').toBeTruthy();
       expect(exo.subject).toBe('Maths');
       expect(exo.attachments.map((a) => a.name)).toEqual(
-        ['énoncé du devoir.pdf', 'IMG_0042.PNG', 'cinq-mo.pdf', 'corrige.pdf'],
+        ['énoncé du devoir.pdf', 'IMG_0042.PNG', 'pile.pdf', 'corrige.pdf'],
       );
     }
   });

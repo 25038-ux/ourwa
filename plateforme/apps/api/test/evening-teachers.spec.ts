@@ -686,14 +686,19 @@ describe('annuler un paiement de professeur', () => {
       `SELECT tl.direction, tl.amount::text
          FROM tender_lines tl
          JOIN evening_teacher_payments p ON p.id = tl.source_id
-        WHERE tl.source_type = 'cours_soir_prof' AND p.reverses_id IS NOT NULL`,
+        WHERE tl.source_type = 'cours_soir_prof' AND p.reverses_id IS NOT NULL
+          AND p.school_id = $1`,
+      // La base de test est partagée entre les fichiers (ligne-retenue.spec.ts
+      // annule aussi un paiement de professeur) : on ne lit que CETTE école.
+      [schoolId],
     );
     expect(rows).toEqual([{ direction: 'in', amount: '20000.00' }]);
   });
 
   it('refuses to cancel the same payment twice', async () => {
     const { rows } = await owner.query<{ id: string }>(
-      `SELECT id FROM evening_teacher_payments WHERE reversed = true LIMIT 1`,
+      `SELECT id FROM evening_teacher_payments WHERE reversed = true AND school_id = $1 LIMIT 1`,
+      [schoolId],
     );
     await expect(
       inTenant(() => evening.reverseTeacherPayment(rows[0]!.id, 'encore', ACTOR)),
@@ -702,7 +707,8 @@ describe('annuler un paiement de professeur', () => {
 
   it('refuses to cancel a cancellation', async () => {
     const { rows } = await owner.query<{ id: string }>(
-      `SELECT id FROM evening_teacher_payments WHERE reverses_id IS NOT NULL LIMIT 1`,
+      `SELECT id FROM evening_teacher_payments WHERE reverses_id IS NOT NULL AND school_id = $1 LIMIT 1`,
+      [schoolId],
     );
     await expect(
       inTenant(() => evening.reverseTeacherPayment(rows[0]!.id, 'non', ACTOR)),
