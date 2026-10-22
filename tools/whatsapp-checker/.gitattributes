@@ -1,1 +1,2 @@
-*.bat text eol=crlf
+# Stored with CRLF as-is so they work however the folder is downloaded
+*.bat -text
