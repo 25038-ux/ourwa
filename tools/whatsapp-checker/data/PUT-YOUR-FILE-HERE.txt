@@ -1,0 +1,4 @@
+Put your parents file here (the .csv exported from Excel), for example:
+  parents-2026-2027-telephones.csv
+
+Keep only one file in this folder, then double-click START.bat.

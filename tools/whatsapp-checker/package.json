@@ -1,0 +1,19 @@
+{
+  "name": "whatsapp-parent-checker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Finds the parents who have WhatsApp on none of their phone numbers, using your own WhatsApp (WhatsApp Web).",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.34.7"
+  }
+}
