@@ -12,11 +12,12 @@ It never sends a message and never adds contacts. It only asks WhatsApp whether 
 
 ## Use it (Windows)
 
-1. Copy the `whatsapp-checker` folder to your PC.
+1. Extract the zip (right-click → **Extract All**). Don't run it from inside the zip.
 2. Put your parents file in the `data` folder (the `.csv` exported from Excel, for example `parents-2026-2027-telephones.csv`). Keep only one file there.
 3. Double-click **`START.bat`**.
-   - The first time, it installs Node.js (if it is missing) and the components. If it installs Node.js, close the window and double-click `START.bat` again.
-   - A browser window opens with WhatsApp Web, and a QR code also appears in the black window. On your phone, open **WhatsApp → Linked devices → Link a device** and scan it. You only do this once: the login is remembered.
+   - Nothing needs to be installed: the components are included in the zip, and WhatsApp Web opens in **Google Chrome or Microsoft Edge**, whichever is already on the PC.
+   - If Node.js 18+ is missing, a private copy is downloaded into the `runtime` folder (no admin rights needed).
+   - A browser window opens with WhatsApp Web, and a QR code also appears in the black window. On your phone, open **WhatsApp → Linked devices → Link a device** and scan it. You only do this once: the login is remembered. (Being logged in to the WhatsApp app on your PC is not enough: this is a separate linked device.)
 4. Wait. Each parent is printed as it is checked:
 
    ```
@@ -28,6 +29,17 @@ It never sends a message and never adds contacts. It only asks WhatsApp whether 
 5. At the end, the Excel file opens by itself.
 
 You can also drag the parents file onto `START.bat` instead of putting it in `data`.
+
+### What START.bat does so that it does not fail
+
+| Possible problem | What happens |
+|---|---|
+| Node.js missing or older than 18 | Downloads Node.js LTS into `runtime\node` (checksum verified, 3 attempts). |
+| Components missing or damaged | Reinstalls them from `package-lock.json` (3 attempts), without running any install script. |
+| Browser download failing during installation (the classic puppeteer error "the browser folder exists but the executable is missing") | Cannot happen: no browser is ever downloaded during installation (`.puppeteerrc.cjs`, `PUPPETEER_SKIP_DOWNLOAD`, `--ignore-scripts`). |
+| Chrome won't start | Tries Edge, then any other Chrome found. If none starts, downloads Chrome into `.browser` (half-finished downloads are deleted first, 3 attempts). The browser that worked is remembered for next time. |
+| Internet cut or WhatsApp disconnects during the run | Waits 20 s, reconnects and continues where it stopped (up to 4 times). |
+| Window closed, Ctrl+C, power cut | Every answer is already saved; the next START.bat continues. |
 
 ## What you get (folder `results`)
 
@@ -60,7 +72,7 @@ Run from a command prompt in this folder: `START.bat [file] [options]`
 | `--delay 3-6` | Wait 3 to 6 seconds between lookups instead of 2 to 4. |
 | `--headless` | Do not show the browser window. |
 | `--pair 22236000000` | Log in with an 8-character code on your phone instead of a QR code. |
-| `--browser "C:\path\chrome.exe"` | Use this browser. |
+| `--browser "C:\path\chrome.exe"` | Try this browser first. |
 | `--country 222` | Country code added to numbers written without one (default 222, Mauritania). |
 | `--no-open` | Do not open the Excel file at the end. |
 
@@ -70,7 +82,7 @@ Run from a command prompt in this folder: `START.bat [file] [options]`
 |---|---|
 | Stuck on "Loading WhatsApp", or "Self-test failed" | WhatsApp changed its website. Double-click **`UPDATE.bat`**, then `START.bat`. |
 | QR code expired or unreadable in the black window | Scan the QR code shown in the browser window instead, or use `--pair` with your number. |
-| "WhatsApp disconnected" | Run `START.bat` again (it continues). If it asks for the QR code again, scan it. |
+| "Cannot reach web.whatsapp.com" | Check the internet connection (open web.whatsapp.com in your browser), then run `START.bat` again. |
 | Excel file not updated | It was open in Excel while the tool wrote it. A copy with the date and time in its name was written next to it. |
 | Want to remove the login from this PC | Double-click **`LOGOUT.bat`**, and remove the device on your phone under **Linked devices**. |
 
@@ -81,9 +93,10 @@ The parents file, the results and the WhatsApp login stay on your PC. `.gitignor
 ## For developers
 
 ```
-npm install
+npm install --ignore-scripts  # no browser download: Chrome/Edge on the PC is used
 npm test                      # unit tests (no WhatsApp needed)
 node src/index.js --dry-run   # parse the file only
+node src/check-setup.js       # check that every component loads
 ```
 
-Built on [whatsapp-web.js](https://github.com/pedroslopez/whatsapp-web.js) (`client.getNumberId`). Code: `src/parents.js` reads the file, `src/runner.js` runs the checks (stops at the first WhatsApp number, retries, resume), `src/whatsapp.js` handles the WhatsApp connection and self-test, `src/report.js` writes the outputs.
+Built on [whatsapp-web.js](https://github.com/pedroslopez/whatsapp-web.js) (`client.getNumberId`). Code: `src/parents.js` reads the file, `src/runner.js` runs the checks (stops at the first WhatsApp number, retries, resume), `src/whatsapp.js` handles the WhatsApp connection and self-test, `src/browser.js` finds (or, as a last resort, downloads) a browser, `src/report.js` writes the outputs.

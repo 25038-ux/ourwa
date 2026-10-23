@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { loadParents, parentLabel, formatPhone } = require('./parents');
-const { STATUS, NumberCache, createPacer, runChecks } = require('./runner');
+const { STATUS, NumberCache, createPacer, runChecks, sleep } = require('./runner');
 const { writeReports } = require('./report');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -12,6 +12,8 @@ const DATA_DIR = path.join(ROOT, 'data');
 const RESULTS_DIR = path.join(ROOT, 'results');
 const CACHE_FILE = path.join(RESULTS_DIR, 'cache-numeros.json');
 const AUTH_DIR = path.join(ROOT, '.wwebjs_auth');
+const MAX_SESSIONS = 4;
+const RECONNECT_DELAY_S = 20;
 
 const HELP = `
 WhatsApp parent checker — finds the parents who have WhatsApp on none of their numbers.
@@ -131,7 +133,7 @@ function printParentLine({ result, i, total, stats }, started, remainingLive) {
 
 function openFile(file) {
   if (process.platform !== 'win32' || !file) return;
-  require('child_process').spawn('cmd', ['/c', 'start', '""', `"${file}"`], { shell: true, detached: true, stdio: 'ignore' }).unref();
+  require('child_process').exec(`start "" "${file}"`, () => {});
 }
 
 async function main() {
@@ -179,65 +181,103 @@ async function main() {
     controller.abort();
   });
 
-  print('');
-  print('Starting WhatsApp (first time: a QR code will appear — scan it with your phone)…');
   const wa = require('./whatsapp');
-  let client;
-  try {
-    client = await wa.connect({
-      authDir: AUTH_DIR,
-      headless: Boolean(opts.headless),
-      browserPath: opts.browser,
-      pairPhone: opts.pair,
-      log: (level, msg) => print(level === 'warn' ? yellow(msg) : msg),
-      onDisconnected: (reason) => {
-        stopReason = `WhatsApp disconnected (${reason})`;
-        print(red(`\n${stopReason}`));
-      },
+  const waLog = (level, msg) => print(level === 'warn' ? yellow(msg) : msg);
+  const started = Date.now();
+  const unchecked = (list) => new Set(list.flatMap((p) => p.phones.filter((ph) => ph.valid && !cache.get(ph.digits)).map((ph) => ph.digits))).size;
+  const totals = { live: 0, errors: 0, reused: alreadyKnown };
+  let outcome = null;
+  let lastProblem = null;
+  const shown = new Map(); // parent index -> status already printed
+
+  // If WhatsApp disconnects or the browser crashes, reconnect and continue where it stopped
+  for (let session = 1; session <= MAX_SESSIONS && !controller.signal.aborted; session++) {
+    if (session > 1) {
+      print(yellow(`\nProblem: ${lastProblem}`));
+      print(yellow(`Reconnecting in ${RECONNECT_DELAY_S}s and continuing where it stopped (attempt ${session}/${MAX_SESSIONS})…`));
+      await sleep(RECONNECT_DELAY_S * 1000, controller.signal);
+      if (controller.signal.aborted) break;
+    }
+    stopReason = null;
+    print('');
+    print(session === 1 ? 'Starting WhatsApp (first time: a QR code will appear — scan it with your phone)…' : 'Reconnecting to WhatsApp…');
+
+    let client;
+    try {
+      client = await wa.connect({
+        authDir: AUTH_DIR,
+        headless: Boolean(opts.headless),
+        browserPath: opts.browser,
+        pairPhone: opts.pair,
+        log: waLog,
+        onDisconnected: (reason) => {
+          stopReason = `WhatsApp disconnected (${reason})`;
+          print(red(`\n${stopReason}`));
+        },
+      });
+    } catch (err) {
+      if (err.network) {
+        lastProblem = err.message;
+        continue;
+      }
+      throw new Error(`Could not start WhatsApp: ${err.message || err}`);
+    }
+    client.pupBrowser?.on('disconnected', () => {
+      if (!stopReason) stopReason = 'the WhatsApp browser window was closed';
     });
-  } catch (err) {
-    throw new Error(`Could not start WhatsApp: ${err.message || err}`);
-  }
-  client.pupBrowser?.on('disconnected', () => {
-    if (!stopReason) stopReason = 'the WhatsApp browser window was closed';
-  });
-  print(green('WhatsApp is ready.'));
+    print(green('WhatsApp is ready.'));
 
-  try {
-    if (!opts.skipSelfTest) await wa.selfTest(client, (level, msg) => print(level === 'warn' ? yellow(msg) : green(msg)));
+    try {
+      if (!opts.skipSelfTest) await wa.selfTest(client, (level, msg) => print(level === 'warn' ? yellow(msg) : green(msg)));
 
-    print('');
-    print(bold(`Checking ${parents.length} parents (stops at the first number that has WhatsApp)…`));
-    print(gray('You can stop at any time with Ctrl+C: progress is saved and the next run continues from there.'));
-    print('');
-
-    checking = true;
-    const started = Date.now();
-    const unchecked = (list) => new Set(list.flatMap((p) => p.phones.filter((ph) => ph.valid && !cache.get(ph.digits)).map((ph) => ph.digits))).size;
-    const { results, stopReason: runStop, stats } = await runChecks(parents, {
-      check: (digits) => wa.checkNumber(client, digits),
-      cache,
-      signal: controller.signal,
-      getStopReason: () => stopReason,
-      pace: createPacer({
-        minMs: opts.delay[0] * 1000,
-        maxMs: opts.delay[1] * 1000,
-        burstPauseMs: opts.delay[1] * 8000, // ~30s with the default delay
+      if (!outcome) {
+        print('');
+        print(bold(`Checking ${parents.length} parents (stops at the first number that has WhatsApp)…`));
+        print(gray('You can stop at any time with Ctrl+C: progress is saved and the next run continues from there.'));
+        print('');
+      }
+      checking = true;
+      outcome = await runChecks(parents, {
+        check: (digits) => wa.checkNumber(client, digits),
+        cache,
         signal: controller.signal,
-        onPause: (ms) => print(gray(`  … short ${Math.round(ms / 1000)}s break to stay gentle with WhatsApp`)),
-      }),
-      log: (type, payload) => {
-        if (type === 'parent') printParentLine(payload, started, unchecked(parents.slice(payload.i + 1)));
-        else print(yellow(payload));
-      },
-    });
-    await finish({ results, runStop, stats, started, opts, data });
-  } finally {
-    await Promise.race([client.destroy().catch(() => {}), new Promise((r) => setTimeout(r, 10000))]);
+        getStopReason: () => stopReason,
+        pace: createPacer({
+          minMs: opts.delay[0] * 1000,
+          maxMs: opts.delay[1] * 1000,
+          burstPauseMs: opts.delay[1] * 8000, // ~30s with the default delay
+          signal: controller.signal,
+          onPause: (ms) => print(gray(`  … short ${Math.round(ms / 1000)}s break to stay gentle with WhatsApp`)),
+        }),
+        log: (type, payload) => {
+          if (type !== 'parent') return print(yellow(payload));
+          const { numbers, status } = payload.result;
+          // not reached yet (stopped): it will be checked after reconnecting
+          if (status === STATUS.UNVERIFIED && !numbers.some((n) => n.result === 'error')) return;
+          // after a reconnection, don't print again the parents already shown
+          if (shown.get(payload.i) === status) return;
+          shown.set(payload.i, status);
+          printParentLine(payload, started, unchecked(parents.slice(payload.i + 1)));
+        },
+      });
+      totals.live += outcome.stats.live;
+      totals.errors += outcome.stats.errors;
+      lastProblem = outcome.stopReason;
+    } catch (err) {
+      if (err.selfTestFailed) throw err;
+      lastProblem = err.message || String(err);
+    } finally {
+      checking = false;
+      await Promise.race([client.destroy().catch(() => {}), new Promise((r) => setTimeout(r, 10000))]);
+    }
+    if (outcome && !outcome.stopReason) break;
   }
+
+  if (!outcome) throw new Error(`Could not start WhatsApp: ${lastProblem}`);
+  await finish({ results: outcome.results, runStop: outcome.stopReason, totals, started, opts, data });
 }
 
-async function finish({ results, runStop, stats, started, opts, data }) {
+async function finish({ results, runStop, totals, started, opts, data }) {
   const count = (s) => results.filter((r) => r.status === s).length;
   const files = await writeReports(RESULTS_DIR, results, data);
 
@@ -256,7 +296,7 @@ async function finish({ results, runStop, stats, started, opts, data }) {
   print(`  No number in the list .... ${gray(count(STATUS.NO_NUMBER))}  (also in the "sans WhatsApp" list)`);
   const unverified = count(STATUS.UNVERIFIED);
   print(`  To re-check .............. ${unverified ? yellow(unverified) : 0}`);
-  print(gray(`  ${stats.live} lookups on WhatsApp, ${stats.cached} from the previous run, ${stats.errors} errors — ${fmtDuration(Date.now() - started)}`));
+  print(gray(`  ${totals.live} lookups on WhatsApp, ${totals.reused} answers reused from a previous run, ${totals.errors} errors — ${fmtDuration(Date.now() - started)}`));
   print('');
   if (runStop) print(yellow(`Stopped early: ${runStop}\nRun START.bat again: it continues where it stopped.`));
   else if (unverified) print(yellow('Some numbers could not be checked (errors). Run START.bat again to retry only those.'));
@@ -269,6 +309,9 @@ async function finish({ results, runStop, stats, started, opts, data }) {
   if (files.unverifiedCsv) print(`  ${files.unverifiedCsv}`);
   if (!opts.noOpen) openFile(files.xlsx);
 }
+
+// A stray error inside the WhatsApp library must not kill a 30-minute run
+process.on('unhandledRejection', (err) => writeLog(`unhandled rejection: ${(err && err.stack) || err}`));
 
 main()
   .then(() => {

@@ -1,5 +1,7 @@
 node_modules/
-package-lock.json
+# Private Node.js / Chrome copies downloaded on the PC when needed
+runtime/
+.browser/
 # WhatsApp login session: never commit it
 .wwebjs_auth/
 .wwebjs_cache/
