@@ -1,12 +1,11 @@
 # WhatsApp parent checker
 
-Finds the parents who have **no WhatsApp on any of their numbers**, using your own WhatsApp account on your Windows PC.
+Uses your own WhatsApp account on your Windows PC to sort the parents into two lists:
 
-For every parent in the list:
+- **Avec WhatsApp**: the parents who have WhatsApp, with **every** number of theirs that has a WhatsApp account (and their other numbers).
+- **Sans WhatsApp**: the parents who have WhatsApp on none of their numbers, with their name, children and numbers. Parents with no number at all ("AUCUN NUMÉRO") are in that list too, with their own reason.
 
-1. Its numbers are checked one by one (Téléphone 1, then 2, then 3).
-2. As soon as one number has a WhatsApp account, the parent is marked **has WhatsApp** and its other numbers are skipped.
-3. If none of its numbers has WhatsApp, the parent goes into the **sans WhatsApp** list. Parents with no number at all ("AUCUN NUMÉRO") are in that list too, with their own reason.
+Every number of every parent is checked (Téléphone 1, 2 and 3), so a parent with WhatsApp on two numbers shows both.
 
 It never sends a message and never adds contacts. It only asks WhatsApp whether each number has an account. That is the same check WhatsApp runs when you type a number to start a new chat.
 
@@ -25,7 +24,7 @@ It never sends a message and never adds contacts. It only asks WhatsApp whether 
    [  3/442] [WhatsApp]    Abderahmane (Saida Abderahmane)  +222 46 40 10 12
    ```
 
-   About 25–35 minutes for 442 parents. The tool waits 2–4 seconds between lookups, and takes a short break every 40, so that WhatsApp does not flag your account.
+   About 30–40 minutes for 442 parents (510 numbers). The tool waits 2–4 seconds between lookups, and takes a short break every 40, so that WhatsApp does not flag your account.
 5. At the end, the Excel file opens by itself.
 
 You can also drag the parents file onto `START.bat` instead of putting it in `data`.
@@ -45,7 +44,8 @@ You can also drag the parents file onto `START.bat` instead of putting it in `da
 
 | File | Contents |
 |---|---|
-| `Parents_sans_WhatsApp.xlsx` | Sheet **Sans WhatsApp**: the parents with no WhatsApp on any number, plus the parents with no number. Also has sheets **Rapport complet** (every parent, its status, and the number that has WhatsApp), **À revérifier** (only if some lookups failed) and **Résumé**. |
+| `Parents_WhatsApp.xlsx` | Sheet **Avec WhatsApp**: parent, children, `Numéro(s) WhatsApp` (all of them), `Nb WhatsApp`, `Autres numéros (sans WhatsApp)` and a `Remarque` if a number could not be checked. Sheet **Sans WhatsApp**: parent, children, `Numéros`, `Raison`. Also **Rapport complet** (every parent with its original columns and status), **À revérifier** (only if some lookups failed) and **Résumé** (counts). |
+| `parents_avec_whatsapp.csv` | The "avec WhatsApp" list, in the same format as your input file. |
 | `parents_sans_whatsapp.csv` | The "sans WhatsApp" list, in the same format as your input file. |
 | `rapport_complet.csv` | Every parent with its status, in the same format as your input file. |
 | `a_reverifier.csv` | Only present if some numbers could not be checked. |
@@ -57,7 +57,7 @@ Each row keeps its line number from your original file (column `Ligne`), so you 
 
 - **WhatsApp itself answers.** Each number goes through WhatsApp's own "does this number have an account" lookup. The tool does not read the screen.
 - **Self-test before every run.** Your own number must come back as "has WhatsApp", and impossible numbers must come back as "no WhatsApp". If a WhatsApp update breaks the lookup in either direction, the run stops instead of giving you a wrong list.
-- **An error is never counted as "no WhatsApp".** A failed lookup is retried 3 times (after 5 s, 15 s and 30 s). If it still fails, the parent goes to **À revérifier**, never to **Sans WhatsApp**. After 3 numbers in a row fail, the run stops (for example when the internet drops or WhatsApp disconnects).
+- **An error is never counted as "no WhatsApp".** A failed lookup is retried 3 times (after 5 s, 15 s and 30 s). If it still fails, the parent goes to **À revérifier**, never to **Sans WhatsApp** (a parent already found on WhatsApp stays in **Avec WhatsApp**, with the unchecked number in `Remarque`). After 3 numbers in a row fail, the run stops (for example when the internet drops or WhatsApp disconnects).
 - **Nothing is lost.** Every answer is saved as soon as it arrives (`results/cache-numeros.json`). If you stop the run (Ctrl+C, closed window, power cut), run `START.bat` again: it continues where it stopped and retries only what is missing. A number shared by two parents is checked only once.
 
 ## Options
@@ -69,6 +69,7 @@ Run from a command prompt in this folder: `START.bat [file] [options]`
 | `--dry-run` | Only read the file and show which numbers would be checked (WhatsApp is not used). |
 | `--limit 10` | Check only the first 10 parents (quick test). |
 | `--fresh` | Forget the saved answers and check every number again (for example next month). |
+| `--first-only` | Stop at a parent's first WhatsApp number (a little faster, but lists only one WhatsApp number per parent). |
 | `--delay 3-6` | Wait 3 to 6 seconds between lookups instead of 2 to 4. |
 | `--headless` | Do not show the browser window. |
 | `--pair 22236000000` | Log in with an 8-character code on your phone instead of a QR code. |
@@ -99,4 +100,4 @@ node src/index.js --dry-run   # parse the file only
 node src/check-setup.js       # check that every component loads
 ```
 
-Built on [whatsapp-web.js](https://github.com/pedroslopez/whatsapp-web.js) (`client.getNumberId`). Code: `src/parents.js` reads the file, `src/runner.js` runs the checks (stops at the first WhatsApp number, retries, resume), `src/whatsapp.js` handles the WhatsApp connection and self-test, `src/browser.js` finds (or, as a last resort, downloads) a browser, `src/report.js` writes the outputs.
+Built on [whatsapp-web.js](https://github.com/pedroslopez/whatsapp-web.js) (`client.getNumberId`). Code: `src/parents.js` reads the file, `src/runner.js` runs the checks (every number, retries, resume), `src/whatsapp.js` handles the WhatsApp connection and self-test, `src/browser.js` finds (or, as a last resort, downloads) a browser, `src/report.js` writes the outputs.

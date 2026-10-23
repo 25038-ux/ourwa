@@ -20,15 +20,16 @@ const NUMBER_LABEL = {
   'not-checked': 'non vérifié',
 };
 
+const phoneText = (n) => (n.valid ? formatPhone(n.digits) : n.raw);
+const joinPhones = (list) => list.map(phoneText).join(' / ');
+
 function numberDetail(result) {
-  const found = Boolean(result.whatsappNumber);
   return result.numbers
     .map((n) => {
       let label = NUMBER_LABEL[n.result];
-      if (n.result === 'not-checked' && found) label = 'non vérifié (WhatsApp déjà trouvé)';
       if (n.result === 'invalid') label += ` (${n.reason})`;
       if (n.result === 'error') label += ` (${n.error})`;
-      return `${n.valid ? formatPhone(n.digits) : n.raw} : ${label}`;
+      return `${phoneText(n)} : ${label}`;
     })
     .join(' | ');
 }
@@ -43,23 +44,51 @@ function reason(result) {
   return parts.join(' ; ');
 }
 
-function rowsFor(results, header) {
+/** Notes for a parent who has WhatsApp: numbers that could not be checked, invalid numbers. */
+function remark(result) {
+  const parts = [];
+  const unchecked = result.numbers.filter((n) => n.result === 'error' || n.result === 'not-checked');
+  if (unchecked.length) parts.push(`Non vérifié : ${joinPhones(unchecked)} (relancer START.bat pour compléter)`);
+  const invalid = result.numbers.filter((n) => n.result === 'invalid');
+  if (invalid.length) parts.push(`Numéro invalide : ${joinPhones(invalid)}`);
+  return parts.join(' ; ');
+}
+
+function rowsFor(results, { header, columns }) {
+  const parentH = header[columns.parent];
+  const childrenH = header[columns.children];
+  const who = (r) => [r.parent.line, r.parent.cells[columns.parent], r.parent.cells[columns.children]];
+  const whatsappOf = (r) => r.numbers.filter((n) => n.result === 'whatsapp');
+
+  const withWhatsapp = results
+    .filter((r) => r.status === STATUS.WHATSAPP)
+    .map((r) => [
+      ...who(r),
+      joinPhones(whatsappOf(r)),
+      whatsappOf(r).length,
+      joinPhones(r.numbers.filter((n) => n.result === 'no-whatsapp')),
+      remark(r),
+    ]);
   const noWhatsapp = results
     .filter((r) => r.status === STATUS.NO_WHATSAPP || r.status === STATUS.NO_NUMBER)
-    .map((r) => [r.parent.line, ...r.parent.cells, reason(r), numberDetail(r)]);
+    .map((r) => [...who(r), r.numbers.length ? joinPhones(r.numbers) : 'AUCUN NUMÉRO', reason(r)]);
   const full = results.map((r) => [
     r.parent.line,
     ...r.parent.cells,
     STATUS_LABEL[r.status],
-    r.whatsappNumber ? formatPhone(r.whatsappNumber) : '',
+    joinPhones(whatsappOf(r)),
     numberDetail(r),
   ]);
   const unverified = results
     .filter((r) => r.status === STATUS.UNVERIFIED)
     .map((r) => [r.parent.line, ...r.parent.cells, numberDetail(r)]);
   return {
-    noWhatsapp: { header: ['Ligne', ...header, 'Raison', 'Détail des numéros'], rows: noWhatsapp },
-    full: { header: ['Ligne', ...header, 'Statut WhatsApp', 'Numéro WhatsApp', 'Détail des numéros'], rows: full },
+    withWhatsapp: {
+      header: ['Ligne', parentH, childrenH, 'Numéro(s) WhatsApp', 'Nb WhatsApp', 'Autres numéros (sans WhatsApp)', 'Remarque'],
+      rows: withWhatsapp,
+    },
+    noWhatsapp: { header: ['Ligne', parentH, childrenH, 'Numéros', 'Raison'], rows: noWhatsapp },
+    full: { header: ['Ligne', ...header, 'Statut WhatsApp', 'Numéro(s) WhatsApp', 'Détail des numéros'], rows: full },
     unverified: { header: ['Ligne', ...header, 'Détail des numéros'], rows: unverified },
   };
 }
@@ -82,7 +111,7 @@ async function writeXlsx(file, sheets) {
     const ws = wb.addWorksheet(name, { views: [{ state: 'frozen', ySplit: 1 }] });
     ws.addRow(header);
     // Every cell is written as text so Excel never turns "+222 …" into a formula
-    for (const row of rows) ws.addRow(row.map((v, i) => (i === 0 && typeof v === 'number' ? v : String(v ?? ''))));
+    for (const row of rows) ws.addRow(row.map((v) => (typeof v === 'number' ? v : String(v ?? ''))));
     ws.getRow(1).font = { bold: true };
     ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: header.length } };
     header.forEach((h, i) => {
@@ -94,24 +123,30 @@ async function writeXlsx(file, sheets) {
 
 async function writeReports(outDir, results, meta) {
   fs.mkdirSync(outDir, { recursive: true });
-  const { noWhatsapp, full, unverified } = rowsFor(results, meta.header);
+  const { withWhatsapp, noWhatsapp, full, unverified } = rowsFor(results, meta);
   const widths = {
     [meta.header[meta.columns.parent]]: 22,
     [meta.header[meta.columns.children]]: 60,
+    'Numéro(s) WhatsApp': 36,
+    'Nb WhatsApp': 12,
+    'Autres numéros (sans WhatsApp)': 36,
+    Remarque: 50,
+    Numéros: 54,
     Raison: 38,
     'Statut WhatsApp': 16,
-    'Numéro WhatsApp': 18,
     'Détail des numéros': 70,
   };
   for (const col of meta.columns.phones) widths[meta.header[col]] = 18;
 
   const files = {
-    xlsx: path.join(outDir, 'Parents_sans_WhatsApp.xlsx'),
+    xlsx: path.join(outDir, 'Parents_WhatsApp.xlsx'),
+    withWhatsappCsv: path.join(outDir, 'parents_avec_whatsapp.csv'),
     noWhatsappCsv: path.join(outDir, 'parents_sans_whatsapp.csv'),
     fullCsv: path.join(outDir, 'rapport_complet.csv'),
     unverifiedCsv: path.join(outDir, 'a_reverifier.csv'),
   };
   const fmt = { encoding: meta.encoding, delimiter: meta.delimiter };
+  files.withWhatsappCsv = writeOrAlternate(files.withWhatsappCsv, (f) => writeDelimited(f, withWhatsapp, fmt));
   files.noWhatsappCsv = writeOrAlternate(files.noWhatsappCsv, (f) => writeDelimited(f, noWhatsapp, fmt));
   files.fullCsv = writeOrAlternate(files.fullCsv, (f) => writeDelimited(f, full, fmt));
   if (unverified.rows.length) files.unverifiedCsv = writeOrAlternate(files.unverifiedCsv, (f) => writeDelimited(f, unverified, fmt));
@@ -126,6 +161,8 @@ async function writeReports(outDir, results, meta) {
     rows: [
       ['Parents dans la liste', results.length],
       ['Ont WhatsApp', count(STATUS.WHATSAPP)],
+      ['   dont avec 2 numéros WhatsApp ou plus', withWhatsapp.rows.filter((row) => row[4] > 1).length],
+      ['Numéros WhatsApp trouvés', withWhatsapp.rows.reduce((n, row) => n + row[4], 0)],
       ['Pas de WhatsApp (numéros vérifiés)', count(STATUS.NO_WHATSAPP)],
       ['Aucun numéro dans la liste', count(STATUS.NO_NUMBER)],
       ['À revérifier (erreur ou non terminé)', count(STATUS.UNVERIFIED)],
@@ -134,6 +171,7 @@ async function writeReports(outDir, results, meta) {
     widths: { '': 40, Nombre: 22 },
   };
   const sheets = [
+    { name: 'Avec WhatsApp', ...withWhatsapp, widths },
     { name: 'Sans WhatsApp', ...noWhatsapp, widths },
     { name: 'Rapport complet', ...full, widths },
     ...(unverified.rows.length ? [{ name: 'À revérifier', ...unverified, widths }] : []),
@@ -181,4 +219,4 @@ async function writeOrAlternateAsync(file, write) {
   }
 }
 
-module.exports = { writeReports, rowsFor, reason, numberDetail, STATUS_LABEL, writeDelimited };
+module.exports = { writeReports, rowsFor, reason, remark, numberDetail, STATUS_LABEL, writeDelimited };

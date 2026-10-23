@@ -16,7 +16,8 @@ const MAX_SESSIONS = 4;
 const RECONNECT_DELAY_S = 20;
 
 const HELP = `
-WhatsApp parent checker — finds the parents who have WhatsApp on none of their numbers.
+WhatsApp parent checker — lists the parents who have WhatsApp (with every number
+that has WhatsApp) and the parents who have WhatsApp on none of their numbers.
 
 Usage:  node src/index.js [parents-file] [options]
         (or double-click START.bat, or drag the file onto START.bat)
@@ -26,6 +27,7 @@ Usage:  node src/index.js [parents-file] [options]
   --limit N           check only the first N parents (for a quick test)
   --delay MIN-MAX     seconds to wait between two lookups (default 2-4)
   --fresh             forget previous results and check every number again
+  --first-only        stop at a parent's first WhatsApp number (faster, but lists only one)
   --headless          hide the browser window
   --pair NUMBER       log in with a pairing code instead of a QR code (e.g. --pair 22236000000)
   --browser PATH      use this Chrome/Edge executable
@@ -46,6 +48,7 @@ function parseArgs(argv) {
     if (a === '--help' || a === '-h') opts.help = true;
     else if (a === '--dry-run') opts.dryRun = true;
     else if (a === '--fresh') opts.fresh = true;
+    else if (a === '--first-only') opts.firstOnly = true;
     else if (a === '--headless') opts.headless = true;
     else if (a === '--skip-selftest') opts.skipSelfTest = true;
     else if (a === '--no-open') opts.noOpen = true;
@@ -110,7 +113,7 @@ function printParentLine({ result, i, total, stats }, started, remainingLive) {
   switch (result.status) {
     case STATUS.WHATSAPP:
       tag = green('[WhatsApp]   ');
-      extra = formatPhone(result.whatsappNumber);
+      extra = result.whatsappNumbers.map(formatPhone).join(', ') + (result.incomplete ? ' (+ number to re-check)' : '');
       break;
     case STATUS.NO_WHATSAPP:
       tag = red('[NO WhatsApp]');
@@ -188,7 +191,7 @@ async function main() {
   const totals = { live: 0, errors: 0, reused: alreadyKnown };
   let outcome = null;
   let lastProblem = null;
-  const shown = new Map(); // parent index -> status already printed
+  const shown = new Map(); // parent index -> result already printed
 
   // If WhatsApp disconnects or the browser crashes, reconnect and continue where it stopped
   for (let session = 1; session <= MAX_SESSIONS && !controller.signal.aborted; session++) {
@@ -232,7 +235,9 @@ async function main() {
 
       if (!outcome) {
         print('');
-        print(bold(`Checking ${parents.length} parents (stops at the first number that has WhatsApp)…`));
+        print(bold(opts.firstOnly
+          ? `Checking ${parents.length} parents (stops at the first number that has WhatsApp)…`
+          : `Checking ${parents.length} parents (every number of every parent)…`));
         print(gray('You can stop at any time with Ctrl+C: progress is saved and the next run continues from there.'));
         print('');
       }
@@ -242,6 +247,7 @@ async function main() {
         cache,
         signal: controller.signal,
         getStopReason: () => stopReason,
+        stopAtFirst: Boolean(opts.firstOnly),
         pace: createPacer({
           minMs: opts.delay[0] * 1000,
           maxMs: opts.delay[1] * 1000,
@@ -255,8 +261,9 @@ async function main() {
           // not reached yet (stopped): it will be checked after reconnecting
           if (status === STATUS.UNVERIFIED && !numbers.some((n) => n.result === 'error')) return;
           // after a reconnection, don't print again the parents already shown
-          if (shown.get(payload.i) === status) return;
-          shown.set(payload.i, status);
+          const key = `${status}|${payload.result.whatsappNumbers}|${payload.result.incomplete}`;
+          if (shown.get(payload.i) === key) return;
+          shown.set(payload.i, key);
           printParentLine(payload, started, unchecked(parents.slice(payload.i + 1)));
         },
       });
@@ -281,29 +288,37 @@ async function finish({ results, runStop, totals, started, opts, data }) {
   const count = (s) => results.filter((r) => r.status === s).length;
   const files = await writeReports(RESULTS_DIR, results, data);
 
-  const noWa = results.filter((r) => r.status === STATUS.NO_WHATSAPP);
+  const noWa = results.filter((r) => r.status === STATUS.NO_WHATSAPP || r.status === STATUS.NO_NUMBER);
+  const withWa = results.filter((r) => r.status === STATUS.WHATSAPP);
+  const numbersOf = (r) => r.numbers.map((x) => (x.valid ? formatPhone(x.digits) : x.raw)).join(', ') || 'no number';
   print('');
   print(bold('================ RESULT ================'));
   if (noWa.length) {
     print(bold(red(`Parents with NO WhatsApp on any of their numbers (${noWa.length}):`)));
-    for (const r of noWa) {
-      print(`  line ${String(r.parent.line).padStart(3)}  ${parentLabel(r.parent, 60).padEnd(60)}  ${r.numbers.filter((x) => x.valid).map((x) => formatPhone(x.digits)).join(', ')}`);
-    }
+    for (const r of noWa) print(`  line ${String(r.parent.line).padStart(3)}  ${parentLabel(r.parent, 60).padEnd(60)}  ${numbersOf(r)}`);
     print('');
   }
-  print(`  Have WhatsApp ............ ${green(count(STATUS.WHATSAPP))}`);
+  const multi = withWa.filter((r) => r.whatsappNumbers.length > 1);
+  if (multi.length) {
+    print(bold(green(`Parents with WhatsApp on 2 numbers or more (${multi.length}):`)));
+    for (const r of multi) print(`  line ${String(r.parent.line).padStart(3)}  ${parentLabel(r.parent, 60).padEnd(60)}  ${r.whatsappNumbers.map(formatPhone).join(', ')}`);
+    print('');
+  }
+  print(`  Have WhatsApp ............ ${green(count(STATUS.WHATSAPP))}  (${withWa.reduce((n, r) => n + r.whatsappNumbers.length, 0)} WhatsApp numbers, full list in the Excel file)`);
   print(`  NO WhatsApp .............. ${red(count(STATUS.NO_WHATSAPP))}`);
-  print(`  No number in the list .... ${gray(count(STATUS.NO_NUMBER))}  (also in the "sans WhatsApp" list)`);
+  print(`  No number in the list .... ${gray(count(STATUS.NO_NUMBER))}  (also in the "Sans WhatsApp" list)`);
   const unverified = count(STATUS.UNVERIFIED);
-  print(`  To re-check .............. ${unverified ? yellow(unverified) : 0}`);
+  const incomplete = withWa.filter((r) => r.incomplete).length;
+  print(`  To re-check .............. ${unverified ? yellow(unverified) : 0}${incomplete ? yellow(`  (+ ${incomplete} parents with WhatsApp that have a number to re-check)`) : ''}`);
   print(gray(`  ${totals.live} lookups on WhatsApp, ${totals.reused} answers reused from a previous run, ${totals.errors} errors — ${fmtDuration(Date.now() - started)}`));
   print('');
   if (runStop) print(yellow(`Stopped early: ${runStop}\nRun START.bat again: it continues where it stopped.`));
-  else if (unverified) print(yellow('Some numbers could not be checked (errors). Run START.bat again to retry only those.'));
+  else if (unverified || incomplete) print(yellow('Some numbers could not be checked (errors). Run START.bat again to retry only those.'));
 
   print('Files:');
   if (files.xlsx) print(`  ${files.xlsx}`);
   if (files.xlsxError) print(yellow(`  (Excel file not written: ${files.xlsxError})`));
+  print(`  ${files.withWhatsappCsv}`);
   print(`  ${files.noWhatsappCsv}`);
   print(`  ${files.fullCsv}`);
   if (files.unverifiedCsv) print(`  ${files.unverifiedCsv}`);

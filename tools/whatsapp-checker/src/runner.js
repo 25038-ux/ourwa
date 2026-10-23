@@ -92,8 +92,9 @@ function createPacer({ minMs = 2000, maxMs = 4000, burstSize = 40, burstPauseMs 
 }
 
 /**
- * Check every parent. For each parent, numbers are tried in order and the
- * search stops at the first number that has WhatsApp.
+ * Check every parent. By default every number of every parent is checked, so
+ * all of a parent's WhatsApp numbers are listed. With `stopAtFirst`, a parent's
+ * remaining numbers are skipped once one has WhatsApp.
  *
  * `check(digits)` must resolve to { registered: boolean, wid?: string } or throw.
  * A number is only counted as "no WhatsApp" when WhatsApp itself answered so;
@@ -110,6 +111,7 @@ async function runChecks(parents, opts) {
     retryDelaysMs = [5000, 15000, 30000],
     timeoutMs = 45000,
     maxConsecutiveFailures = 3,
+    stopAtFirst = false,
   } = opts;
 
   const results = [];
@@ -137,7 +139,7 @@ async function runChecks(parents, opts) {
   for (let i = 0; i < parents.length; i++) {
     const parent = parents[i];
     const numbers = parent.phones.map((p) => ({ ...p, result: p.valid ? 'not-checked' : 'invalid' }));
-    const result = { parent, numbers, status: STATUS.UNVERIFIED, whatsappNumber: null, index: i };
+    const result = { parent, numbers, status: STATUS.UNVERIFIED, whatsappNumbers: [], incomplete: false, index: i };
     results.push(result);
 
     if (!parent.phones.length) {
@@ -178,12 +180,16 @@ async function runChecks(parents, opts) {
 
       num.result = answer.whatsapp ? 'whatsapp' : 'no-whatsapp';
       if (answer.whatsapp) {
-        result.whatsappNumber = num.digits;
-        break; // found one: no need to check this parent's other numbers
+        result.whatsappNumbers.push(num.digits);
+        if (stopAtFirst) break;
       }
     }
 
-    if (result.whatsappNumber) result.status = STATUS.WHATSAPP;
+    if (result.whatsappNumbers.length) {
+      result.status = STATUS.WHATSAPP;
+      // has WhatsApp for sure, but some numbers could not be checked: the list of WhatsApp numbers may be incomplete
+      result.incomplete = !stopAtFirst && numbers.some((n) => n.result === 'error' || n.result === 'not-checked');
+    }
     else if (numbers.every((n) => n.result === 'no-whatsapp' || n.result === 'invalid')) result.status = STATUS.NO_WHATSAPP;
     else result.status = STATUS.UNVERIFIED;
 
@@ -198,7 +204,8 @@ async function runChecks(parents, opts) {
           parent: p,
           numbers: p.phones.map((ph) => ({ ...ph, result: ph.valid ? 'not-checked' : 'invalid' })),
           status: p.phones.length ? STATUS.UNVERIFIED : STATUS.NO_NUMBER,
-          whatsappNumber: null,
+          whatsappNumbers: [],
+          incomplete: false,
           index: j,
         });
       }

@@ -25,15 +25,28 @@ function fakeWhatsApp(registered, calls = []) {
 
 const fast = { retryDelaysMs: [0, 0], timeoutMs: 1000 };
 
-test('stops at the first number that has WhatsApp', async () => {
+test('checks every number and lists all the WhatsApp numbers of a parent', async () => {
   const calls = [];
   const { results } = await runChecks([parent('A', '22200000001', '22200000002', '22200000003')], {
     ...fast,
     check: fakeWhatsApp(['22200000002', '22200000003'], calls),
   });
-  assert.deepStrictEqual(calls, ['22200000001', '22200000002']);
+  assert.deepStrictEqual(calls, ['22200000001', '22200000002', '22200000003']);
   assert.strictEqual(results[0].status, STATUS.WHATSAPP);
-  assert.strictEqual(results[0].whatsappNumber, '22200000002');
+  assert.deepStrictEqual(results[0].whatsappNumbers, ['22200000002', '22200000003']);
+  assert.deepStrictEqual(results[0].numbers.map((n) => n.result), ['no-whatsapp', 'whatsapp', 'whatsapp']);
+  assert.strictEqual(results[0].incomplete, false);
+});
+
+test('with stopAtFirst, stops at the first number that has WhatsApp', async () => {
+  const calls = [];
+  const { results } = await runChecks([parent('A', '22200000001', '22200000002', '22200000003')], {
+    ...fast,
+    stopAtFirst: true,
+    check: fakeWhatsApp(['22200000002', '22200000003'], calls),
+  });
+  assert.deepStrictEqual(calls, ['22200000001', '22200000002']);
+  assert.deepStrictEqual(results[0].whatsappNumbers, ['22200000002']);
   assert.strictEqual(results[0].numbers[2].result, 'not-checked');
 });
 
@@ -72,6 +85,8 @@ test('error on one number but WhatsApp on the next still counts as WhatsApp', as
   };
   const { results } = await runChecks([parent('F', '22200000001', '22200000002')], { ...fast, check });
   assert.strictEqual(results[0].status, STATUS.WHATSAPP);
+  assert.deepStrictEqual(results[0].whatsappNumbers, ['22200000002']);
+  assert.strictEqual(results[0].incomplete, true, 'the failed number may also have WhatsApp');
 });
 
 test('hung lookups time out instead of blocking forever', async () => {
